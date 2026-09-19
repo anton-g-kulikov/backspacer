@@ -89,6 +89,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.6.2 released: Critical (R1–R3, R7, R9) and Severe (R4–R6, R8, R20, R21) tiers.
 - 2026-09-20 — R20: Web Inspector only in DEBUG or with the `WebInspector` default.
 - 2026-09-20 — R21: `exclude` for children entries; `~/Library/Logs` spares DiagnosticReports and Reclaimer (I15, C12).
 - 2026-09-20 — R8: posix_spawn in its own process group, clean signal mask, killpg on timeout (M9, M10).

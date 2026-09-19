@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.2 — 2026-09-20 (security and robustness)
 - The Web Inspector is off in release builds (`defaults write com.antonkulikov.reclaimer WebInspector -bool YES` turns it on).
 - `~/Library/Logs` is listed per app in Details; deleting it no longer removes crash reports or Reclaimer's own diagnostics log.
 - Fixed: a command that hits its time limit is now stopped together with everything it started; before, the shell was stopped but a long `du` or `rm` could keep running in the background.
