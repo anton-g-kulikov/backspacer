@@ -35,18 +35,13 @@ _(none)_
   Spotify cache, Zoom, Teams, Discord, Adobe caches — each verified against a
   real install or documented location. Show an "in Trash" state on rows that
   were moved rather than a size of 0.
-
-
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
   or AVDs use `itemsCmd`.
 
-
 ## Roadmap (from the 0.1.0 README)
 
 - "Explain" panel per entry with the full reasoning from the catalog notes.
-- Simulator runtime deletion from the UI (`xcrun simctl runtime delete <id>`),
-  once the info output is parsed into a picker.
 - Per-project view for `~/Projects` with last-touched dates.
 - Optional launch-at-login menu-bar mode that warns below a free-space threshold.
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
