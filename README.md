@@ -1,8 +1,15 @@
 # Reclaimer
 
+[![Download the latest release](https://img.shields.io/github/v/release/anton-g-kulikov/reclaimer?label=download&color=0a84ff)](https://github.com/anton-g-kulikov/reclaimer/releases/latest)
+![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)
+![Apple silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-lightgrey)
+
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and
 deletes only what you tick — after a confirmation that lists every item.
+
+**[Download the latest release →](https://github.com/anton-g-kulikov/reclaimer/releases/latest)**
+Open the DMG, drag Reclaimer to Applications. Notarized; no Gatekeeper warnings.
 
 It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The
 knowledge from that chase lives in `catalog.json`; the app is a thin, careful
@@ -138,41 +145,14 @@ has Full Disk Access. Reclaimer detects this and shows a banner with a button
 that opens the right System Settings pane. Grant it, then Rescan. Without it,
 those entries under-report or show `?`.
 
-## Ship it
-
-Requires an Apple Developer Program membership (Developer ID certificate).
-One-time:
-
-1. Xcode → Settings → Accounts → *Manage Certificates* → **+** → *Developer ID Application*.
-2. Create an app-specific password at appleid.apple.com.
-3. `xcrun notarytool store-credentials Reclaimer --apple-id you@example.com --team-id TEAMID --password <app-specific-password>`
-
-Every release:
-
-```bash
-IDENTITY="Developer ID Application: Anton Kulikov (TEAMID)" scripts/build-app.sh
-scripts/notarize.sh              # notarizes → staples → DMG → notarizes DMG → staples
-```
-
-`build/Reclaimer-<version>.dmg` is what you share. Gatekeeper opens it without
-warnings on any Mac running macOS 13 or later.
-
-- With `IDENTITY` set the binary is universal (arm64 + x86_64); dev builds are
-  native-only. Override with `UNIVERSAL=0` / `UNIVERSAL=1`.
-- The version comes from `git describe --tags` (`v0.2.0` → `0.2.0`), or `0.1.0`
-  outside a git repo. Set `VERSION=…` to override.
-- If Apple rejects the submission, the script prints the notary log, which
-  names every offending file and reason.
-- The icon comes from `assets/AppIcon.icns` (regenerate from `assets/AppIcon.svg`).
-
 ## Layout
 
 ```
 catalog.json              the knowledge — what to scan and how safe it is
 web/index.html            the UI (single file, no dependencies)
 Sources/Reclaimer/        AppDelegate, Bridge, Catalog, Shell, main
-scripts/build-app.sh      package → .app
-scripts/notarize.sh       sign → notarize → staple → dmg
+scripts/build-app.sh      package → .app (ad-hoc, or Developer ID with IDENTITY set)
+scripts/notarize.sh       notarize → staple → dmg — see _meta/release-checklist.md
 scripts/entitlements.plist
 scripts/mac-storage-review.sh   the original read-only terminal audit
 Tests/                    Swift Testing suites + test-documentation.md

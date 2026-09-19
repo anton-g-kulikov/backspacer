@@ -3,12 +3,23 @@
 Repeated, error-prone task. Update this when a step turns out to be missing.
 
 ## Prerequisites (once per machine)
-- Developer ID Application certificate in the login keychain
-  (`security find-identity -v -p codesigning` lists it).
-- `notarytool` profile named `Reclaimer` stored with the Apple ID that owns team
-  R9BBCR3NF6. Check: `xcrun notarytool history --keychain-profile Reclaimer`.
-  A `401` means the profile's Apple ID or app-specific password is stale —
-  re-run `store-credentials` (never paste the password into a script).
+Requires an Apple Developer Program membership.
+1. Developer ID Application certificate in the login keychain: Xcode → Settings →
+   Accounts → *Manage Certificates* → **+** → *Developer ID Application*.
+   Check: `security find-identity -v -p codesigning` lists
+   `Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)`.
+2. An app-specific password from account.apple.com → Sign-In and Security, for
+   the Apple ID that owns team R9BBCR3NF6 (anton.g.kulikov@gmail.com).
+3. `xcrun notarytool store-credentials Reclaimer --apple-id anton.g.kulikov@gmail.com --team-id R9BBCR3NF6`
+   (prompts for the password; never put it in a script).
+   Check: `xcrun notarytool history --keychain-profile Reclaimer`. A `401` means
+   the profile's Apple ID or password is stale — re-run store-credentials.
+
+Build knobs (`scripts/build-app.sh`): `IDENTITY` selects Developer ID signing
+and a universal binary (`UNIVERSAL=0/1` overrides); the version comes from
+`git describe --tags` (`VERSION=…` overrides); the icon is `assets/AppIcon.icns`.
+On a rejected submission `scripts/notarize.sh` prints the notary log, which
+names every offending file.
 
 ## Steps
 1. `swift test` is green; `git status` is clean; CHANGELOG has the version's entry.
