@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-09-19
 - Your-call items (archives, DeviceSupport, app data, workspaces…) now go to the Trash instead of being removed outright; the dialog reads "Move to Trash" and reminds you to empty it to free the space. Caches and build output are still removed for good.
 - Details lists are sorted largest first; project-folder matches are named relative to their project (`drtalk/ios/build`, not `build`).
 - VS Code workspace storage: Details names each workspace by its project (`~/Projects/reclaimer`) instead of a hash, with a Delete per workspace.
