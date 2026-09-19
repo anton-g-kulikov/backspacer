@@ -72,6 +72,15 @@ as an instruction), and `~`/`~/Library` are refused so a glob can't reach
 app data through this door. Auto-discovering git repositories across the
 whole home folder was rejected as slow and surprising.
 
+## ADR-13 — Your-call items go to the Trash, caches don't
+Deletes were all `rm -rf`. Real data (the `decide` bucket) now moves to the
+Trash so Finder can put it back; the dialog says "Move to Trash" and that
+space is freed only once the Trash is emptied. Caches and build output stay
+permanent: parked in the Trash they'd reclaim nothing and the disk numbers
+would lie. Admin paths and command-driven entries can't be trashed. A
+failed trash is an error, not a fallback to `rm`. The trasher is injected so
+tests never touch the user's Trash.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

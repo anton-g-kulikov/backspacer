@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Your-call items (archives, DeviceSupport, app data, workspaces…) now go to the Trash instead of being removed outright; the dialog reads "Move to Trash" and reminds you to empty it to free the space. Caches and build output are still removed for good.
 - Details lists are sorted largest first; project-folder matches are named relative to their project (`drtalk/ios/build`, not `build`).
 - VS Code workspace storage: Details names each workspace by its project (`~/Projects/reclaimer`) instead of a hash, with a Delete per workspace.
 - Simulators and runtimes, one at a time: Details on "Simulator device contents" lists every simulator with its data size and an Erase-style Delete per device; "Simulator runtimes" is no longer manual — Details lists each runtime (~8 GB) with its own Delete.

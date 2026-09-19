@@ -50,6 +50,13 @@ password dialog.
   staged macOS update folder.
 - **Every delete goes through a confirmation** listing exactly what will go
   and how much. Nothing is removed by a single click.
+- **Your call goes to the Trash; caches are removed for good.** Real data
+  (archives, DeviceSupport, app data, workspaces) is moved to `~/.Trash`, so
+  Finder's Put Back can undo it; the dialog says so and reminds you that the
+  space is only freed once the Trash is emptied — the "Trash" entry in Safe
+  to delete does that. Caches and build output are `rm`'d: parked in the
+  Trash they would reclaim nothing. Admin paths and command-driven entries
+  (`brew`, `simctl`) can't be trashed and are removed directly.
 - **The size threshold hides, it doesn't just filter.** The "Show ≥" slider
   (10 MB … 10 GB, default 100 MB) removes smaller entries from the list, deselects them, and
   they can't be deleted until the slider is lowered again.

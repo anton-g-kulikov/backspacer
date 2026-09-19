@@ -17,7 +17,10 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private let tildeHome: String
     private let defaults: UserDefaults
     private let pathPrefix: String?
+    private let trasher: (URL) throws -> Void
     private let fm = FileManager.default
+
+    enum Disposal { case permanent, trash }
 
     /// `home` (the safety gate's notion of the home folder), `tildeHome` (what a leading `~` in
     /// the catalog expands to) and `defaults` are injectable so tests run against a throwaway
@@ -26,12 +29,38 @@ final class Bridge: NSObject, WKScriptMessageHandler {
          home: String = FileManager.default.homeDirectoryForCurrentUser.path,
          tildeHome: String = FileManager.default.homeDirectoryForCurrentUser.path,
          defaults: UserDefaults = .standard,
-         pathPrefix: String? = nil) {
+         pathPrefix: String? = nil,
+         trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) }) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
         self.defaults = defaults
         self.pathPrefix = pathPrefix
+        self.trasher = trasher
+    }
+
+    func catalogEntry(_ id: String) -> Catalog.Entry? { catalog.entry(id) }
+
+    /// Your-call items are real data, so they go to the Trash (Finder can put them back).
+    /// Caches are removed for good — parked in the Trash they'd reclaim nothing. Admin paths
+    /// and command-driven entries can't be trashed.
+    func disposal(of e: Catalog.Entry) -> Disposal {
+        e.bucket == "decide" && !e.needsAdmin && e.deleteCmd == nil && e.itemsCmd == nil ? .trash : .permanent
+    }
+
+    /// Removes paths according to the entry's disposal. Trashing that fails is an error, never a
+    /// fallback to rm.
+    private func remove(_ paths: [String], for e: Catalog.Entry) throws -> Bool {
+        switch disposal(of: e) {
+        case .trash:
+            for p in paths { try trasher(URL(fileURLWithPath: p)) }
+            return true
+        case .permanent:
+            let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
+            let r = e.needsAdmin ? Shell.runAsAdmin(cmd) : Shell.run(cmd, timeout: 1800)
+            guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+            return false
+        }
     }
 
     /// Runs a command the catalog defines (sizeCmd, infoCmd, deleteCmd, itemsCmd, deleteItemCmd).
@@ -315,20 +344,16 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         if let item { return try deleteItem(e, item) }
         let before = ((try? size(e))?["bytes"] as? Int64) ?? 0
 
-        let command: String
         if let custom = e.deleteCmd {
-            command = custom
-        } else {
-            let paths = resolvePaths(e)
-            guard !paths.isEmpty else { return ["ok": true, "freedBytes": 0] }
-            for p in paths where !isSafeToDelete(p) { throw BridgeError.unsafePath(p) }
-            command = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
+            let r = runCatalogCommand(custom, timeout: 1800, admin: e.needsAdmin)
+            guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+            return ["ok": true, "freedBytes": before]
         }
-
-        let r = e.deleteCmd != nil ? runCatalogCommand(command, timeout: 1800, admin: e.needsAdmin)
-                                   : (e.needsAdmin ? Shell.runAsAdmin(command) : Shell.run(command, timeout: 1800))
-        guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
-        return ["ok": true, "freedBytes": before]
+        let paths = resolvePaths(e)
+        guard !paths.isEmpty else { return ["ok": true, "freedBytes": 0] }
+        for p in paths where !isSafeToDelete(p) { throw BridgeError.unsafePath(p) }
+        let trashed = try remove(paths, for: e)
+        return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
     }
 
     /// One command-listed item. `key` is a selector: it must appear in a fresh run of itemsCmd,
@@ -350,10 +375,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         guard resolveItems(e).contains(item) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(item)") }
         guard isSafeToDelete(item) else { throw BridgeError.unsafePath(item) }
         let before = (Self.parseDu(Shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600).stdout).first?.kb ?? 0) * 1024
-        let cmd = "rm -rf " + Shell.q(item)
-        let r = e.needsAdmin ? Shell.runAsAdmin(cmd) : Shell.run(cmd, timeout: 1800)
-        guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
-        return ["ok": true, "freedBytes": before]
+        let trashed = try remove([item], for: e)
+        return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
     }
 
     private func reveal(_ e: Catalog.Entry) throws -> [String: Any] {

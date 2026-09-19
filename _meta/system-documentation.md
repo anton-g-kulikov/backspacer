@@ -86,8 +86,13 @@ drive the real catalog commands against a fake `xcrun`.
 1. The page collects ticked ids (only visible, deletable ones) and opens a
    `<dialog>` listing each label and size.
 2. On confirm, `delete {id}` per entry. The bridge re-checks `isDeletable`,
-   resolves paths, runs `isSafeToDelete` on each, then `rm -rf` (or the
-   entry's `deleteCmd`). `sudo` entries run via `Shell.runAsAdmin`.
+   resolves paths, runs `isSafeToDelete` on each, then disposes of them per
+   `Bridge.disposal(of:)`: `decide` entries without `sudo`/`deleteCmd`/
+   `itemsCmd` are moved to the Trash with `FileManager.trashItem` (a failure
+   is an error, never a fallback to `rm`); everything else is `rm -rf` (or
+   the entry's `deleteCmd`). `sudo` entries run via `Shell.runAsAdmin`. The
+   reply carries `trashed: true` when applicable; the page then rescans the
+   Trash entry so its size reflects the move.
 3. The reply carries the bytes measured just before deletion; the row greys
    out and the disk numbers refresh.
 

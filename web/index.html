@@ -509,11 +509,12 @@ function mockBridge() {
         case 'info': return { text: `(mock) output of infoCmd for ${args.id}\nline 2\nline 3` };
         case 'delete': {
           const s = sizes.get(args.id) || { bytes: 0 };
+          const e = catalog.entries.find(x => x.id === args.id), tr = e.bucket === 'decide' && !e.sudo && !e.deleteCmd && !e.itemsCmd;
           if (args.item) {
             const it = s.items?.find(x => (x.key ?? x.path) === args.item); if (!it) throw new Error('Not one of the items: ' + args.item);
-            s.items = s.items.filter(x => x !== it); s.bytes -= it.bytes; s.freed = (s.freed || 0) + it.bytes; return { ok: true, freedBytes: it.bytes };
+            s.items = s.items.filter(x => x !== it); s.bytes -= it.bytes; s.freed = (s.freed || 0) + it.bytes; return { ok: true, freedBytes: it.bytes, ...(tr && !it.key ? { trashed: true } : {}) };
           }
-          const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed: (s.freed || 0) + freed }); return { ok: true, freedBytes: freed };
+          const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed: (s.freed || 0) + freed }); return { ok: true, freedBytes: freed, ...(tr ? { trashed: true } : {}) };
         }
         case 'reveal': case 'openFDA': return { ok: true };
         case 'appInfo': return { version: 'dev', build: 'browser' };
@@ -536,6 +537,11 @@ const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob || e.itemsCmd);
 // Items can be removed one at a time: by path (rm) or by the entry's deleteItemCmd.
 const itemDeletable = e => ['safe', 'regen', 'decide'].includes(e.bucket) && !e.manual && (!!e.deleteItemCmd || (deletable(e) && !e.deleteCmd && !e.itemsCmd));
 const itemId = it => it.key ?? it.path;
+// Mirrors Bridge.disposal: Your-call folders go to the Trash; caches, admin paths and
+// command-driven entries are removed for good.
+const trashes = e => e.bucket === 'decide' && !e.sudo && !e.deleteCmd && !e.itemsCmd;
+const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
+const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
 // Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
 const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
 const minBytes = () => THR[state.thr];
@@ -812,20 +818,23 @@ async function confirmAndDeleteItem(id, path) {
   const e = entry(id), it = (state.items.get(id) || []).find(x => itemId(x) === path);
   if (!it || !itemDeletable(e)) return;
   const name = it.display || it.label || path.split('/').slice(-2).join('/');
-  $('#dlgTitle').textContent = `Delete “${name}”?`;
-  $('#dlgText').textContent = `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.` + (e.sudo ? ' macOS will ask for your password.' : '');
+  const trash = trashes(e) && !it.key;
+  $('#dlgTitle').textContent = trash ? `Move “${name}” to the Trash?` : `Delete “${name}”?`;
+  $('#dlgText').textContent = (trash ? `About ${fmt(it.bytes)} from ${e.label} will be moved to the Trash.` + TRASH_NOTE
+    : `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.`) + (e.sudo ? ' macOS will ask for your password.' : '');
+  $('#dlgOk').textContent = trash ? 'Move to Trash' : 'Delete';
   $('#dlgList').innerHTML = `<li>${esc(it.label || path)}</li>`;
   const dlg = $('#dlg'); dlg.showModal();
   const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
   if (choice !== 'ok') return;
-  log(`deleting ${name}…`);
+  log(`${trash ? 'moving to Trash' : 'deleting'} ${name}…`);
   try {
     const r = await bridge.call('delete', { id, item: path });
-    log(`  freed ${fmt(r.freedBytes ?? it.bytes)} — ${name}`, 'ok');
+    log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? it.bytes)} — ${name}`, 'ok');
     state.items.set(id, (state.items.get(id) || []).filter(x => itemId(x) !== path));
     state.size.set(id, Math.max(0, (state.size.get(id) || 0) - it.bytes));
     const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
-    renderItems(id); updateTotals(); refreshDisk();
+    renderItems(id); updateTotals(); refreshDisk(); if (r.trashed) afterTrash();
   } catch (err) { log(`  failed — ${name}: ${err.message}`, 'err'); }
 }
 
@@ -834,18 +843,22 @@ async function confirmAndDelete(ids) {
   if (!ids.length) return;
   const bytes = ids.reduce((a, id) => a + (ids.some(p => p !== id && (NEST.parent.get(id) === p)) ? 0 : state.size.get(id) || 0), 0);
   const needsAdmin = ids.some(id => entry(id).sudo);
-  $('#dlgTitle').textContent = ids.length === 1 ? `Delete “${entry(ids[0]).label}”?` : `Delete ${ids.length} items?`;
-  $('#dlgText').textContent = `About ${fmt(bytes)} will be removed. This can't be undone.` + (needsAdmin ? ' macOS will ask for your password for admin items.' : '');
+  const toTrash = ids.filter(id => trashes(entry(id))).length, toRm = ids.length - toTrash;
+  $('#dlgTitle').textContent = ids.length === 1 ? `${toTrash ? 'Move' : 'Delete'} “${entry(ids[0]).label}”${toTrash ? ' to the Trash' : ''}?` : `Delete ${ids.length} items?`;
+  $('#dlgText').textContent = (toRm && toTrash ? `About ${fmt(bytes)}: ${toRm} removed permanently, ${toTrash} moved to the Trash.` + TRASH_NOTE
+    : toTrash ? `About ${fmt(bytes)} will be moved to the Trash.` + TRASH_NOTE
+    : `About ${fmt(bytes)} will be removed. This can't be undone.`) + (needsAdmin ? ' macOS will ask for your password for admin items.' : '');
+  $('#dlgOk').textContent = toRm ? 'Delete' : 'Move to Trash';
   $('#dlgList').innerHTML = ids.map(id => `<li>${esc(entry(id).label)} — ${fmt(state.size.get(id))}</li>`).join('');
   const dlg = $('#dlg'); dlg.showModal();
   const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
   if (choice !== 'ok') return;
   for (const id of ids) {
     const e = entry(id); const row = document.querySelector(`.row[data-id="${id}"]`);
-    log(`deleting ${e.label}…`);
+    log(`${trashes(e) ? 'moving to Trash' : 'deleting'} ${e.label}…`);
     try {
       const r = await bridge.call('delete', { id });
-      log(`  freed ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
+      log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
       state.size.set(id, 0); row.classList.add('done');
       const el = row.querySelector('[data-size]'); el.textContent = '0 KB'; el.className = 'size zero';
       const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
@@ -853,6 +866,7 @@ async function confirmAndDelete(ids) {
     updateTotals();
   }
   refreshDisk();
+  if (ids.some(id => trashes(entry(id)))) afterTrash();
 }
 
 init().catch(err => { log('init: ' + err.message, 'err'); $('#host').textContent = 'failed to load catalog'; });

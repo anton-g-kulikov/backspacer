@@ -101,6 +101,16 @@ Fixture: a fake `xcrun` first on `PATH` that answers `simctl list devices -j` an
 | T6 | `Bridge.parseItems` | parses `key\tlabel\tKB`; skips malformed lines |
 | T7 | catalog invariant: every entry with `itemsCmd` also has `deleteItemCmd` containing `{key}`, and vice versa | pass |
 
+### DisposalTests — Trash vs permanent
+Fixture: temp home with a `safe` cache, a `decide` folder, a `decide` `children` folder with two subfolders, a `decide` admin path, a `decide` entry with a `deleteCmd`; a recording trasher injected into the bridge (the real one is `FileManager.trashItem`).
+| # | Case | Expect |
+|---|---|---|
+| D1 | `Bridge.disposal(of:)` | `decide` + path → `.trash`; `safe` / `regen` → `.permanent`; `decide` + `sudo` → `.permanent`; `decide` + `deleteCmd` → `.permanent` |
+| D2 | whole-entry delete of a `decide` folder | the trasher receives that path, the source is gone, reply has `trashed: true`; nothing is `rm`'d |
+| D3 | per-item delete on a `decide` `children` entry | only that child is trashed; the sibling stays |
+| D4 | the trasher throws | the error surfaces, the source is untouched — no fallback to `rm` |
+| D5 | whole-entry delete of a `safe` folder | removed permanently, trasher not called, reply has no `trashed` |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -120,3 +130,4 @@ Fixture: a fake `xcrun` first on `PATH` that answers `simctl list devices -j` an
 | ItemTests | I1–I11 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T7 | passing |
+| DisposalTests | D1–D5 | passing |
