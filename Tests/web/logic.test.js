@@ -112,3 +112,9 @@ test('J11 shuffled is a permutation, order depends on the rng', () => {
   assert.equal(L.scanFrame(1, ['zebra', 'apple']), 'zebra.');
   assert.equal(L.scanFrame(8, ['zebra', 'apple']), 'apple');
 });
+
+test('J12 rowSizeText', () => {
+  assert.equal(L.rowSizeText(5e6, false), '5 MB');
+  assert.equal(L.rowSizeText(0, true), 'in Trash');
+  assert.equal(L.rowSizeText(null, false), '—');
+});

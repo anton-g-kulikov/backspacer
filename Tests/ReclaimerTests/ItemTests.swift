@@ -24,6 +24,13 @@ import Testing
         try blob("Library/Developer/Xcode/iOS DeviceSupport/18.0/s.bin", mb: 2)
         try blob("Library/Caches/big/b.bin", mb: 3)
         try blob("Library/Caches/small/s.bin", mb: 1)
+        try blob("Library/Application Support/MobileSync/Backup/ABCD-1/Manifest.db", mb: 1)
+        try blob("Library/Application Support/MobileSync/Backup/EFGH-2/Manifest.db", mb: 1)
+        let plist = home.appendingPathComponent("Library/Application Support/MobileSync/Backup/ABCD-1/Info.plist")
+        try PropertyListSerialization.data(fromPropertyList: ["Device Name": "Anton's iPhone", "Product Type": "iPhone16,1"], format: .xml, options: 0).write(to: plist)
+        for d in ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "App/Other", "App/Cache/inner", "Two/GPUCache"] {
+            try blob("Library/Application Support/\(d)/f.bin", mb: 1)
+        }
         try blob("Library/Application Support/Code/User/workspaceStorage/aaa1/state.vscdb", mb: 2)
         try blob("Library/Application Support/Code/User/workspaceStorage/bbb2/state.vscdb", mb: 1)
         try blob("Library/Application Support/Code/User/workspaceStorage/ccc3/state.vscdb", mb: 1)
@@ -38,6 +45,11 @@ import Testing
             "path": "~/Library/Developer/Xcode/iOS DeviceSupport", "children": true },
           { "id": "p", "group": "t", "bucket": "safe", "label": "Caches", "path": "~/Library/Caches" },
           { "id": "k", "group": "t", "bucket": "safe", "label": "custom", "path": "~/Library/Caches", "deleteCmd": "true" },
+          { "id": "bk", "group": "t", "bucket": "decide", "label": "backups", "children": true,
+            "path": "~/Library/Application Support/MobileSync/Backup",
+            "childLabel": { "file": "Info.plist", "keys": ["Device Name"] } },
+          { "id": "el", "group": "t", "bucket": "safe", "label": "electron",
+            "glob": { "root": "~/Library/Application Support", "names": ["Cache", "Code Cache", "GPUCache"], "pathPatterns": ["*/Service Worker/CacheStorage"], "maxdepth": 3, "type": "d" } },
           { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
             "path": "~/Library/Application Support/Code/User/workspaceStorage",
             "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] } }
@@ -138,6 +150,20 @@ import Testing
         defer { cleanup() }
         let w = items(try bridge.handle(op: "size", args: ["id": "w"])).compactMap { $0["display"] as? String }
         #expect(w == ["~/Projects/my app", "/Volumes/Work/team.code-workspace", "ccc3"], Comment(rawValue: w.joined(separator: " | ")))
+    }
+
+    @Test("I12 — childLabel reads a property list too")
+    func plistLabel() throws {
+        defer { cleanup() }
+        let names = items(try bridge.handle(op: "size", args: ["id": "bk"])).compactMap { $0["display"] as? String }.sorted()
+        #expect(names == ["Anton's iPhone", "EFGH-2"], Comment(rawValue: names.joined(separator: " | ")))
+    }
+
+    @Test("I13 — names + pathPatterns at depth 3, pruned")
+    func electronGlob() throws {
+        defer { cleanup() }
+        let found = paths(try bridge.handle(op: "size", args: ["id": "el"])).map { $0.replacingOccurrences(of: "Library/Application Support/", with: "") }.sorted()
+        #expect(found == ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "Two/GPUCache"], Comment(rawValue: found.joined(separator: " | ")))
     }
 
     @Test("I8 — parseDu")

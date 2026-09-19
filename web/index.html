@@ -840,7 +840,7 @@ async function confirmAndDelete(ids) {
       const r = await bridge.call('delete', { id });
       log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
       state.size.set(id, 0); row.classList.add('done');
-      const el = row.querySelector('[data-size]'); el.textContent = '0 KB'; el.className = 'size zero';
+      const el = row.querySelector('[data-size]'); el.textContent = rowSizeText(0, !!r.trashed); el.className = 'size zero';
       const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
     } catch (err) { log(`  failed — ${e.label}: ${err.message}`, 'err'); }
     updateTotals();

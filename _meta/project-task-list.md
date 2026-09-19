@@ -18,23 +18,11 @@ _(none)_
   termination, now logged and auto-reloaded. Wait for the next occurrence
   with the log.
 
-- **App data revamp** (grounded 2026-09-20 on this Mac). Findings: the
-  Electron cache pattern (`<app>/Cache`, `Code Cache`, `GPUCache`, `DawnCache`
-  under `~/Library/Application Support`) is small except Claude (300 MB); the
-  big app folders are Code/User (workspaceStorage, covered), Notion/Partitions
-  2.2 GB, Steam/Steam.AppBundle 1.2 GB, Figma/DesktopProfile 0.9 GB,
-  Google/GoogleUpdater 0.8 GB, Code/WebStorage 0.9 GB + chatDictationModels
-  0.8 GB, zoom.us/CefPlugin+asr 0.4 GB, Slack/Service Worker 0.4 GB; in
-  `~/Library/Caches`: com.openai.codex 1.3 GB, github-copilot-sdk + copilot
-  0.6 GB, notion updaters 0.5 GB, electron 0.2 GB. Plan: one glob entry for
-  Electron caches (per-app items, `regen`), re-bucket app *caches* from
-  `decide` to `regen` (Slack, Notion local cache, Telegram media) so they are
-  removed rather than trashed, keep real data in `decide`, add entries for
-  iOS device backups (`MobileSync/Backup`, `children`), Ollama models
-  (`~/.ollama`), JetBrains caches, browser caches (Chrome/Firefox/Arc/Brave),
-  Spotify cache, Zoom, Teams, Discord, Adobe caches — each verified against a
-  real install or documented location. Show an "in Trash" state on rows that
-  were moved rather than a size of 0.
+- **App data, round two.** Sandboxed apps' caches need Full Disk Access to
+  even measure (Teams, Mail downloads, Messages attachments); Notion's
+  partition holds a local DB so it stays *Your call*; Steam's and Google
+  Updater's bundles are app code, not cache. Revisit with an FDA-aware entry
+  flag and per-app verification.
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
   or AVDs use `itemsCmd`.
@@ -47,6 +35,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — App data revamp: Electron-cache glob, per-app items for `~/Library/Caches` and `~/.cache`, iOS backups by device (plist `childLabel`), Ollama per model, dictation models, previews, Spotify, Bun/pub/Maven/conda, VMs; "in Trash" row state. Tests C10, I12, I13, T8, J12.
 
 - 2026-09-20 — 0.5.0 released.
 - 2026-09-20 — Plain `/bin/sh` for measurement, login zsh only for catalog commands (ADR-16; tests M1–M5). Scan 38 s → 27 s wall; median entry 107 ms; the suite itself 10 s → 3.4 s.

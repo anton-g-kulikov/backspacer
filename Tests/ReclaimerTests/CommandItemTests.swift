@@ -97,6 +97,19 @@ import Testing
         #expect(calls() == ["simctl runtime delete 6FBA-RT"], Comment(rawValue: calls().joined(separator: " | ")))
     }
 
+    @Test("T8 — ollama list parses into items")
+    func ollama() throws {
+        defer { cleanup() }
+        let ollama = dir.appendingPathComponent("bin/ollama")
+        try "#!/bin/sh\nprintf 'NAME               ID              SIZE      MODIFIED\\nllama3.1:8b        46e0c10c039e    4.9 GB    3 weeks ago\\nnomic-embed-text   0a109f422b47    274 MB    5 days ago\\n'\n".write(to: ollama, atomically: true, encoding: .utf8)
+        try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ollama.path)
+        let it = try items("ollama-models")
+        #expect(it.map { $0["key"] as? String } == ["llama3.1:8b", "nomic-embed-text"])
+        let kb1: Int64 = Int64(4.9 * 1048576), kb2: Int64 = 274 * 1024
+        #expect(n(it[0]["bytes"]) == kb1 * 1024, Comment(rawValue: "\(String(describing: it[0]["bytes"]))"))
+        #expect(n(it[1]["bytes"]) == kb2 * 1024)
+    }
+
     @Test("T6 — parseItems")
     func parse() {
         let p = Bridge.parseItems("k1\tLabel one\t10\nbad line\nk2\tLabel two\t20\n\n")

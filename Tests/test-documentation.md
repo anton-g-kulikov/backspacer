@@ -42,6 +42,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C10 | app-data revamp shape: `electron-caches` is a `safe` glob with the six cache names and the Service-Worker path pattern; `app-slack` is gone and `vscode-cache` no longer lists `Code/Cache` (both covered by the glob); `cache-user` and `cache-dot` are `children`; `ios-backups` has a plist `childLabel`; `ollama-models` pairs `itemsCmd`/`deleteItemCmd` | pass |
 | C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
 
 ### PrefTests — `Bridge.prefKey` / `prefValue`
@@ -80,6 +81,8 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | I8 | `Bridge.parseDu` | parses `KB<TAB>path` lines; ignores the trailing `total` line |
 | I9 | item `display` | glob matches are shown relative to the project folder they were found in (`a/node_modules`, not `build`); `children` items show the folder name |
 | I10 | item order | largest first, for path and command items alike |
+| I12 | `childLabel` with a `.plist` file | reads the key from a property list (iOS backup `Info.plist` → "Device Name") |
+| I13 | glob with `names` + `pathPatterns` at depth 3 | matches `App/Cache`, `App/Code Cache`, `App/Service Worker/CacheStorage`; not `App/Other`, not `App/Cache/inner` (pruned) |
 | I11 | `childLabel: {file, keys}` | a child's label is read from `<child>/<file>` JSON, first present key, `file://` stripped and home shown as `~`; a child without the file, or with none of the keys, falls back to its folder name |
 
 ### ProjectRootTests — configurable project folders (`$PROJECTS`)
@@ -103,6 +106,7 @@ Fixture: a fake `xcrun` first on `PATH` that answers `simctl list devices -j` an
 | T4 | `delete {id, item: <valid UDID>}` on devices | log shows `simctl erase <udid>`; `freedBytes` = that device's bytes |
 | T5 | `delete {id, item: <valid key>}` on runtimes | log shows `simctl runtime delete <key>` |
 | T6 | `Bridge.parseItems` | parses `key\tlabel\tKB`; skips malformed lines |
+| T8 | `ollama-models.itemsCmd` against a fake `ollama` printing the `NAME ID SIZE MODIFIED` table | items keyed by model name with KB from `4.9 GB` / `815 MB`; the header row skipped |
 | T7 | catalog invariant: every entry with `itemsCmd` also has `deleteItemCmd` containing `{key}`, and vice versa | pass |
 
 ### DisposalTests — Trash vs permanent
@@ -149,6 +153,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J7 | `meterSegments` | order `other, locked, keep, decide, regen, safe`; `other` = used − buckets, floored at 0; titles from the catalog |
 | J8 | `itemName` | `display` wins, then `label`, then the last two path components |
 | J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
+| J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
 
@@ -184,16 +189,16 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S7 | passing |
-| CatalogTests | C1–C9 | passing |
+| CatalogTests | C1–C10 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
-| ItemTests | I1–I11 | passing |
+| ItemTests | I1–I13 | passing |
 | ProjectRootTests | R1–R6 | passing |
-| CommandItemTests | T1–T7 | passing |
+| CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F8 | passing |
-| Web logic (node) | J1–J11 | passing |
+| Web logic (node) | J1–J12 | passing |
 | DiagnosticsTests | L1–L6 | passing |
 | ShellModeTests | M1–M5 | passing |

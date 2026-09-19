@@ -65,6 +65,23 @@ import Testing
         }
     }
 
+    @Test("C10 — app-data revamp shape")
+    func appDataShape() throws {
+        let el = try #require(catalog.entry("electron-caches"))
+        #expect(el.bucket == "safe")
+        #expect(Set(el.glob?.names ?? []) == ["Cache", "Code Cache", "GPUCache", "DawnCache", "DawnWebGPUCache", "DawnGraphiteCache"])
+        #expect(el.glob?.pathPatterns == ["*/Service Worker/CacheStorage"])
+        #expect(el.glob?.maxdepth == 3)
+        #expect(catalog.entry("app-slack") == nil)
+        #expect(catalog.entry("vscode-cache")?.paths?.contains { $0.hasSuffix("/Code/Cache") } == false)
+        #expect(catalog.entry("cache-user")?.children == true)
+        #expect(catalog.entry("cache-dot")?.children == true)
+        let bk = try #require(catalog.entry("ios-backups"))
+        #expect(bk.children == true && bk.childLabel?.file == "Info.plist" && bk.childLabel?.keys == ["Device Name"])
+        let ol = try #require(catalog.entry("ollama-models"))
+        #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
+    }
+
     @Test("C7 — only a leading tilde is expanded")
     func tilde() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path

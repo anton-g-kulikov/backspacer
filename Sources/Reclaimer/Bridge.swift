@@ -322,9 +322,17 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         return abbreviate(path)
     }
 
+    /// Reads `<child>/<file>` as JSON or (by extension) a property list and returns the first
+    /// present key, with file:// URLs turned into paths and home shown as `~`.
     private func childLabel(of child: String, _ lbl: Catalog.ChildLabel) -> String? {
-        guard let data = fm.contents(atPath: child + "/" + lbl.file),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        guard let data = fm.contents(atPath: child + "/" + lbl.file) else { return nil }
+        let dict: [String: Any]?
+        if lbl.file.hasSuffix(".plist") {
+            dict = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any]
+        } else {
+            dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        }
+        guard let json = dict else { return nil }
         for key in lbl.keys {
             guard let raw = json[key] as? String else { continue }
             let path = raw.hasPrefix("file://") ? (URL(string: raw)?.path ?? raw) : raw

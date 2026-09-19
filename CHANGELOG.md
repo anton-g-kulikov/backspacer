@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- App data, revamped. One "App caches (Electron)" entry finds the web caches every Electron app keeps next to its data (Slack, Claude, VS Code, Notion, Figma, Discord, Postman…) with a Delete per app; `~/Library/Caches` and `~/.cache` list one item per app or tool. New entries: iPhone/iPad backups (per device, by name), Ollama models (per model), VS Code dictation models, SwiftUI preview data, Spotify cache, Bun / pub / Maven / conda caches, Parallels and UTM VMs (measured, deleted from their own apps). Slack's cache is no longer a "Your call" entry — it's a cache, so it's removed rather than moved to the Trash.
+- Rows moved to the Trash now say "in Trash" instead of showing 0 KB.
+
 ## 0.5.0 — 2026-09-20
 - While scanning, the header cycles through verbs (measuring, surveying, rummaging…) in a fresh order each time.
 - Scans are faster: measurement commands no longer start a login shell (which cost ~0.8 s each); small entries now measure in milliseconds. What remains is real disk work (node_modules across many projects is the biggest).

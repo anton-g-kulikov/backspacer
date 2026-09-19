@@ -26,6 +26,8 @@ const trashes = e => e.bucket === 'decide' && !e.sudo && !e.deleteCmd && !e.item
 /** What an item is called in the Details list. */
 const itemName = it => it.display ?? it.label ?? it.path.split('/').slice(-2).join('/');
 
+/** The size cell: a row moved to the Trash says so instead of showing 0. */
+const rowSizeText = (bytes, trashed) => trashed ? 'in Trash' : fmt(bytes);
 /** Rows measured below the threshold are hidden; rows still measuring stay visible. */
 const isVisible = (bytes, minBytes) => bytes == null || bytes >= minBytes;
 
@@ -70,5 +72,5 @@ const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let 
 const scanFrame = (tick, words = SCAN_WORDS) => words[Math.floor(tick / 8) % words.length] + '.'.repeat(tick % 4);
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORDS, shuffled, scanFrame, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORDS, shuffled, scanFrame, rowSizeText, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }
