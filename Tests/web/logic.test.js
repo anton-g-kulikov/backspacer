@@ -93,13 +93,14 @@ test('J9 catalog consistency', () => {
 });
 
 test('J10 scanFrame rotates words and breathes dots', () => {
-  assert.equal(L.scanFrame(0), 'measuring.');
-  assert.equal(L.scanFrame(1), 'measuring..');
-  assert.equal(L.scanFrame(2), 'measuring...');
-  assert.ok(L.scanFrame(8).startsWith('surveying.'));
+  assert.equal(L.scanFrame(0), 'measuring');
+  assert.equal(L.scanFrame(1), 'measuring.');
+  assert.equal(L.scanFrame(3), 'measuring...');
+  assert.equal(L.scanFrame(4), 'measuring', 'dots go back to none');
+  assert.equal(L.scanFrame(8), 'surveying');
   assert.equal(new Set(L.SCAN_WORDS).size, L.SCAN_WORDS.length, 'no duplicates');
   assert.ok(L.SCAN_WORDS.length >= 3 && L.SCAN_WORDS.length <= 8);
-  assert.ok(L.scanFrame(8 * L.SCAN_WORDS.length).startsWith('measuring.'), 'wraps around');
+  assert.equal(L.scanFrame(8 * L.SCAN_WORDS.length), 'measuring', 'wraps around');
 });
 
 test('J11 shuffled is a permutation, order depends on the rng', () => {
@@ -108,6 +109,6 @@ test('J11 shuffled is a permutation, order depends on the rng', () => {
   assert.deepEqual([...a].sort(), [...L.SCAN_WORDS].sort());
   assert.deepEqual([...b].sort(), [...L.SCAN_WORDS].sort());
   assert.notDeepEqual(a, b);
-  assert.equal(L.scanFrame(0, ['zebra', 'apple']), 'zebra.');
-  assert.equal(L.scanFrame(8, ['zebra', 'apple']).startsWith('apple.'), true);
+  assert.equal(L.scanFrame(1, ['zebra', 'apple']), 'zebra.');
+  assert.equal(L.scanFrame(8, ['zebra', 'apple']), 'apple');
 });

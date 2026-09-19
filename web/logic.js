@@ -67,7 +67,7 @@ const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sni
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
 const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 /** Frame `tick` (≈ every 250 ms): the verb changes every 8 ticks, the dots every tick. */
-const scanFrame = (tick, words = SCAN_WORDS) => words[Math.floor(tick / 8) % words.length] + '.'.repeat(1 + tick % 3);
+const scanFrame = (tick, words = SCAN_WORDS) => words[Math.floor(tick / 8) % words.length] + '.'.repeat(tick % 4);
 
 if (typeof module !== 'undefined') {
   module.exports = { ORDER, THR, SCAN_WORDS, shuffled, scanFrame, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
