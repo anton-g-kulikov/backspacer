@@ -18,8 +18,6 @@ _(none)_
   `deletable`) into `web/logic.js` so `node` can test them; page keeps
   loading them via `<script src>`. Document cases in
   `Tests/test-documentation.md` first.
-- **Fake shell for `Bridge` ops.** Inject a `Shell`-like runner so `size`,
-  `delete` and glob resolution can be tested without touching the disk.
 
 ## Roadmap (from the 0.1.0 README)
 
@@ -31,6 +29,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — `CommandRunner` seam + `FakeShell`; FakeShellTests F1–F8 (failures, admin routing, exact command text). ADR-15.
 
 - 2026-09-20 — `catalog.schema.json` + SchemaTests V1–V3 (MiniSchema validator in test support); README reframed for a public, source-available repo.
 

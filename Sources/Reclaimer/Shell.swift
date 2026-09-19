@@ -8,6 +8,18 @@ struct ShellResult {
     var combined: String { (stdout + (stderr.isEmpty ? "" : "\n" + stderr)).trimmingCharacters(in: .whitespacesAndNewlines) }
 }
 
+/// What the bridge needs from a shell. `Shell` is the real one; tests inject a scripted stand-in.
+protocol CommandRunner {
+    func run(_ command: String, timeout: TimeInterval) -> ShellResult
+    func runAsAdmin(_ command: String) -> ShellResult
+}
+
+/// The system shell, as a `CommandRunner`.
+struct SystemShell: CommandRunner {
+    func run(_ command: String, timeout: TimeInterval) -> ShellResult { Shell.run(command, timeout: timeout) }
+    func runAsAdmin(_ command: String) -> ShellResult { Shell.runAsAdmin(command) }
+}
+
 enum Shell {
     /// Runs a command through a login zsh so PATH matches the user's Terminal
     /// (xcrun, brew, dotnet, npm all resolve).

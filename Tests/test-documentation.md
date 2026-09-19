@@ -6,6 +6,9 @@ says what the tests prove, not how the system works.
 
 ## Strategy
 
+Gotcha: inside `#expect`, literal arithmetic compared with an `Int64?` (`n(x) == 2048 * 1024`)
+fails even when the values are equal — bind the expected value to a typed `let` first.
+
 - Unit-test the pure Swift logic that guards the disk: the safety gate, catalog
   decoding, preference validation, shell quoting. These run against the real
   `catalog.json` so a bad catalog edit fails CI, not a user's home folder.
@@ -119,6 +122,19 @@ Validated with a small JSON-Schema subset validator in `Tests/ReclaimerTests/Sup
 | V2 | an entry with an unknown field, an unknown bucket, an `id` with spaces, `children` without `path`, `children` alongside `glob`, `itemsCmd` without `deleteItemCmd`, `deleteItemCmd` without `{key}`, `childLabel` without `children`, no source at all | each rejected, with a message naming the entry's path in the document |
 | V3 | the validator itself: a handful of positive/negative cases per keyword | as expected (guards against the validator silently accepting everything) |
 
+### FakeShellTests — the bridge against a scripted shell
+A `FakeShell` (`CommandRunner`) records every command and answers from a script; nothing real runs. Covers what the temp-directory suites can't: failures, timeouts, admin routing, and the exact command text.
+| # | Case | Expect |
+|---|---|---|
+| F1 | `size` on a path entry | runs `du -skxc '<path>' 2>/dev/null` (quoted); bytes = the `total` line |
+| F2 | `du` fails (non-zero, empty output) | bytes 0, no error |
+| F3 | `rm` fails with stderr | `delete` throws with that stderr; nothing else runs |
+| F4 | `sudo` entry | `delete` goes through `runAsAdmin`, never `run`; a cancelled dialog (status −128, "cancelled") surfaces as an error |
+| F5 | glob resolution | runs `find '<root>' -maxdepth N -type d \( -name 'x' \) -prune -print0`; NUL-separated output with spaces in names parses into paths |
+| F6 | `itemsCmd` prints garbage | items empty, no error |
+| F7 | `sizeCmd` prints non-numeric output | bytes `null` |
+| F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -140,3 +156,4 @@ Validated with a small JSON-Schema subset validator in `Tests/ReclaimerTests/Sup
 | CommandItemTests | T1–T7 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
+| FakeShellTests | F1–F8 | passing |

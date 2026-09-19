@@ -91,6 +91,16 @@ name and icon: a modified build must be renamed, which keeps a tampered
 "free for noncommercial use", not "open source". Replaces the all-rights-
 reserved EULA of 0.1–0.4.
 
+## ADR-15 — Everything the bridge injects
+`Bridge` takes its collaborators as init parameters with production
+defaults: `home`/`tildeHome` (paths), `defaults` (`UserDefaults`),
+`pathPrefix` (fake tools first on PATH), `trasher` (Trash), and `shell`
+(`CommandRunner`, default `SystemShell`). Tests pick the seam that fits:
+temp directories with the real shell for resolution and deletion, a fake
+`xcrun`/`brew` on PATH for the real catalog commands, and `FakeShell` for
+failures, timeouts, admin routing and exact command text. No global state,
+no test-only build flags.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

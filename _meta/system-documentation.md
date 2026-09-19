@@ -14,7 +14,8 @@ behind the design in `architecture-decisions.md`.
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
 | `Catalog.swift` | Typed mirror of `catalog.json`; `Resources` locates bundled files. |
-| `Shell.swift` | Runs commands through a login `zsh` (so `xcrun`, `brew`, `dotnet` resolve), draining stdout/stderr on dedicated threads (GCD's global queue can be starved by concurrent callers and leave the readers unscheduled) with a timeout; admin commands go through AppleScript's `with administrator privileges`. |
+| `Shell.swift` | `CommandRunner` protocol (`run`, `runAsAdmin`) with `SystemShell` as the production implementation; `Bridge` takes one at init, tests inject `FakeShell`. |
+| `Shell` (enum) | Runs commands through a login `zsh` (so `xcrun`, `brew`, `dotnet` resolve), draining stdout/stderr on dedicated threads (GCD's global queue can be starved by concurrent callers and leave the readers unscheduled) with a timeout; admin commands go through AppleScript's `with administrator privileges`. |
 
 ## Startup
 
