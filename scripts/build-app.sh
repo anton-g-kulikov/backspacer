@@ -67,4 +67,5 @@ codesign --verify --deep --strict "$APP" && echo "  signature OK"
 echo "  arch: $(lipo -archs "$APP/Contents/MacOS/$APP_NAME")"
 
 echo "✓ $APP  ($VERSION / $BUILD_NUM)"
-echo "  open \"$APP\""
+echo "  open -n \"$APP\"      # -n: a separate instance, leaves an installed copy alone"
+echo "  pkill -f \"$PWD/$APP/Contents/MacOS/$APP_NAME\"   # stops only this build"
