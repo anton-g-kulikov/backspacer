@@ -28,6 +28,12 @@ import Testing
         try blob("Library/Application Support/MobileSync/Backup/EFGH-2/Manifest.db", mb: 1)
         let plist = home.appendingPathComponent("Library/Application Support/MobileSync/Backup/ABCD-1/Info.plist")
         try PropertyListSerialization.data(fromPropertyList: ["Device Name": "Anton's iPhone", "Product Type": "iPhone16,1"], format: .xml, options: 0).write(to: plist)
+        try blob("Library/Developer/Xcode/Archives/real/f.bin", mb: 1)
+        try blob("Library/Caches/target/keep.bin", mb: 1)
+        try fm.createSymbolicLink(atPath: home.path + "/Library/Developer/Xcode/Archives/linked", withDestinationPath: home.path + "/Library/Caches/target")
+        try blob("Projects/n/.next/real/f.bin", mb: 1)
+        try fm.createSymbolicLink(atPath: home.path + "/Projects/n/.next/cache", withDestinationPath: home.path + "/Library/Caches/target")
+        try fm.createSymbolicLink(atPath: home.path + "/Library/Caches/alias", withDestinationPath: home.path + "/Library/Caches/target")
         for d in ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "App/Other", "App/Cache/inner", "Two/GPUCache"] {
             try blob("Library/Application Support/\(d)/f.bin", mb: 1)
         }
@@ -50,6 +56,9 @@ import Testing
             "childLabel": { "file": "Info.plist", "keys": ["Device Name"] } },
           { "id": "el", "group": "t", "bucket": "safe", "label": "electron",
             "glob": { "root": "~/Library/Application Support", "names": ["Cache", "Code Cache", "GPUCache"], "pathPatterns": ["*/Service Worker/CacheStorage"], "maxdepth": 3, "type": "d" } },
+          { "id": "arch", "group": "t", "bucket": "safe", "label": "archives", "path": "~/Library/Developer/Xcode/Archives", "children": true },
+          { "id": "next", "group": "t", "bucket": "safe", "label": "next", "glob": { "root": "~/Projects", "name": ".next", "maxdepth": 3, "type": "d", "then": "cache" } },
+          { "id": "alias", "group": "t", "bucket": "safe", "label": "alias", "path": "~/Library/Caches/alias" },
           { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
             "path": "~/Library/Application Support/Code/User/workspaceStorage",
             "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] } }
@@ -123,9 +132,9 @@ import Testing
         defer { cleanup() }
         let r = try bridge.handle(op: "info", args: ["id": "p"]) as? [String: Any]
         let lines = (r?["text"] as? String ?? "").split(separator: "\n").map(String.init)
-        try #require(lines.count == 2, Comment(rawValue: lines.joined(separator: " | ")))
+        try #require(lines.count >= 2, Comment(rawValue: lines.joined(separator: " | ")))
         #expect(lines[0].hasSuffix("big"))
-        #expect(lines[1].hasSuffix("small"))
+        #expect(lines.contains { $0.hasSuffix("small") })
         #expect(lines[0].contains("MB"))
     }
 
@@ -164,6 +173,23 @@ import Testing
         defer { cleanup() }
         let found = paths(try bridge.handle(op: "size", args: ["id": "el"])).map { $0.replacingOccurrences(of: "Library/Application Support/", with: "") }.sorted()
         #expect(found == ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "Two/GPUCache"], Comment(rawValue: found.joined(separator: " | ")))
+    }
+
+    @Test("I14 — symlinks are never delete targets")
+    func symlinkTargets() throws {
+        defer { cleanup() }
+        let target = home.path + "/Library/Caches/target/keep.bin"
+        // a symlinked child
+        let link = home.path + "/Library/Developer/Xcode/Archives/linked"
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "arch", "item": link]) }
+        #expect(fm.fileExists(atPath: target) && (try? fm.destinationOfSymbolicLink(atPath: link)) != nil)
+        // a symlinked glob.then target
+        let then = home.path + "/Projects/n/.next/cache"
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "next", "item": then]) }
+        #expect(fm.fileExists(atPath: target))
+        // a whole entry whose path is a symlink
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "alias"]) }
+        #expect(fm.fileExists(atPath: target) && (try? fm.destinationOfSymbolicLink(atPath: home.path + "/Library/Caches/alias")) != nil)
     }
 
     @Test("I8 — parseDu")

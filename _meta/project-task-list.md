@@ -14,11 +14,6 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
 ### Critical — the deletion gate has holes
-5. **R9 · Symlinks are never checked.** `remove()` and `children` items
-   accept a symlinked directory. Fix: `lstat` every target, refuse
-   `S_IFLNK` before `rm`/trash. Tests S11 symlinked child, S12 symlinked
-   `glob.then` target.
-
 ### Severe — wrong results or a frozen app
 6. **R4 · `user-screenshots.sizeCmd` never runs for most users.** The login
    zsh aborts on an unmatched glob (`~/Desktop/*.mov`) → `?`. Fix: `find`
@@ -113,6 +108,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R9: `remove()` lstat-refuses symlinks for whole entries, children and `glob.then` targets (I14).
 - 2026-09-20 — R7: `sudo` + command forbidden by schema (V2), catalog (C11) and bridge (F11); `runCatalogCommand` can't run as admin.
 - 2026-09-20 — R3: user-data deny-list at any depth, case-folded, symlink-resolved, project-folder exemption (S8–S11).
 - 2026-09-20 — R2: `esc` escapes quotes; CSP `script-src 'self'` with inline scripts moved to boot.js/app.js (J2, J15; ADR-17; verified in browser and app).

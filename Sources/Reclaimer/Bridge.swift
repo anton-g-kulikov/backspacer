@@ -54,9 +54,16 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         e.bucket == "decide" && !e.needsAdmin && e.deleteCmd == nil && e.itemsCmd == nil ? .trash : .permanent
     }
 
+    /// True for a symbolic link itself (lstat, not what it points to).
+    private func isSymlink(_ path: String) -> Bool {
+        (try? fm.attributesOfItem(atPath: path)[.type] as? FileAttributeType) == .typeSymbolicLink
+    }
+
     /// Removes paths according to the entry's disposal. Trashing that fails is an error, never a
-    /// fallback to rm.
+    /// fallback to rm. Symlinks are never targets: a link's destination isn't what the catalog
+    /// described, and `rm -rf link/` would follow it (R9).
     private func remove(_ paths: [String], for e: Catalog.Entry) throws -> Bool {
+        for p in paths where isSymlink(p) { throw BridgeError.failed("Refused: \(p) is a symbolic link.") }
         switch disposal(of: e) {
         case .trash:
             for p in paths { diagnostics.log(.info, "trash: " + p); try trasher(URL(fileURLWithPath: p)) }

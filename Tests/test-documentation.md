@@ -88,6 +88,7 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | I10 | item order | largest first, for path and command items alike |
 | I12 | `childLabel` with a `.plist` file | reads the key from a property list (iOS backup `Info.plist` → "Device Name") |
 | I13 | glob with `names` + `pathPatterns` at depth 3 | matches `App/Cache`, `App/Code Cache`, `App/Service Worker/CacheStorage`; not `App/Other`, not `App/Cache/inner` (pruned) |
+| I14 | symlinks are refused as delete targets (R9) | a symlinked child of a `children` entry is listed but `delete {id, item}` throws and neither the link nor its target is touched; a symlinked `glob.then` target likewise; a whole-entry delete whose `path` is a symlink throws |
 | I11 | `childLabel: {file, keys}` | a child's label is read from `<child>/<file>` JSON, first present key, `file://` stripped and home shown as `~`; a child without the file, or with none of the keys, falls back to its folder name |
 
 ### ProjectRootTests — configurable project folders (`$PROJECTS`)
@@ -205,7 +206,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
-| ItemTests | I1–I13 | passing |
+| ItemTests | I1–I14 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |

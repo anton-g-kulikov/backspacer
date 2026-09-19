@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Hardened: symbolic links are never deleted or trashed, whatever they point at.
 - Hardened: admin (password-prompt) entries can only ever remove paths the app checked itself — a catalog entry can no longer combine admin with a custom command.
 - Hardened: the deletion gate now refuses your data at any depth — Documents, Desktop, Pictures, Photos libraries, Mail, Messages, Keychains, iCloud Drive, cloud-storage folders, Safari, `.ssh`, `.gnupg` — resolves symlinks first and compares names case-insensitively. Project folders you added yourself are the one exception, for what the globs find inside them.
 - Hardened: a folder whose name contains quotes or HTML can no longer affect the page (names are fully escaped, and the page forbids inline script via a Content-Security-Policy).

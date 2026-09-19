@@ -84,6 +84,12 @@ get a read-only breakdown of their contents from Details instead.
 fresh set, then applies the normal safety gate, then `rm -rf` that one path.
 Tests I1–I8 run this against a temp directory used as `home`.
 
+Symbolic links are never delete targets: `remove()` (the single path for
+`rm` and trash) `lstat`s every path and refuses a link, so a symlinked
+`children` item, `glob.then` target or entry path can't drag its destination
+along (I14). The gate separately refuses links whose destination is denied
+(S11).
+
 Admin (`sudo`) entries are paths only: the only command that ever runs as root
 is an `rm -rf` the bridge builds from gate-checked paths. The schema forbids
 `sudo` together with `deleteCmd` / `deleteItemCmd`, C11 checks the shipped
