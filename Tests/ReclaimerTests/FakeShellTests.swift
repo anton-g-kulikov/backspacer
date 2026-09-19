@@ -20,6 +20,8 @@ import Testing
           { "id": "cmd", "group": "t", "bucket": "safe",   "label": "custom", "path": "~/Library/Logs", "deleteCmd": "brew cleanup -s" },
           { "id": "sz",  "group": "t", "bucket": "decide", "label": "sized",  "sizeCmd": "some-tool --kb", "manual": true },
           { "id": "multi", "group": "t", "bucket": "safe", "label": "two", "paths": ["~/Library/Caches", "~/Library/Logs"] },
+          { "id": "root1", "group": "t", "bucket": "safe", "label": "bad", "path": "~/Library/Logs", "sudo": true, "deleteCmd": "evil-tool --wipe" },
+          { "id": "root2", "group": "t", "bucket": "decide", "label": "bad2", "sudo": true, "itemsCmd": "list", "deleteItemCmd": "evil-rm {key}" },
           { "id": "it",  "group": "t", "bucket": "decide", "label": "items",  "itemsCmd": "list-things", "deleteItemCmd": "rm-thing {key}" }
         ] }
         """
@@ -118,6 +120,16 @@ import Testing
         shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
         _ = try bridge.handle(op: "size", args: ["id": "p"])
         #expect(!shell.calls.contains { $0.contains("xargs") })
+    }
+
+    @Test("F11 — sudo plus a command is refused before anything runs")
+    func sudoCommandRefused() {
+        defer { cleanup() }
+        shell.on("list", stdout: "k\tK\t1\n")
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "root1"]) }
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "root2", "item": "k"]) }
+        #expect(shell.adminCalls.isEmpty)
+        #expect(!shell.calls.contains { $0.contains("evil") })
     }
 
     @Test("F8 — deleteCmd runs verbatim instead of rm")

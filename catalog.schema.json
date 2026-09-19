@@ -87,6 +87,10 @@
         "deleteItemCmd": ["itemsCmd"]
       },
       "dependentSchemas": {
+        "sudo": {
+          "not": { "anyOf": [ { "required": ["deleteCmd"] }, { "required": ["deleteItemCmd"] } ],
+                   "description": "admin entries can't run commands — root work is only ever an rm the app builds from gate-checked paths" }
+        },
         "children": {
           "not": { "anyOf": [ { "required": ["paths"] }, { "required": ["glob"] }, { "required": ["deleteCmd"] } ],
                    "description": "children needs a single path and no paths, glob or deleteCmd" }

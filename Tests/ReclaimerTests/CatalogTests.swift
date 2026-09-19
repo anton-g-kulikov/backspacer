@@ -82,6 +82,13 @@ import Testing
         #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
     }
 
+    @Test("C11 — admin never runs a catalog command")
+    func noSudoCommands() {
+        for e in catalog.entries where e.needsAdmin {
+            #expect(e.deleteCmd == nil && e.deleteItemCmd == nil, Comment(rawValue: e.id))
+        }
+    }
+
     @Test("C7 — only a leading tilde is expanded")
     func tilde() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path

@@ -35,6 +35,8 @@ import Testing
         ("deleteItemCmd without {key}",      ["itemsCmd": "ls", "deleteItemCmd": "rm it"]),
         ("childLabel without children",      ["childLabel": ["file": "f", "keys": ["k"]]]),
         ("no source at all",                 ["path": nil]),
+        ("sudo with deleteCmd",              ["sudo": true, "deleteCmd": "rm -rf /"]),
+        ("sudo with deleteItemCmd",          ["sudo": true, "itemsCmd": "ls", "deleteItemCmd": "rm {key}"]),
     ] as [(String, [String: Any?])])
     func rejects(_ name: String, _ patch: [String: Any?]) {
         var e = base

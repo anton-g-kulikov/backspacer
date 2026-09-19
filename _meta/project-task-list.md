@@ -14,10 +14,6 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
 ### Critical — the deletion gate has holes
-4. **R7 · Root is one catalog edit away.** A future `sudo` + `deleteCmd` /
-   `deleteItemCmd` entry would run a PATH-resolved tool as root. Fix:
-   CatalogTests invariant forbidding `sudo` with any command; `runAsAdmin`
-   accepts only paths and builds `rm -rf` itself.
 5. **R9 · Symlinks are never checked.** `remove()` and `children` items
    accept a symlinked directory. Fix: `lstat` every target, refuse
    `S_IFLNK` before `rm`/trash. Tests S11 symlinked child, S12 symlinked
@@ -117,6 +113,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R7: `sudo` + command forbidden by schema (V2), catalog (C11) and bridge (F11); `runCatalogCommand` can't run as admin.
 - 2026-09-20 — R3: user-data deny-list at any depth, case-folded, symlink-resolved, project-folder exemption (S8–S11).
 - 2026-09-20 — R2: `esc` escapes quotes; CSP `script-src 'self'` with inline scripts moved to boot.js/app.js (J2, J15; ADR-17; verified in browser and app).
 - 2026-09-20 — R1: Escape could confirm a delete; `confirmDialog` resets `returnValue` and both flows use it (J14, verified against the real dialog).

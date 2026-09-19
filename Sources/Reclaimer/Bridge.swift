@@ -70,11 +70,13 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         }
     }
 
-    /// Runs a command the catalog defines (sizeCmd, infoCmd, deleteCmd, itemsCmd, deleteItemCmd).
+    /// Runs a command the catalog defines (sizeCmd, infoCmd, deleteCmd, itemsCmd, deleteItemCmd) —
+    /// always as the user. Admin work is never a catalog command: the only thing that runs as
+    /// root is an `rm -rf` the bridge builds itself from gate-checked paths (R7).
     /// `pathPrefix` lets tests put fake tools (brew, xcrun) first on PATH.
-    private func runCatalogCommand(_ cmd: String, timeout: TimeInterval, admin: Bool = false) -> ShellResult {
+    private func runCatalogCommand(_ cmd: String, timeout: TimeInterval) -> ShellResult {
         let full = pathPrefix.map { "export PATH=\(Shell.q($0)):$PATH; " + cmd } ?? cmd
-        let r = admin ? shell.runAsAdmin(full) : shell.run(full, timeout: timeout, login: true)
+        let r = shell.run(full, timeout: timeout, login: true)
         if !r.ok { diagnostics.log(.warn, "command failed (\(r.status)): \(cmd.prefix(200)) — \(r.stderr.prefix(300))") }
         return r
     }
@@ -420,7 +422,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         let before = ((try? size(e))?["bytes"] as? Int64) ?? 0
 
         if let custom = e.deleteCmd {
-            let r = runCatalogCommand(custom, timeout: 1800, admin: e.needsAdmin)
+            guard !e.needsAdmin else { throw BridgeError.failed("\(e.label): admin entries can't run commands.") }
+            let r = runCatalogCommand(custom, timeout: 1800)
             guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
             return ["ok": true, "freedBytes": before]
         }
@@ -435,10 +438,11 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     /// and it is shell-quoted before substitution — the page never composes a command.
     private func deleteCommandItem(_ e: Catalog.Entry, key: String) throws -> [String: Any] {
         guard e.canDeleteItems, let listCmd = e.itemsCmd, let template = e.deleteItemCmd else { throw BridgeError.notDeletable(e.label) }
+        guard !e.needsAdmin else { throw BridgeError.failed("\(e.label): admin entries can't run commands.") }
         let items = Self.parseItems(runCatalogCommand(listCmd, timeout: 300).stdout)
         guard let item = items.first(where: { $0.key == key }) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(key)") }
         let command = template.replacingOccurrences(of: "{key}", with: Shell.q(key))
-        let r = runCatalogCommand(command, timeout: 1800, admin: e.needsAdmin)
+        let r = runCatalogCommand(command, timeout: 1800)
         guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
         return ["ok": true, "freedBytes": item.kb * 1024]
     }

@@ -84,6 +84,11 @@ get a read-only breakdown of their contents from Details instead.
 fresh set, then applies the normal safety gate, then `rm -rf` that one path.
 Tests I1–I8 run this against a temp directory used as `home`.
 
+Admin (`sudo`) entries are paths only: the only command that ever runs as root
+is an `rm -rf` the bridge builds from gate-checked paths. The schema forbids
+`sudo` together with `deleteCmd` / `deleteItemCmd`, C11 checks the shipped
+catalog, and the bridge refuses such an entry even if one got in (F11).
+
 Command-listed items work the same way without paths: `itemsCmd` prints one
 `key<TAB>label<TAB>KB` line per item (simulators from `simctl list devices -j`,
 runtimes from `simctl runtime list -j`, parsed by a `python3` one-liner —

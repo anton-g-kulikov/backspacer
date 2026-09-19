@@ -46,6 +46,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C11 | no entry combines `sudo` with `deleteCmd` or `deleteItemCmd` (R7): admin work is only ever an `rm -rf` the bridge builds from gate-checked paths | pass |
 | C10 | app-data revamp shape: `electron-caches` is a `safe` glob with the six cache names and the Service-Worker path pattern; `app-slack` is gone and `vscode-cache` no longer lists `Code/Cache` (both covered by the glob); `cache-user` and `cache-dot` are `children`; `ios-backups` has a plist `childLabel`; `ollama-models` pairs `itemsCmd`/`deleteItemCmd` | pass |
 | C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
 
@@ -128,7 +129,7 @@ Validated with a small JSON-Schema subset validator in `Tests/ReclaimerTests/Sup
 | # | Case | Expect |
 |---|---|---|
 | V1 | the shipped `catalog.json` | validates |
-| V2 | an entry with an unknown field, an unknown bucket, an `id` with spaces, `children` without `path`, `children` alongside `glob`, `itemsCmd` without `deleteItemCmd`, `deleteItemCmd` without `{key}`, `childLabel` without `children`, no source at all | each rejected, with a message naming the entry's path in the document |
+| V2 | an entry with an unknown field, `sudo` together with `deleteCmd`, an unknown bucket, an `id` with spaces, `children` without `path`, `children` alongside `glob`, `itemsCmd` without `deleteItemCmd`, `deleteItemCmd` without `{key}`, `childLabel` without `children`, no source at all | each rejected, with a message naming the entry's path in the document |
 | V3 | the validator itself: a handful of positive/negative cases per keyword | as expected (guards against the validator silently accepting everything) |
 
 ### FakeShellTests — the bridge against a scripted shell
@@ -145,6 +146,7 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
 | F9 | `size` on an entry with several paths | one `xargs -0 -P 2 -n 1 du -skx` over NUL-separated quoted paths; total = sum of the per-path lines; items keep per-path bytes. Ceiling: 4 workers × 2 = at most 8 `du` processes during a scan |
 | F10 | `size` on a single-path entry | still a plain `du -skxc` (no xargs) |
+| F11 | a `sudo` entry with a `deleteCmd` / `deleteItemCmd` (built in the test; the catalog forbids it) | `delete` throws; nothing reaches `runAsAdmin`; `run` is never called with the command |
 
 ### Web logic — `Tests/web/logic.test.js` (Node's `node:test`, run with `node --test Tests/web`)
 Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM and state glue. Runs against the real `catalog.json`.
@@ -199,7 +201,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S11 | passing |
-| CatalogTests | C1–C10 | passing |
+| CatalogTests | C1–C11 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
@@ -208,7 +210,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
-| FakeShellTests | F1–F10 | passing |
+| FakeShellTests | F1–F11 | passing |
 | Web logic (node) | J1–J15 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M5 | passing |
