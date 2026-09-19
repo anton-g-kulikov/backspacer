@@ -25,6 +25,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(bridge, name: Bridge.handlerName)
+        let titlebar = Self.titlebarHeight
+        config.userContentController.addUserScript(WKUserScript(
+            source: "document.documentElement.style.setProperty('--titlebar', '\(titlebar)px')",
+            injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         webView.underPageBackgroundColor = .windowBackgroundColor
         if #available(macOS 13.3, *) { webView.isInspectable = true } // right-click → Inspect Element
@@ -37,6 +41,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
             backing: .buffered, defer: false)
         window.title = "Reclaimer"
         window.tabbingMode = .disallowed   // keeps AppKit from adding "Show Tab Bar" to the View menu
+        // Traffic lights inside the page: the web view runs under a transparent title bar, and the
+        // page keeps its header below it via the --titlebar CSS variable (set before first paint).
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
         window.minSize = NSSize(width: 760, height: 520)
         window.contentView = webView
         window.center()
@@ -51,6 +60,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    /// Height of a standard titled window's title bar, measured rather than assumed.
+    private static var titlebarHeight: CGFloat {
+        let frame = NSRect(x: 0, y: 0, width: 400, height: 300)
+        let content = NSWindow.contentRect(forFrameRect: frame, styleMask: [.titled, .fullSizeContentView])
+        let inset = NSWindow.contentRect(forFrameRect: frame, styleMask: [.titled])
+        return content.height - inset.height
+    }
 
     private func fatal(_ message: String) {
         let alert = NSAlert()

@@ -44,6 +44,7 @@
     color: var(--fg); background: var(--bg-mesh); background-attachment: fixed;
     -webkit-user-select: none; user-select: none;
     display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+    padding-top: var(--titlebar, 0px);   /* set by the app: the page runs under a transparent title bar */
   }
   button { font: inherit; color: inherit; }
   .glass { background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
@@ -51,7 +52,7 @@
 
   /* ── header ─────────────────────────── */
   header {
-    margin: 14px calc(16px + var(--sb, 0px)) 10px; padding: 12px 18px 12px; border-radius: 22px;
+    margin: max(6px, calc(14px - var(--titlebar, 0px))) calc(16px + var(--sb, 0px)) 10px; padding: 12px 18px 12px; border-radius: 22px;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
     display: grid; grid-template-columns: 1fr auto; gap: 10px 24px; align-items: center; position: relative; z-index: 2;
@@ -204,6 +205,7 @@
     font: 12.5px/1.55 var(--mono); color: var(--fg); background: var(--bg);
     -webkit-user-select: none; user-select: none;
     display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+    padding-top: var(--titlebar, 0px);   /* set by the app: the page runs under a transparent title bar */
   }
   button { font: inherit; color: inherit; }
   @keyframes blink { 50% { opacity: 0; } }
