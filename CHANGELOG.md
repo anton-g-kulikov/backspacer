@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.3 — 2026-09-20 (accessibility)
 - Accessibility: secondary text (notes, paths, group labels) has more contrast in both themes, with a further boost when macOS is set to increase contrast; animations stop under Reduce Motion. Bucket headers are keyboard-operable buttons that announce their state; every checkbox, the size slider, the disk meter, the Details buttons, tabs and theme switch have proper names and states for VoiceOver; scan and delete outcomes are announced; a visible focus ring; paths can be selected and copied.
 
 ## 0.6.2 — 2026-09-20 (security and robustness)

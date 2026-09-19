@@ -64,6 +64,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.6.3 released: accessibility tier (R10–R17).
 - 2026-09-20 — Accessibility visuals: R14 contrast (A7 computes ratios from the tokens), R15 reduced motion (A8). Accessibility tier complete.
 - 2026-09-20 — Accessibility semantics: R10, R11, R12, R13, R16, R17 (A1–A6; browser accessibility tree verified).
 - 2026-09-20 — 0.6.2 released: Critical (R1–R3, R7, R9) and Severe (R4–R6, R8, R20, R21) tiers.
