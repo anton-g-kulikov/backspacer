@@ -64,7 +64,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         case .permanent:
             let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
             diagnostics.log(.info, (e.needsAdmin ? "admin: " : "run: ") + cmd)
-            let r = e.needsAdmin ? shell.runAsAdmin(cmd) : shell.run(cmd, timeout: 1800)
+            let r = e.needsAdmin ? shell.runAsAdmin(cmd) : shell.run(cmd, timeout: 1800, login: false)
             guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
             return false
         }
@@ -74,7 +74,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     /// `pathPrefix` lets tests put fake tools (brew, xcrun) first on PATH.
     private func runCatalogCommand(_ cmd: String, timeout: TimeInterval, admin: Bool = false) -> ShellResult {
         let full = pathPrefix.map { "export PATH=\(Shell.q($0)):$PATH; " + cmd } ?? cmd
-        let r = admin ? shell.runAsAdmin(full) : shell.run(full, timeout: timeout)
+        let r = admin ? shell.runAsAdmin(full) : shell.run(full, timeout: timeout, login: true)
         if !r.ok { diagnostics.log(.warn, "command failed (\(r.status)): \(cmd.prefix(200)) — \(r.stderr.prefix(300))") }
         return r
     }
@@ -282,7 +282,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             if paths.isEmpty {
                 return reply.merging(["bytes": items.reduce(Int64(0)) { $0 + $1.kb * 1024 }]) { $1 }
             }
-            let r = shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600)
+            let r = shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600, login: false)
             let total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
             return reply.merging(["bytes": total]) { $1 }
         }
@@ -292,14 +292,14 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             let bytes: Any = hasSource ? Int64(0) : NSNull()
             return ["bytes": bytes, "paths": [String]()]
         }
-        let r = shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600)
+        let r = shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600, login: false)
         let total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
         var reply: [String: Any] = ["bytes": total, "paths": paths]
         if e.isGranular {
             // Per-item sizes: for glob/paths the du above already has one line per path;
             // children need their own pass.
             let lines = e.children == true
-                ? shell.run("du -skx " + resolveItems(e).map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600).stdout
+                ? shell.run("du -skx " + resolveItems(e).map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600, login: false).stdout
                 : r.stdout
             reply["items"] = Self.parseDu(lines)
                 .sorted { $0.kb > $1.kb }
@@ -366,8 +366,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         }
         // No command: show what's inside, largest first.
         guard let p = resolvePaths(e).first else { return ["text": ""] }
-        // null_glob: zsh would otherwise abort the whole command when there are no dotfiles.
-        let r = shell.run("setopt null_glob; du -skx \(Shell.q(p))/* \(Shell.q(p))/.[!.]* 2>/dev/null | sort -rn | head -40", timeout: 300)
+        // In sh an unmatched glob stays literal and du just complains to /dev/null.
+        let r = shell.run("du -skx \(Shell.q(p))/* \(Shell.q(p))/.[!.]* 2>/dev/null | sort -rn | head -40", timeout: 300, login: false)
         let lines = Self.parseDu(r.stdout).map { item -> String in
             let name = (item.path as NSString).lastPathComponent
             return fmt(item.kb * 1024).padding(toLength: 9, withPad: " ", startingAt: 0) + "  " + name
@@ -411,7 +411,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         guard e.deleteCmd == nil else { throw BridgeError.failed("\(e.label) is removed by a command, not per item.") }
         guard resolveItems(e).contains(item) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(item)") }
         guard isSafeToDelete(item) else { throw BridgeError.unsafePath(item) }
-        let before = (Self.parseDu(shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600).stdout).first?.kb ?? 0) * 1024
+        let before = (Self.parseDu(shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600, login: false).stdout).first?.kb ?? 0) * 1024
         let trashed = try remove([item], for: e)
         return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
     }
@@ -473,7 +473,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         var cmd = "find \(Shell.q(root)) -maxdepth \(g.maxdepth ?? 4)"
         if let t = g.type { cmd += " -type \(t)" }
         cmd += " \\( " + tests.joined(separator: " -o ") + " \\) -prune -print0 2>/dev/null"
-        return shell.run(cmd, timeout: 300).stdout.split(separator: "\0").map(String.init)
+        return shell.run(cmd, timeout: 300, login: false).stdout.split(separator: "\0").map(String.init)
     }
 
     /// Last line of defence. Even though paths come from the catalog, refuse

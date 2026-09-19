@@ -101,6 +101,15 @@ temp directories with the real shell for resolution and deletion, a fake
 failures, timeouts, admin routing and exact command text. No global state,
 no test-only build flags.
 
+## ADR-16 — Two shells: plain for measurement, login for tools
+Every command went through `zsh -lc`, and the user's profile made each one
+cost ~0.8 s regardless of the work — half a minute of a scan was shell
+startup. `du`/`find`/`rm` need only system tools, so they now run in
+`/bin/sh` with a fixed PATH (5 ms). Catalog commands keep the login shell
+because they must find whatever the user's Terminal finds. The mode is an
+explicit argument at every call site so a new command can't fall into the
+slow path by accident (M3 pins the routing).
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

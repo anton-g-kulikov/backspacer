@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Scans are faster: measurement commands no longer start a login shell (which cost ~0.8 s each); small entries now measure in milliseconds. What remains is real disk work (node_modules across many projects is the biggest).
 - Diagnostics log at `~/Library/Logs/Reclaimer/Reclaimer.log` (About → Reveal log): scans, deletes and the commands run, failures, page errors, WebKit content-process restarts. Attach it to a bug report.
 - If WebKit's content process dies, the page reloads instead of going blank.
 - Internal: the page's pure logic moved to `web/logic.js` and is tested under Node; the bridge's shell is injectable and tested against a scripted fake.

@@ -8,12 +8,11 @@ _(none)_
 
 ## Queued
 
-- **Scan speed.** The diagnostics log shows ~800 ms per `du`, even on empty
-  folders: `Shell.run` uses `zsh -lc`, which sources the user's profile every
-  time. Run measurement commands (`du`, `find`, `rm`) through `/bin/sh -c`
-  with a fixed PATH and keep the login shell only for catalog commands that
-  need the user's tools (`brew`, `xcrun`, `dotnet`). A 63-entry scan was 38 s
-  wall / 101 s shell on 2026-09-20.
+- **Scan speed, round two.** After ADR-16 the shell overhead is gone; the
+  remaining cost is real `du` I/O: `proj-node-modules` 16 s, iOS/Android build
+  output 3–4 s each, DerivedData 4 s (2026-09-20, 27 s wall). Options: more
+  than three workers (du is I/O-bound), measure glob matches in parallel,
+  or show the total early and refine per item.
 - **"Crashed but returned" report** (2026-09-20, after emptying the Trash and
   rescanning): no crash report existed; likely a WebKit content-process
   termination, now logged and auto-reloaded. Wait for the next occurrence
@@ -53,6 +52,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — Plain `/bin/sh` for measurement, login zsh only for catalog commands (ADR-16; tests M1–M5). Scan 38 s → 27 s wall; median entry 107 ms; the suite itself 10 s → 3.4 s.
 
 - 2026-09-20 — Diagnostics log + Reveal log in About; web-process termination handled (tests L1–L6).
 

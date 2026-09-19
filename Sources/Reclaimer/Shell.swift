@@ -10,23 +10,33 @@ struct ShellResult {
 
 /// What the bridge needs from a shell. `Shell` is the real one; tests inject a scripted stand-in.
 protocol CommandRunner {
-    func run(_ command: String, timeout: TimeInterval) -> ShellResult
+    /// `login: false` → `/bin/sh` with the system PATH (5 ms to start; enough for du/find/rm).
+    /// `login: true`  → the user's login zsh (their PATH: brew, xcrun, dotnet…; ~0.8 s to start).
+    func run(_ command: String, timeout: TimeInterval, login: Bool) -> ShellResult
     func runAsAdmin(_ command: String) -> ShellResult
 }
 
 /// The system shell, as a `CommandRunner`.
 struct SystemShell: CommandRunner {
-    func run(_ command: String, timeout: TimeInterval) -> ShellResult { Shell.run(command, timeout: timeout) }
+    func run(_ command: String, timeout: TimeInterval, login: Bool) -> ShellResult { Shell.run(command, timeout: timeout, login: login) }
     func runAsAdmin(_ command: String) -> ShellResult { Shell.runAsAdmin(command) }
 }
 
 enum Shell {
-    /// Runs a command through a login zsh so PATH matches the user's Terminal
+    /// Measurement and removal (`login: false`) run in `/bin/sh` with a fixed system PATH — the
+    /// user's login profile costs ~0.8 s per command and isn't needed for du/find/rm. Catalog
+    /// commands (`login: true`) go through a login zsh so PATH matches the user's Terminal
     /// (xcrun, brew, dotnet, npm all resolve).
-    static func run(_ command: String, timeout: TimeInterval = 600) -> ShellResult {
+    static func run(_ command: String, timeout: TimeInterval = 600, login: Bool = true) -> ShellResult {
         let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        p.arguments = ["-lc", command]
+        if login {
+            p.executableURL = URL(fileURLWithPath: "/bin/zsh")
+            p.arguments = ["-lc", command]
+        } else {
+            p.executableURL = URL(fileURLWithPath: "/bin/sh")
+            p.arguments = ["-c", command]
+            p.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "HOME": FileManager.default.homeDirectoryForCurrentUser.path, "LANG": "en_US.UTF-8"]
+        }
         let out = Pipe(), err = Pipe()
         p.standardOutput = out; p.standardError = err
         do { try p.run() } catch {

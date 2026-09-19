@@ -161,6 +161,16 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | L5 | the page's `log` op | `{level, message}` from the page lands in the file with a `page` tag; an unknown level becomes `info` |
 | L6 | `revealLog` op | replies with the log path (Finder reveal is a side effect not asserted) |
 
+### ShellModeTests — plain shell for measurement, login shell for tools
+Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry scan spent 101 s in shell startup.
+| # | Case | Expect |
+|---|---|---|
+| M1 | `Shell.run(…, login: false)` | runs in `/bin/sh` with the fixed system PATH (`/usr/bin:/bin:/usr/sbin:/sbin`), not the user's profile; `$0` is `/bin/sh` |
+| M2 | `Shell.run(…, login: true)` | runs in a login zsh (the user's PATH, e.g. Homebrew's bin) |
+| M3 | routing (via `FakeShell`) | `du`/`find`/`rm` from `size`, glob resolution, per-item measurement and permanent deletes run with `login: false`; `sizeCmd`, `infoCmd`, `deleteCmd`, `itemsCmd`, `deleteItemCmd` run with `login: true` |
+| M4 | the breakdown (`info` without `infoCmd`) works in plain sh | no `setopt`; a folder with no dotfiles still lists its children |
+| M5 | ten plain-shell `du`s on an empty folder finish in under 1 s total | guards against a regression back to the login shell |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -185,3 +195,4 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | FakeShellTests | F1–F8 | passing |
 | Web logic (node) | J1–J10 | passing |
 | DiagnosticsTests | L1–L6 | passing |
+| ShellModeTests | M1–M5 | passing |
