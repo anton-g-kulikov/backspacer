@@ -51,7 +51,7 @@
 
   /* ── header ─────────────────────────── */
   header {
-    margin: 14px 16px 10px; padding: 12px 18px 12px; border-radius: 22px;
+    margin: 14px calc(16px + var(--sb, 0px)) 10px; padding: 12px 18px 12px; border-radius: 22px;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
     display: grid; grid-template-columns: 1fr auto; gap: 10px 24px; align-items: center; position: relative; z-index: 2;
@@ -90,7 +90,7 @@
   .seg button.on { background: var(--glass-strong); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.7); }
 
   /* ── main ───────────────────────────── */
-  main { overflow-y: auto; padding: 6px 16px 10px; }
+  main { overflow-y: auto; padding: 6px 16px 10px; scrollbar-gutter: stable both-edges; }
   .notice {
     border-radius: 18px; padding: 12px 16px; margin-bottom: 16px;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
@@ -150,7 +150,7 @@
 
   /* ── footer ─────────────────────────── */
   footer {
-    margin: 10px 16px 14px; border-radius: 22px; overflow: hidden;
+    margin: 10px calc(16px + var(--sb, 0px)) 14px; border-radius: 22px; overflow: hidden;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
     display: grid; grid-template-rows: auto auto; position: relative; z-index: 2;
@@ -210,7 +210,7 @@
 
   /* ── header ─────────────────────────── */
   header {
-    padding: 12px 18px 10px; border-bottom: 1px solid var(--line);
+    padding: 12px calc(18px + var(--sb, 0px)) 10px; border-bottom: 1px solid var(--line);
     display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center;
   }
   .brand { display: flex; align-items: baseline; gap: 12px; }
@@ -256,7 +256,7 @@
   .seg button.on { color: var(--accent); font-weight: 700; }
 
   /* ── main ───────────────────────────── */
-  main { overflow-y: auto; padding: 14px 18px 24px; }
+  main { overflow-y: auto; padding: 14px 18px 24px; scrollbar-gutter: stable both-edges; }
   .notice {
     border: 1px dashed var(--regen); padding: 8px 12px; margin-bottom: 14px; color: var(--regen);
     display: flex; gap: 12px; align-items: center; justify-content: space-between;
@@ -320,12 +320,12 @@
 
   /* ── footer ─────────────────────────── */
   footer { border-top: 1px solid var(--line); display: grid; grid-template-rows: auto auto; background: var(--panel); }
-  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 18px; }
+  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px calc(18px + var(--sb, 0px)); }
   .status .sum { color: var(--muted); }
   .status .sum::before { content: "> "; color: var(--accent); }
   .status .sum b { color: var(--fg); font-weight: 700; }
   .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
-  .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 18px; }
+  .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 calc(18px + var(--sb, 0px)); }
   .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
   .tabs button::before { content: "▸ "; }
   .tabs button.on::before { content: "▾ "; }
@@ -564,8 +564,13 @@ function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   document.querySelectorAll('#theme button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
   try { localStorage.setItem('theme', t); } catch {}
+  requestAnimationFrame(syncGutter);
 }
 window.__setTheme = t => { applyTheme(t); bridge.call('prefSet', { key: 'theme', value: t }).catch(() => {}); };
+// Scrollbar gutter: the scroll area reserves it on both edges; the floating/full-width bars
+// widen their side margins by the same amount so all three columns line up.
+function syncGutter() { const m = document.querySelector('main'); document.documentElement.style.setProperty('--sb', ((m.offsetWidth - m.clientWidth) / 2) + 'px'); }
+window.addEventListener('resize', syncGutter);
 $('#theme').onclick = e => { const t = e.target.dataset.theme; if (t) window.__setTheme(t); };
 
 /* ── project folders ────────────────── */
@@ -602,7 +607,7 @@ async function init() {
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   state.catalog = await bridge.call('catalog');
   buildNesting();
-  render();
+  render(); syncGutter();
   refreshDisk();
   bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
   bridge.call('projectRoots').then(r => renderRoots(r.roots)).catch(() => {});
