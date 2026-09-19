@@ -101,3 +101,13 @@ test('J10 scanFrame rotates words and breathes dots', () => {
   assert.ok(L.SCAN_WORDS.length >= 3 && L.SCAN_WORDS.length <= 8);
   assert.ok(L.scanFrame(8 * L.SCAN_WORDS.length).startsWith('measuring.'), 'wraps around');
 });
+
+test('J11 shuffled is a permutation, order depends on the rng', () => {
+  const a = L.shuffled(L.SCAN_WORDS, () => 0);
+  const b = L.shuffled(L.SCAN_WORDS, () => 0.999);
+  assert.deepEqual([...a].sort(), [...L.SCAN_WORDS].sort());
+  assert.deepEqual([...b].sort(), [...L.SCAN_WORDS].sort());
+  assert.notDeepEqual(a, b);
+  assert.equal(L.scanFrame(0, ['zebra', 'apple']), 'zebra.');
+  assert.equal(L.scanFrame(8, ['zebra', 'apple']).startsWith('apple.'), true);
+});

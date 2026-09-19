@@ -148,6 +148,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J6 | `isVisible` | unknown size is visible; below the threshold hidden; equal to it visible |
 | J7 | `meterSegments` | order `other, locked, keep, decide, regen, safe`; `other` = used − buckets, floored at 0; titles from the catalog |
 | J8 | `itemName` | `display` wins, then `label`, then the last two path components |
+| J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 1→3; 3–8 distinct words |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
 
@@ -193,6 +194,6 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F8 | passing |
-| Web logic (node) | J1–J10 | passing |
+| Web logic (node) | J1–J11 | passing |
 | DiagnosticsTests | L1–L6 | passing |
 | ShellModeTests | M1–M5 | passing |
