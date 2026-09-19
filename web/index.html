@@ -50,6 +50,8 @@
     padding-top: var(--titlebar, 0px);   /* set by the app: the page runs under a transparent title bar */
   }
   button { font: inherit; color: inherit; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .glass { background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
 
@@ -131,8 +133,8 @@
   .row .name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .row .label { display: flex; align-items: center; gap: 7px; font-weight: 500; }
   .row .note { color: var(--muted); font-size: 12px; }
-  .row .path { color: var(--faint); font-family: var(--mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .badge { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--track); color: var(--muted); letter-spacing: .02em; }
+  .row .path { color: var(--faint); font-family: var(--mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; user-select: text; }
+  .badge { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--track); color: var(--muted); letter-spacing: .02em; }
   .badge.admin { background: color-mix(in srgb, var(--regen) 18%, transparent); color: color-mix(in srgb, var(--regen) 80%, var(--fg)); }
   .size { font-family: var(--rounded); font-weight: 500; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
   .size.pending, .size.zero { color: var(--faint); font-weight: 400; }
@@ -143,13 +145,15 @@
   .info-out pre { margin: 4px 0; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 12px; align-items: center; padding: 5px 0; border-top: 1px solid var(--sep); }
   .item:first-child { border-top: 0; }
-  .item .ipath { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .ipath { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; user-select: text; }
   .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px 18px; color: var(--faint); }
   .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
   .bucket-head { cursor: pointer; }
-  .bucket-head h2::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
-  section.collapsed .bucket-head h2::before { content: "▸"; }
+  .bucket-head h2 button { all: unset; cursor: pointer; font: inherit; color: inherit; }
+  .bucket-head h2 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .bucket-head h2 button::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
+  section.collapsed .bucket-head h2 button::before { content: "▸"; }
   section.collapsed .bucket-head { border-bottom: 0; }
   section.collapsed > :not(.bucket-head) { display: none; }
 
@@ -174,7 +178,7 @@
   #log { font-family: var(--mono); font-size: 11px; }
   #log .err { color: var(--danger); }
   #log .ok { color: var(--safe); }
-  .about h4 { margin: 4px 0 2px; font-size: 13px; color: var(--fg); }
+  .about h3 { margin: 4px 0 2px; font-size: 13px; color: var(--fg); }
   .about p { margin: 0 0 6px; }
   .about a { color: var(--accent); text-decoration: none; }
   .about .diag code { font-family: var(--mono); font-size: 11px; color: var(--faint); margin: 0 6px 0 2px; }
@@ -214,6 +218,8 @@
     padding-top: var(--titlebar, 0px);   /* set by the app: the page runs under a transparent title bar */
   }
   button { font: inherit; color: inherit; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @keyframes blink { 50% { opacity: 0; } }
 
   /* ── header ─────────────────────────── */
@@ -301,8 +307,8 @@
   .row .name { display: flex; flex-direction: column; gap: 0; min-width: 0; }
   .row .label { display: flex; align-items: center; gap: 8px; }
   .row .note { color: var(--muted); font-size: 11.5px; }
-  .row .path { color: var(--faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .badge { font-size: 10px; padding: 0 4px; color: var(--muted); border: 1px solid var(--line-strong); text-transform: uppercase; letter-spacing: .06em; }
+  .row .path { color: var(--faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; user-select: text; }
+  .badge { font-size: 11px; padding: 0 4px; color: var(--muted); border: 1px solid var(--line-strong); text-transform: uppercase; letter-spacing: .06em; }
   .badge.admin { border-color: var(--regen); color: var(--regen); }
   .size { text-align: right; font-variant-numeric: tabular-nums; }
   .size.pending { color: var(--faint); }
@@ -316,13 +322,15 @@
   .info-out pre { margin: 4px 0; font: inherit; font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 10px; align-items: center; padding: 3px 0; border-top: 1px solid var(--line); }
   .item:first-child { border-top: 0; }
-  .item .ipath { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); }
+  .item .ipath { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); -webkit-user-select: text; user-select: text; }
   .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px; color: var(--faint); }
   .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
   .bucket-head { cursor: pointer; }
-  .bucket-head h2::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
-  section.collapsed .bucket-head h2::before { content: "▸"; }
+  .bucket-head h2 button { all: unset; cursor: pointer; font: inherit; color: inherit; }
+  .bucket-head h2 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .bucket-head h2 button::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
+  section.collapsed .bucket-head h2 button::before { content: "▸"; }
   section.collapsed .bucket-head { border-bottom: 0; }
   section.collapsed > :not(.bucket-head) { display: none; }
 
@@ -342,8 +350,8 @@
   .panel[hidden] { display: none; }
   #log .err { color: var(--danger); }
   #log .ok { color: var(--safe); }
-  .about h4 { margin: 4px 0 2px; font-size: 12px; color: var(--accent); }
-  .about h4::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  .about h3 { margin: 4px 0 2px; font-size: 12px; color: var(--accent); }
+  .about h3::before { content: "$ "; color: var(--muted); font-weight: 400; }
   .about p { margin: 0 0 6px; }
   .about a { color: var(--accent); text-decoration: none; }
   .about a::before { content: "<"; color: var(--faint); } .about a::after { content: ">"; color: var(--faint); }
@@ -374,16 +382,16 @@
   <div class="brand"><h1>Reclaimer</h1><span class="sub" id="host">scanning your Mac</span></div>
   <div class="controls">
     <div class="seg" id="theme" title="Look. Remembered between launches.">
-      <button data-theme="glass">Glass</button><button data-theme="terminal">Terminal</button>
+      <button data-theme="glass" aria-pressed="true">Glass</button><button data-theme="terminal" aria-pressed="false">Terminal</button>
     </div>
     <label class="thr" title="Hide anything smaller than this. Hidden items can't be selected or deleted.">
-      <span>Show ≥</span><input type="range" id="thr" min="0" max="9" value="3"><b id="thrLbl">100 MB</b>
+      <span>Show ≥</span><input type="range" id="thr" min="0" max="9" value="3" aria-label="Show items at least this large" aria-valuetext="100 MB"><b id="thrLbl">100 MB</b>
     </label>
     <button class="btn primary" id="scan">Scan</button>
   </div>
   <div class="disk">
     <span class="lbl" id="diskUsed">—</span>
-    <div class="bar" id="diskBar"></div>
+    <div class="bar" id="diskBar" role="img" aria-label="Disk usage"></div>
     <span class="lbl" id="diskFree">—</span>
   </div>
 </header>
@@ -403,6 +411,7 @@
   <div id="buckets"></div>
 </main>
 
+<div id="live" class="sr-only" aria-live="polite"></div>
 <footer>
   <div class="status">
     <span class="sum" id="sum">Nothing selected</span>
@@ -412,12 +421,12 @@
     </div>
   </div>
   <div class="tabs">
-    <button data-panel="log">Log</button>
-    <button data-panel="about">About</button>
+    <button data-panel="log" aria-expanded="false" aria-controls="log">Log</button>
+    <button data-panel="about" aria-expanded="false" aria-controls="about">About</button>
   </div>
-  <pre id="log" class="panel" hidden></pre>
+  <pre id="log" class="panel" role="log" hidden></pre>
   <div id="about" class="panel about" hidden>
-    <h4>Reclaimer: get back your precious disk space</h4>
+    <h3>Reclaimer: get back your precious disk space</h3>
     <p>Reclaimer isn't an app uninstaller or a general disk cleaner. It knows the caches, build output and
        tooling leftovers a developer's Mac accumulates, sorts them by how safe they are to remove, and lets
        you pick item by item. Nothing is deleted without a confirmation, and admin-only paths go through
@@ -442,7 +451,7 @@
   </div>
 </footer>
 
-<dialog id="dlg">
+<dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgText">
   <form method="dialog">
     <div class="body"><h3 id="dlgTitle"></h3><p id="dlgText"></p><ul id="dlgList"></ul></div>
     <div class="foot"><button class="btn" value="cancel">Cancel</button><button class="btn danger" id="dlgOk" value="ok">Delete</button></div>

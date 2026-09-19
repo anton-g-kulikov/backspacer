@@ -54,6 +54,22 @@ behind the design in `architecture-decisions.md`.
 - The disk meter is a stacked bar over the volume size: everything-else, then
   locked → keep → decide → regen → safe, so reclaimable space sits next to free.
 
+## Accessibility
+
+Bucket headers are `<button aria-expanded aria-controls>` inside their `<h2>`;
+rows and group labels live in a `.bucket-body` the button controls. Row
+checkboxes are labelled with the entry, "all" with "Select all in <bucket>",
+the root chip's `×` with the folder. The threshold slider announces its
+value as a size (`aria-valuetext`). A visually-hidden `aria-live="polite"`
+region (`announce()`) reports scan start/end and every delete outcome; the
+log is `role="log"`; the Scan button uses `aria-busy` rather than `disabled`
+so focus isn't lost. The disk meter is `role="img"` with a label listing
+each segment. Details, the Log/About tabs and the theme buttons carry
+`aria-expanded` / `aria-pressed`; the dialog is labelled by its title and
+described by its text; every theme has a `:focus-visible` ring; paths are
+selectable for copying. Static checks A1–A6; the browser's accessibility
+tree is the live check.
+
 ## Project folders
 
 Catalog globs that look for build output use `"root": "$PROJECTS"` instead of

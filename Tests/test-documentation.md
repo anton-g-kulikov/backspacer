@@ -199,6 +199,17 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | M6 | `Shell.adminScript(for:)` (R5/R27) | wraps the command in `do shell script "…" with administrator privileges`, escaping backslashes and double quotes; a path with `'` and `"` survives the round trip through `Shell.q` + AppleScript quoting |
 | M7 | `Shell.runAsAdmin` structure (R5) | the privileged command runs in a helper subprocess — Reclaimer's own executable launched with `--admin <command>` — never through `NSAppleScript` on the app's main thread. Pinned by the `runAsAdmin(_:helper:spawn:)` seam: the spawner receives the helper path and `[--admin, command]`; a helper exit of 128/"cancelled" surfaces as a failed result. M7b: `AdminHelper.main` returns 64 for anything but `--admin <command>` |
 
+### Web accessibility — `Tests/web/a11y.test.js` (static checks over `index.html` / `app.js`)
+The DOM can't run under Node, so these pin the templates; the browser's accessibility tree is the live check (recorded in the task list when a change lands).
+| # | Case | Expect |
+|---|---|---|
+| A1 | bucket headers (R10) | the header template renders a `<button>` inside the `<h2>` with `aria-expanded` and `aria-controls`; the click handler toggles `aria-expanded`; the section body carries the matching `id` |
+| A2 | names (R11) | row checkboxes get `aria-label` from the entry label; the bucket "all" checkbox is labelled "Select all in <bucket>"; the root chip's `×` has an `aria-label` |
+| A3 | slider (R12) | `#thr` has `aria-label`; `setThreshold` sets `aria-valuetext` to the formatted size |
+| A4 | live region (R13) | a visually-hidden `aria-live="polite"` element exists; `announce()` is called on scan start/end and after deletes; `#log` has `role="log"`; the Scan button is never `disabled` while scanning (it uses `aria-busy` and ignores clicks) |
+| A5 | meter (R16) | `#diskBar` has `role="img"` and `updateMeter` writes an `aria-label` summarising the segments |
+| A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -222,5 +233,6 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F11 | passing |
 | Web logic (node) | J1–J15 | passing |
+| Web accessibility (node) | A1–A6 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

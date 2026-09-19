@@ -85,6 +85,8 @@ const visible = id => isVisible(state.size.get(id), minBytes());
 let NEST = { children: new Map(), parent: new Map() };
 const own = id => ownSize(id, state.size, NEST);
 const selectedParent = id => hasSelectedParent(id, state.selected, NEST);
+/** Screen-reader announcements for things that otherwise only change visually. */
+function announce(text) { const l = $('#live'); l.textContent = ''; setTimeout(() => { l.textContent = text; }, 50); }
 const log = (msg, cls = '') => {
   const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight;
   bridge.call('log', { level: cls === 'err' ? 'error' : 'info', message: msg }).catch(() => {});   // also to the diagnostics file
@@ -101,7 +103,7 @@ function applyTheme(t) {
   if (!THEMES.includes(t)) t = 'glass';
   for (const x of THEMES) document.getElementById('css-' + x).disabled = x !== t;
   document.documentElement.dataset.theme = t;
-  document.querySelectorAll('#theme button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+  document.querySelectorAll('#theme button').forEach(b => { b.classList.toggle('on', b.dataset.theme === t); b.setAttribute('aria-pressed', String(b.dataset.theme === t)); });
   try { localStorage.setItem('theme', t); } catch {}
   requestAnimationFrame(syncGutter);
 }
@@ -120,7 +122,7 @@ function renderRoots(roots) {
   $('#rootsText').innerHTML = roots.length
     ? '<b>Project folders.</b> Build output like node_modules and Pods is searched here.'
     : '<b>No project folders yet.</b> Build output like node_modules and Pods is only searched inside folders you add.';
-  $('#rootsChips').innerHTML = roots.map(r => `<span class="chip">${esc(r.display)}<button data-removeroot="${esc(r.path)}" title="Stop searching here">×</button></span>`).join('');
+  $('#rootsChips').innerHTML = roots.map(r => `<span class="chip">${esc(r.display)}<button data-removeroot="${esc(r.path)}" aria-label="Stop searching ${esc(r.display)}" title="Stop searching here">×</button></span>`).join('');
   // the grey path line under each project entry names the roots
   for (const e of projectEntries()) {
     const el = document.querySelector(`.row[data-id="${e.id}"] .path`);
@@ -161,25 +163,28 @@ function render() {
     const entries = state.catalog.entries.filter(e => e.bucket === b);
     if (!entries.length) continue;
     const meta = state.catalog.buckets[b];
-    const sec = document.createElement('section'); sec.className = 'bucket' + (['keep', 'locked'].includes(b) ? ' collapsed' : ''); sec.dataset.bucket = b;
+    const collapsed = ['keep', 'locked'].includes(b);
+    const sec = document.createElement('section'); sec.className = 'bucket' + (collapsed ? ' collapsed' : ''); sec.dataset.bucket = b;
     const anyDel = entries.some(deletable);
     sec.innerHTML = `
       <div class="bucket-head">
         <span class="dot" style="background:var(--${b})"></span>
-        <h2>${meta.title}<small>${meta.blurb}</small></h2>
+        <h2><button type="button" aria-expanded="${!collapsed}" aria-controls="bucket-${b}">${meta.title}</button><small>${meta.blurb}</small></h2>
         <span class="total" data-total="${b}" style="--c:var(--${b})">—</span>
-        ${anyDel ? `<label class="sel"><input type="checkbox" data-selall="${b}">all</label>` : '<span></span>'}
-      </div>`;
+        ${anyDel ? `<label class="sel"><input type="checkbox" data-selall="${b}" aria-label="Select all in ${esc(meta.title)}">all</label>` : '<span></span>'}
+      </div>
+      <div class="bucket-body" id="bucket-${b}"></div>`;
+    const body = sec.querySelector('.bucket-body');
     let group = null;
     for (const e of entries) {
-      if (e.group !== group) { group = e.group; sec.insertAdjacentHTML('beforeend', `<div class="group-lbl">${esc(group)}</div>`); }
+      if (e.group !== group) { group = e.group; body.insertAdjacentHTML('beforeend', `<div class="group-lbl">${esc(group)}</div>`); }
       const canDel = deletable(e);
       const badges = [e.sudo ? '<span class="badge admin">admin</span>' : '', e.manual ? '<span class="badge manual">manual</span>' : ''].join('');
       const globRoot = e.glob && (e.glob.root === '$PROJECTS' ? (state.roots.map(r => r.display).join(' · ') || 'project folders') : e.glob.root);
       const pathTxt = e.path || (e.paths ? e.paths.join('  ·  ') : e.glob ? `${globRoot}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}` : '');
-      sec.insertAdjacentHTML('beforeend', `
+      body.insertAdjacentHTML('beforeend', `
         <div class="row" data-id="${e.id}">
-          ${canDel ? `<input type="checkbox" data-sel="${e.id}">` : '<span></span>'}
+          ${canDel ? `<input type="checkbox" data-sel="${e.id}" aria-label="${esc(e.label)}">` : '<span></span>'}
           <div class="name">
             <div class="label">${esc(e.label)}${badges}</div>
             ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
@@ -187,11 +192,11 @@ function render() {
           </div>
           <span class="size pending" data-size="${e.id}">…</span>
           <div class="actions">
-            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}">Details</button>` : '<span></span>'}
+            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}" aria-expanded="false" aria-controls="info-${e.id}">Details</button>` : '<span></span>'}
             ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}">Reveal</button>` : '<span></span>'}
             ${canDel ? `<button class="btn small danger" data-del="${e.id}">Delete</button>` : '<span></span>'}
           </div>
-          <div class="info-out" data-infoout="${e.id}" hidden></div>
+          <div class="info-out" data-infoout="${e.id}" id="info-${e.id}" hidden></div>
         </div>`);
     }
     root.appendChild(sec);
@@ -218,13 +223,15 @@ function updateMeter() {
     el.style.width = (bytes / d.size * 100) + '%'; el.title = `${title} — ${fmt(bytes)}`;
   };
   const bytes = Object.fromEntries(ORDER.map(b => [b, state.catalog.entries.filter(e => e.bucket === b).reduce((a, e) => a + own(e.id), 0)]));
-  for (const s of meterSegments(d, bytes, state.catalog.buckets)) seg(s.seg, s.bytes, s.title);
+  const segs = meterSegments(d, bytes, state.catalog.buckets);
+  for (const s of segs) seg(s.seg, s.bytes, s.title);
+  bar.setAttribute('aria-label', `${fmt(d.used)} used of ${fmt(d.size)}, ${fmt(d.free)} free. ` + segs.filter(s => s.bytes).map(s => `${s.title} ${fmt(s.bytes)}`).join(', '));
   bar.classList.toggle('crit', d.used / d.size >= .95);
 }
 
 async function scan(only) {
   if (state.scanning) return; state.scanning = true;
-  $('#scan').disabled = true; updateScanBtn(); startScanWords();
+  $('#scan').setAttribute('aria-busy', 'true'); updateScanBtn(); startScanWords(); announce('Scanning');
   const entries = only || state.catalog.entries;
   for (const e of entries) { state.size.delete(e.id); state.items.delete(e.id); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '…'; el.className = 'size pending'; }
   let hints = {}; try { hints = (await bridge.call('scanHints')).durations || {}; } catch {}
@@ -242,7 +249,8 @@ async function scan(only) {
     }
   }
   await Promise.all(workers);
-  state.scanning = false; state.scanned = true; $('#scan').disabled = false; updateScanBtn();
+  state.scanning = false; state.scanned = true; $('#scan').setAttribute('aria-busy', 'false'); updateScanBtn();
+  announce('Scan complete');
   stopScanWords();   // no "reclaimable" total — how much to reclaim is the user's call
   log('scan complete');
 }
@@ -261,21 +269,21 @@ function applyThreshold() {
   for (const sec of document.querySelectorAll('section.bucket')) {
     let any = false, lbl = null, lblAny = false;
     const flushLbl = () => { if (lbl) lbl.hidden = !lblAny; };
-    for (const el of sec.children) {
+    for (const el of sec.querySelector('.bucket-body').children) {
       if (el.classList.contains('group-lbl')) { flushLbl(); lbl = el; lblAny = false; continue; }
       if (!el.classList.contains('row')) continue;
       const v = visible(el.dataset.id); el.hidden = !v; if (v) { any = true; lblAny = true; }
     }
     flushLbl();
     let empty = sec.querySelector('.empty');
-    if (!any && !empty) { empty = document.createElement('div'); empty.className = 'empty'; sec.appendChild(empty); }
+    if (!any && !empty) { empty = document.createElement('div'); empty.className = 'empty'; sec.querySelector('.bucket-body').appendChild(empty); }
     if (empty) { empty.hidden = any; empty.textContent = `Nothing ${fmt(minBytes())} or larger.`; }
   }
 }
 
 function setThreshold(i, save) {
   state.thr = Math.max(0, Math.min(THR.length - 1, i | 0));
-  $('#thr').value = state.thr; $('#thrLbl').textContent = fmt(minBytes());
+  $('#thr').value = state.thr; $('#thrLbl').textContent = fmt(minBytes()); $('#thr').setAttribute('aria-valuetext', fmt(minBytes()));
   if (state.catalog) updateTotals();
   if (save) bridge.call('prefSet', { key: 'minSize', value: String(state.thr) }).catch(() => {});
 }
@@ -295,7 +303,7 @@ $('#thr').oninput = e => setThreshold(e.target.value, true);
 document.querySelector('.tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   const open = !b.classList.contains('on');
-  document.querySelectorAll('.tabs button').forEach(x => { const on = open && x === b; x.classList.toggle('on', on); $('#' + x.dataset.panel).hidden = !on; });
+  document.querySelectorAll('.tabs button').forEach(x => { const on = open && x === b; x.classList.toggle('on', on); x.setAttribute('aria-expanded', String(on)); $('#' + x.dataset.panel).hidden = !on; });
   if (open && b.dataset.panel === 'log') { const p = $('#log'); p.scrollTop = p.scrollHeight; }
 };
 $('#fdaBtn').onclick = () => bridge.call('openFDA');
@@ -307,12 +315,16 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('click', async e => {
   const head = e.target.closest('.bucket-head');
-  if (head && !e.target.closest('.sel')) { head.parentElement.classList.toggle('collapsed'); return; }
+  if (head && !e.target.closest('.sel')) {
+    const sec = head.parentElement, open = sec.classList.toggle('collapsed') === false;
+    head.querySelector('h2 button').setAttribute('aria-expanded', String(open));
+    return;
+  }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.info) {
     const id = t.dataset.info, out = document.querySelector(`[data-infoout="${id}"]`);
-    if (!out.hidden) { out.hidden = true; return; }
-    out.hidden = false;
+    if (!out.hidden) { out.hidden = true; t.setAttribute('aria-expanded', 'false'); return; }
+    out.hidden = false; t.setAttribute('aria-expanded', 'true');
     if (state.items.has(id)) { renderItems(id); return; }
     out.innerHTML = '<pre>…</pre>';
     try { out.querySelector('pre').textContent = (await bridge.call('info', { id })).text || '(no output)'; } catch (err) { out.querySelector('pre').textContent = err.message; }
@@ -356,6 +368,7 @@ async function confirmAndDeleteItem(id, path) {
   try {
     const r = await bridge.call('delete', { id, item: path });
     log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? it.bytes)} — ${name}`, 'ok');
+    announce(`${name}: ${r.trashed ? 'moved to Trash' : 'deleted'}, ${fmt(r.freedBytes ?? it.bytes)}`);
     state.items.set(id, (state.items.get(id) || []).filter(x => itemId(x) !== path));
     state.size.set(id, Math.max(0, (state.size.get(id) || 0) - it.bytes));
     const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
@@ -382,6 +395,7 @@ async function confirmAndDelete(ids) {
     try {
       const r = await bridge.call('delete', { id });
       log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
+      announce(`${e.label}: ${r.trashed ? 'moved to Trash' : 'deleted'}, ${fmt(r.freedBytes ?? state.size.get(id))}`);
       state.size.set(id, 0); row.classList.add('done');
       const el = row.querySelector('[data-size]'); el.textContent = rowSizeText(0, !!r.trashed); el.className = 'size zero';
       const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
