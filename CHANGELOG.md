@@ -2,7 +2,7 @@
 
 ## Unreleased
 - `catalog.schema.json`: the catalog is described by a JSON Schema — editors validate as you type, and the test suite validates the shipped catalog and checks the schema rejects the mistakes that matter.
-- Source published (proprietary, see LICENSE); CI on every push.
+- Source published under the PolyForm Noncommercial License 1.0.0 (free for noncommercial use; the name and icon stay reserved); CI on every push.
 
 ## 0.4.0 — 2026-09-19
 - Your-call items (archives, DeviceSupport, app data, workspaces…) now go to the Trash instead of being removed outright; the dialog reads "Move to Trash" and reminds you to empty it to free the space. Caches and build output are still removed for good.

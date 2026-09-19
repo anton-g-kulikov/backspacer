@@ -78,8 +78,7 @@ password dialog.
 ## Build from source
 
 The source is published so you can check what the app does before trusting it
-with your disk, and so catalog entries can be proposed — see [LICENSE](LICENSE)
-for what that does and doesn't permit.
+with your disk, build it yourself, and propose catalog entries.
 
 **UI only** — no Xcode needed. The page falls back to a mock bridge with
 random sizes when it isn't inside the app:
@@ -154,8 +153,12 @@ those entries under-report or show `?`.
 
 ## License
 
-Proprietary; the source is published so you can read what the app does before
-trusting it with your disk. See [LICENSE](LICENSE).
+Free for noncommercial use under the
+[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
+— use it, share it, read and modify the source. Commercial use (selling it,
+bundling it in a paid product, paid services) needs a separate license from
+the author. The Reclaimer name and icon aren't licensed: a modified build must
+be renamed. Full text and details in [LICENSE](LICENSE).
 
 If Reclaimer got you your disk back, you can
 [buy me a coffee](https://buymeacoffee.com/antonkulikov). Support:

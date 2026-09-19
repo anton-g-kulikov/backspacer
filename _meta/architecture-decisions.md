@@ -81,6 +81,16 @@ would lie. Admin paths and command-driven entries can't be trashed. A
 failed trash is an error, not a fallback to `rm`. The trasher is injected so
 tests never touch the user's Trash.
 
+## ADR-14 — PolyForm Noncommercial, with the name and icon reserved
+Goals: distribute the signed build freely, accept tips only, let anyone read
+and rebuild the source, and let nobody sell it. PolyForm Noncommercial 1.0.0
+says exactly that in plain language and is written for software (CC licenses
+aren't). It permits noncommercial forks, so the LICENSE preamble reserves the
+name and icon: a modified build must be renamed, which keeps a tampered
+"Reclaimer" from ever looking like the signed one. Not OSI open source — say
+"free for noncommercial use", not "open source". Replaces the all-rights-
+reserved EULA of 0.1–0.4.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.
