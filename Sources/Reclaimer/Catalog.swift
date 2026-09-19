@@ -30,11 +30,18 @@ struct Catalog: Decodable {
         var sizeCmd: String?
         var infoCmd: String?
         var deleteCmd: String?
+        var itemsCmd: String?        // prints one item per line: key<TAB>label<TAB>KB
+        var deleteItemCmd: String?   // removes one item; {key} is replaced with the quoted key
 
         var needsAdmin: Bool { sudo ?? false }
         var isManual: Bool { manual ?? false }
-        /// Resolves to several paths the user can act on one at a time.
-        var isGranular: Bool { glob != nil || paths != nil || children == true }
+        /// Resolves to several items the user can act on one at a time.
+        var isGranular: Bool { glob != nil || paths != nil || children == true || itemsCmd != nil }
+        /// Items can be removed individually: by path (rm) or by command (deleteItemCmd).
+        var canDeleteItems: Bool {
+            ["safe", "regen", "decide"].contains(bucket) && !isManual
+                && (deleteItemCmd != nil || (isDeletable && deleteCmd == nil && itemsCmd == nil))
+        }
         var isDeletable: Bool {
             ["safe", "regen", "decide"].contains(bucket) && !isManual
                 && (path != nil || paths != nil || glob != nil || deleteCmd != nil)

@@ -8,11 +8,6 @@ _(none)_
 
 ## Queued
 
-- **Command granularity for simulators and runtimes.** `simctl list devices -j`
-  / `simctl runtime list -j` give per-item ids, names and sizes; add
-  `itemsCmd` (lines `key<TAB>label<TAB>KB`) + `deleteItemCmd` (`{key}`
-  placeholder, key validated against a fresh `itemsCmd` run, shell-quoted).
-  Entries: `xcode-simdevices`, `xcode-runtimes` (drop `manual`).
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
   or AVDs use `itemsCmd`.
@@ -37,6 +32,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-19 — Command granularity: `itemsCmd`/`deleteItemCmd`; simulators per device, runtimes per runtime (tests T1–T7).
 
 - 2026-09-19 — 0.3.1 released (cosmetics).
 - 2026-09-19 — 0.3.0 released.

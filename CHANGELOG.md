@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Simulators and runtimes, one at a time: Details on "Simulator device contents" lists every simulator with its data size and an Erase-style Delete per device; "Simulator runtimes" is no longer manual — Details lists each runtime (~8 GB) with its own Delete.
+
 ## 0.3.1 — 2026-09-19
 - Traffic lights sit on the page: transparent title bar, content under it.
 - Header, cards and footer share the same edges whatever the scrollbar setting; 10 px breathing room above and below the floating bars (Glass).

@@ -16,6 +16,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private let home: String
     private let tildeHome: String
     private let defaults: UserDefaults
+    private let pathPrefix: String?
     private let fm = FileManager.default
 
     /// `home` (the safety gate's notion of the home folder), `tildeHome` (what a leading `~` in
@@ -24,11 +25,20 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     init(catalog: Catalog,
          home: String = FileManager.default.homeDirectoryForCurrentUser.path,
          tildeHome: String = FileManager.default.homeDirectoryForCurrentUser.path,
-         defaults: UserDefaults = .standard) {
+         defaults: UserDefaults = .standard,
+         pathPrefix: String? = nil) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
         self.defaults = defaults
+        self.pathPrefix = pathPrefix
+    }
+
+    /// Runs a command the catalog defines (sizeCmd, infoCmd, deleteCmd, itemsCmd, deleteItemCmd).
+    /// `pathPrefix` lets tests put fake tools (brew, xcrun) first on PATH.
+    private func runCatalogCommand(_ cmd: String, timeout: TimeInterval, admin: Bool = false) -> ShellResult {
+        let full = pathPrefix.map { "export PATH=\(Shell.q($0)):$PATH; " + cmd } ?? cmd
+        return admin ? Shell.runAsAdmin(full) : Shell.run(full, timeout: timeout)
     }
 
     private func expand(_ p: String) -> String {
@@ -193,9 +203,22 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     private func size(_ e: Catalog.Entry) throws -> [String: Any] {
         if let cmd = e.sizeCmd {
-            let r = Shell.run(cmd, timeout: 300)
+            let r = runCatalogCommand(cmd, timeout: 300)
             if let kb = parseKB(r.stdout) { return ["bytes": kb * 1024, "paths": [String]()] }
             return ["bytes": NSNull(), "paths": [String]()]
+        }
+        if let cmd = e.itemsCmd {
+            // Command-listed items (simulators, runtimes). Total is du of the path when there is
+            // one, otherwise the sum of the items.
+            let items = Self.parseItems(runCatalogCommand(cmd, timeout: 300).stdout)
+            let reply: [String: Any] = ["items": items.map { ["key": $0.key, "label": $0.label, "bytes": $0.kb * 1024] }, "paths": resolvePaths(e)]
+            let paths = resolvePaths(e)
+            if paths.isEmpty {
+                return reply.merging(["bytes": items.reduce(Int64(0)) { $0 + $1.kb * 1024 }]) { $1 }
+            }
+            let r = Shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600)
+            let total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
+            return reply.merging(["bytes": total]) { $1 }
         }
         let hasSource = e.path != nil || e.paths != nil || e.glob != nil
         let paths = resolvePaths(e)
@@ -217,6 +240,15 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         return reply
     }
 
+    /// `itemsCmd` output → (key, label, KB) per line; anything not three tab-separated fields is skipped.
+    static func parseItems(_ out: String) -> [(key: String, label: String, kb: Int64)] {
+        out.split(separator: "\n").compactMap { line in
+            let f = line.split(separator: "\t", omittingEmptySubsequences: false)
+            guard f.count == 3, let kb = Int64(f[2].trimmingCharacters(in: .whitespaces)), !f[0].isEmpty else { return nil }
+            return (String(f[0]), String(f[1]), kb)
+        }
+    }
+
     /// `du -sk` output → (path, KB) per line; the `total` line from `-c` is dropped.
     static func parseDu(_ out: String) -> [(path: String, kb: Int64)] {
         out.split(separator: "\n").compactMap { line in
@@ -232,7 +264,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     private func info(_ e: Catalog.Entry) throws -> [String: Any] {
         if let cmd = e.infoCmd {
-            let r = Shell.run(cmd, timeout: 120)
+            let r = runCatalogCommand(cmd, timeout: 120)
             return ["text": String(r.combined.prefix(20_000))]
         }
         // No command: show what's inside, largest first.
@@ -247,6 +279,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     }
 
     private func delete(_ e: Catalog.Entry, item: String? = nil) throws -> [String: Any] {
+        if let item, e.itemsCmd != nil { return try deleteCommandItem(e, key: item) }
         guard e.isDeletable else { throw BridgeError.notDeletable(e.label) }
         if let item { return try deleteItem(e, item) }
         let before = ((try? size(e))?["bytes"] as? Int64) ?? 0
@@ -261,9 +294,22 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             command = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
         }
 
-        let r = e.needsAdmin ? Shell.runAsAdmin(command) : Shell.run(command, timeout: 1800)
+        let r = e.deleteCmd != nil ? runCatalogCommand(command, timeout: 1800, admin: e.needsAdmin)
+                                   : (e.needsAdmin ? Shell.runAsAdmin(command) : Shell.run(command, timeout: 1800))
         guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
         return ["ok": true, "freedBytes": before]
+    }
+
+    /// One command-listed item. `key` is a selector: it must appear in a fresh run of itemsCmd,
+    /// and it is shell-quoted before substitution — the page never composes a command.
+    private func deleteCommandItem(_ e: Catalog.Entry, key: String) throws -> [String: Any] {
+        guard e.canDeleteItems, let listCmd = e.itemsCmd, let template = e.deleteItemCmd else { throw BridgeError.notDeletable(e.label) }
+        let items = Self.parseItems(runCatalogCommand(listCmd, timeout: 300).stdout)
+        guard let item = items.first(where: { $0.key == key }) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(key)") }
+        let command = template.replacingOccurrences(of: "{key}", with: Shell.q(key))
+        let r = runCatalogCommand(command, timeout: 1800, admin: e.needsAdmin)
+        guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+        return ["ok": true, "freedBytes": item.kb * 1024]
     }
 
     /// One item of a granular entry. `item` is only a selector: it must be in the entry's

@@ -25,9 +25,9 @@ replies `window.__reclaimerReply(id, ok, payload)`. Transport is
 | `disk` | — | `{size, free, used}` bytes | `free` includes purgeable space, matching Finder |
 | `fdaStatus` | — | `{granted: bool}` | probes `~/Library/Safari` |
 | `openFDA` | — | `{ok}` | opens the Full Disk Access pane |
-| `size` | `{id}` | `{bytes: int\|null, paths: [string], items?: [{path, bytes}]}` | `null` when `sizeCmd` output is unparseable or the entry has no source. `items` only for granular entries (`glob`, `paths`, `children: true`): one per match / listed path / subfolder |
+| `size` | `{id}` | `{bytes: int\|null, paths: [string], items?: [{path, bytes} \| {key, label, bytes}]}` | `null` when `sizeCmd` output is unparseable or the entry has no source. `items` only for granular entries: path items for `glob` / `paths` / `children: true`, keyed items for `itemsCmd` |
 | `info` | `{id}` | `{text}` | `infoCmd` output, capped at 20 000 chars; without an `infoCmd`, a size breakdown of the first path's contents, largest first (40 lines) |
-| `delete` | `{id, item?}` | `{ok, freedBytes}` | refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: deletes that one path of a granular entry — `item` is a selector, accepted only if it is in the entry's freshly resolved item set, and never for entries with a `deleteCmd` |
+| `delete` | `{id, item?}` | `{ok, freedBytes}` | refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: one item of a granular entry — a path (then `rm -rf`, never for entries with a `deleteCmd`) or a key (then `deleteItemCmd` with `{key}` replaced by the shell-quoted key). Either way `item` is a selector, accepted only if it is in a fresh resolve / fresh `itemsCmd` run |
 | `reveal` | `{id}` | `{ok}` | Finder-selects the first resolved path |
 | `appInfo` | — | `{version, build}` | `CFBundleShortVersionString`, `CFBundleVersion` |
 | `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize` |

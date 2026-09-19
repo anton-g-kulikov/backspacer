@@ -86,6 +86,18 @@ Fixture: temp home with `Projects/a/node_modules`, `Developer/b/node_modules`, `
 | R5 | glob with `"root": "$PROJECTS"` | matches under every root (`Projects/a/…`, `Developer/b/…`); never under `~/Library` |
 | R6 | `projectRoots` op reply | `{roots: [{path, display}]}` with `display` using `~` |
 
+### CommandItemTests — command-listed items (`itemsCmd` / `deleteItemCmd`)
+Fixture: a fake `xcrun` first on `PATH` that answers `simctl list devices -j` and `simctl runtime list -j` with fixture JSON (two available devices + one unavailable; two runtimes, one not deletable) and appends every other invocation to a log file. The real `catalog.json` entries are used, so the actual command strings are exercised.
+| # | Case | Expect |
+|---|---|---|
+| T1 | `size` on `xcode-simdevices` | `items` = the two available devices: key = UDID, label "iPhone 17 Pro · iOS 26.5", bytes from `dataPathSize`; the unavailable one absent |
+| T2 | `size` on `xcode-runtimes` | `items` = the deletable runtime only: key, label "iOS 26.5 (23F77)", bytes from `sizeBytes`; `bytes` = sum |
+| T3 | `delete {id, item: <unknown key>}` | throws; the fake `xcrun` log shows no `erase`/`delete` call |
+| T4 | `delete {id, item: <valid UDID>}` on devices | log shows `simctl erase <udid>`; `freedBytes` = that device's bytes |
+| T5 | `delete {id, item: <valid key>}` on runtimes | log shows `simctl runtime delete <key>` |
+| T6 | `Bridge.parseItems` | parses `key\tlabel\tKB`; skips malformed lines |
+| T7 | catalog invariant: every entry with `itemsCmd` also has `deleteItemCmd` containing `{key}`, and vice versa | pass |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -104,3 +116,4 @@ Fixture: temp home with `Projects/a/node_modules`, `Developer/b/node_modules`, `
 | CatalogCommandTests | B1–B3 | passing |
 | ItemTests | I1–I8 | passing |
 | ProjectRootTests | R1–R6 | passing |
+| CommandItemTests | T1–T7 | passing |

@@ -51,7 +51,10 @@ match. The page sends `delete {id, item}` with the item's path. ADR-2 still
 holds: the host re-resolves the entry and accepts `item` only if it is in that
 fresh set, so the page cannot name anything the catalog doesn't currently
 resolve to; the safety gate then runs as for any delete. Entries with a
-`deleteCmd` are excluded — a command isn't per-path.
+`deleteCmd` are excluded — a command isn't per-path. Command-listed items
+(`itemsCmd` / `deleteItemCmd`, 0.4.0) follow the same rule with a key instead
+of a path: the key must come from a fresh listing and is shell-quoted before
+substitution, so the page never composes a command.
 
 ## ADR-11 — Pipe readers on threads, not GCD
 `Shell.run` drains stdout/stderr concurrently. On the global queue those

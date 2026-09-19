@@ -95,7 +95,9 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
   "manual": false,                   // measure + explain, never delete
   "sizeCmd": "…",                    // optional: command printing size in KB
   "infoCmd": "xcrun simctl runtime list",  // optional: shown by the Details button
-  "deleteCmd": "xcrun simctl erase all"    // optional: replaces rm -rf <path>
+  "deleteCmd": "xcrun simctl erase all",   // optional: replaces rm -rf <path>
+  "itemsCmd": "…",                   // optional: lists items as key<TAB>label<TAB>KB (Details shows them)
+  "deleteItemCmd": "xcrun simctl erase {key}"  // with itemsCmd: removes one item; {key} is shell-quoted
 }
 ```
 

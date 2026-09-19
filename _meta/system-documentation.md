@@ -69,6 +69,15 @@ get a read-only breakdown of their contents from Details instead.
 fresh set, then applies the normal safety gate, then `rm -rf` that one path.
 Tests I1–I8 run this against a temp directory used as `home`.
 
+Command-listed items work the same way without paths: `itemsCmd` prints one
+`key<TAB>label<TAB>KB` line per item (simulators from `simctl list devices -j`,
+runtimes from `simctl runtime list -j`, parsed by a `python3` one-liner —
+python3 ships with Xcode's tools, `jq` doesn't exist before macOS 15), and
+`deleteItemCmd` runs with `{key}` replaced by the shell-quoted key after the
+key was found in a fresh `itemsCmd` run. Such entries need no whole-entry
+delete; runtimes have none, device contents keep `erase all`. Tests T1–T7
+drive the real catalog commands against a fake `xcrun`.
+
 ## Deletion
 
 1. The page collects ticked ids (only visible, deletable ones) and opens a

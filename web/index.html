@@ -493,7 +493,11 @@ function mockBridge() {
           let s = sizes.get(args.id);
           if (!s) {
             s = { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
-            if (e.glob || e.paths || e.children) {   // granular: invent 2–6 items that add up
+            if (e.itemsCmd) {                           // command items: fake simulators / runtimes
+              const names = e.id === 'xcode-runtimes' ? ['iOS 26.5 (23F77)', 'iOS 18.0 (22A3351)'] : ['iPhone 17 Pro · iOS 26.5', 'iPad Air 11-inch (M4) · iOS 26.5', 'iPhone SE · iOS 18.0'];
+              s.items = names.map((label, i) => ({ key: `${e.id}-${i + 1}`, label, bytes: 0 }));
+              let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === s.items.length - 1 ? left : Math.round(left * .5); left -= it.bytes; });
+            } else if (e.glob || e.paths || e.children) {   // granular: invent 2–6 items that add up
               const n = rnd(2, 6), base = e.glob ? `${e.glob.root === '$PROJECTS' ? roots[0] || '~/Projects' : e.glob.root}/proj-` : e.paths ? '' : `${e.path}/`;
               s.items = Array.from({ length: n }, (_, i) => ({ path: e.paths ? e.paths[i % e.paths.length] + (i >= e.paths.length ? '-' + i : '') : `${base}${i + 1}/${e.glob ? e.glob.name : 'item-' + (i + 1)}`, bytes: 0 }));
               let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === n - 1 ? left : Math.round(left * Math.random() * .6); left -= it.bytes; });
@@ -506,7 +510,7 @@ function mockBridge() {
         case 'delete': {
           const s = sizes.get(args.id) || { bytes: 0 };
           if (args.item) {
-            const it = s.items?.find(x => x.path === args.item); if (!it) throw new Error('Not one of the items: ' + args.item);
+            const it = s.items?.find(x => (x.key ?? x.path) === args.item); if (!it) throw new Error('Not one of the items: ' + args.item);
             s.items = s.items.filter(x => x !== it); s.bytes -= it.bytes; s.freed = (s.freed || 0) + it.bytes; return { ok: true, freedBytes: it.bytes };
           }
           const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed: (s.freed || 0) + freed }); return { ok: true, freedBytes: freed };
@@ -527,8 +531,11 @@ function mockBridge() {
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null, roots: [] };
-const granular = e => !!(e.glob || e.paths || e.children);
-const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob);
+const granular = e => !!(e.glob || e.paths || e.children || e.itemsCmd);
+const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob || e.itemsCmd);
+// Items can be removed one at a time: by path (rm) or by the entry's deleteItemCmd.
+const itemDeletable = e => ['safe', 'regen', 'decide'].includes(e.bucket) && !e.manual && (!!e.deleteItemCmd || (deletable(e) && !e.deleteCmd && !e.itemsCmd));
+const itemId = it => it.key ?? it.path;
 // Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
 const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
 const minBytes = () => THR[state.thr];
@@ -788,38 +795,43 @@ function entry(id) { return state.catalog.entries.find(e => e.id === id); }
 function renderItems(id) {
   const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];
   if (!items.length) { out.innerHTML = '<pre>Nothing found.</pre>'; return; }
-  // Show paths relative to what they have in common (the glob root or the parent folder).
-  let prefix = items[0].path;
-  for (const it of items) while (!it.path.startsWith(prefix)) prefix = prefix.slice(0, -1);
-  prefix = prefix.slice(0, prefix.lastIndexOf('/') + 1);
-  const show = p => p.slice(prefix.length) || p.split('/').slice(-2).join('/');
-  const canDel = deletable(e) && !e.deleteCmd;
+  // Path items show relative to what they have in common (the glob root or the parent
+  // folder); command items (simulators, runtimes) carry their own label.
+  let show = it => it.label;
+  if (items[0].path) {
+    let prefix = items[0].path;
+    for (const it of items) while (!it.path.startsWith(prefix)) prefix = prefix.slice(0, -1);
+    prefix = prefix.slice(0, prefix.lastIndexOf('/') + 1);
+    show = it => it.path.slice(prefix.length) || it.path.split('/').slice(-2).join('/');
+  }
+  const canDel = itemDeletable(e);
   out.innerHTML = items.map(it => `
     <div class="item">
-      <span class="ipath" title="${esc(it.path)}">${esc(show(it.path))}</span>
+      <span class="ipath" title="${esc(it.path || it.key)}">${esc(show(it))}</span>
       <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
-      ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(it.path)}">Delete</button>` : '<span></span>'}
+      ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(itemId(it))}">Delete</button>` : '<span></span>'}
     </div>`).join('');
 }
 
 async function confirmAndDeleteItem(id, path) {
-  const e = entry(id), it = (state.items.get(id) || []).find(x => x.path === path);
-  if (!it || !deletable(e) || e.deleteCmd) return;
-  $('#dlgTitle').textContent = `Delete “${path.split('/').slice(-2).join('/')}”?`;
+  const e = entry(id), it = (state.items.get(id) || []).find(x => itemId(x) === path);
+  if (!it || !itemDeletable(e)) return;
+  const name = it.label || path.split('/').slice(-2).join('/');
+  $('#dlgTitle').textContent = `Delete “${name}”?`;
   $('#dlgText').textContent = `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.` + (e.sudo ? ' macOS will ask for your password.' : '');
-  $('#dlgList').innerHTML = `<li>${esc(path)}</li>`;
+  $('#dlgList').innerHTML = `<li>${esc(it.label || path)}</li>`;
   const dlg = $('#dlg'); dlg.showModal();
   const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
   if (choice !== 'ok') return;
-  log(`deleting ${path}…`);
+  log(`deleting ${name}…`);
   try {
     const r = await bridge.call('delete', { id, item: path });
-    log(`  freed ${fmt(r.freedBytes ?? it.bytes)} — ${path}`, 'ok');
-    state.items.set(id, (state.items.get(id) || []).filter(x => x.path !== path));
+    log(`  freed ${fmt(r.freedBytes ?? it.bytes)} — ${name}`, 'ok');
+    state.items.set(id, (state.items.get(id) || []).filter(x => itemId(x) !== path));
     state.size.set(id, Math.max(0, (state.size.get(id) || 0) - it.bytes));
     const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
     renderItems(id); updateTotals(); refreshDisk();
-  } catch (err) { log(`  failed — ${path}: ${err.message}`, 'err'); }
+  } catch (err) { log(`  failed — ${name}: ${err.message}`, 'err'); }
 }
 
 async function confirmAndDelete(ids) {
