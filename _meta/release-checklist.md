@@ -13,7 +13,8 @@ Repeated, error-prone task. Update this when a step turns out to be missing.
 ## Steps
 1. `swift test` is green; `git status` is clean; CHANGELOG has the version's entry.
 2. Tag: `git tag -a vX.Y.Z -m "Reclaimer X.Y.Z"` — `build-app.sh` reads the
-   version from `git describe --tags`.
+   version from `git describe --tags`. Tag the *final* commit: an amend after
+   tagging makes the version read `X.Y.Z-1-g…`; re-tag with `git tag -f -a`.
 3. Build: `IDENTITY="Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)" scripts/build-app.sh`
    — expect `arch: x86_64 arm64` and `signature OK`.
 4. Smoke-test `open build/Reclaimer.app`: scans, theme switch, one delete with confirm/cancel.
