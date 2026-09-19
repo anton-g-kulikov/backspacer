@@ -24,8 +24,6 @@ _(none)_
   `Tests/test-documentation.md` first.
 - **Fake shell for `Bridge` ops.** Inject a `Shell`-like runner so `size`,
   `delete` and glob resolution can be tested without touching the disk.
-- **CI.** `swift test` + `swift build -c release` on push (GitHub Actions,
-  macOS runner).
 
 ## Roadmap (from the 0.1.0 README)
 
@@ -38,6 +36,7 @@ _(none)_
 
 ## Done
 
+- 2026-09-20 — Repo public with the EULA as LICENSE; CI (swift test + universal release build) on push/PR.
 - 2026-09-19 — 0.4.0 released.
 - 2026-09-19 — Trash for the `decide` bucket, permanent for the rest (ADR-13; tests D1–D5).
 

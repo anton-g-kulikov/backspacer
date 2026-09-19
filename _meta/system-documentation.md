@@ -133,6 +133,13 @@ file modes, and signs (hardened runtime + timestamp with a Developer ID,
 ad-hoc otherwise). `scripts/notarize.sh` submits the app, staples, wraps it in
 a DMG, submits and staples that. See `release-checklist.md` for the sequence.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs `swift test` and a universal release build on a
+macOS 15 runner with Xcode 16 for every push to `main`, every tag and every
+pull request, and checks that `catalog.json` parses. Signing and notarization
+are not part of CI — they need the local keychain (see `release-checklist.md`).
+
 ## Repository layout
 
 ```
