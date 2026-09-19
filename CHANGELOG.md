@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 — 2026-09-19
+- Traffic lights sit on the page: transparent title bar, content under it.
+- Header, cards and footer share the same edges whatever the scrollbar setting; 10 px breathing room above and below the floating bars (Glass).
+- Bucket totals in the bucket's colour: tinted capsule (Glass), coloured text (Terminal).
+- Terminal: no scanline overlay (it striped the glyphs); `[ details ] [ reveal ]` grouped with `[ delete ]` set apart; `[ ]` checkboxes keep their width.
+- Glass: Details and Reveal buttons the same size.
+
 ## 0.3.0 — 2026-09-19
 - About panel: tagline, a short note on what Reclaimer is and isn't, version with build number on hover.
 - The Info button is now Details.

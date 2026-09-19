@@ -38,6 +38,7 @@ _(none)_
 
 ## Done
 
+- 2026-09-19 — 0.3.1 released (cosmetics).
 - 2026-09-19 — 0.3.0 released.
 - 2026-09-19 — Configurable project folders (`$PROJECTS`, detected defaults, picker, island under FDA notice; ADR-12; tests R1–R6).
 
