@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Time Machine local snapshots moved from Safe to delete to Managed by macOS (read-only, Info kept). macOS purges them itself and the free-space figure already counts them, so thinning gained nothing visible. The note gives the manual `tmutil` command for the rare case a tool needs non-purgeable space.
+
 ## 0.2.0 — 2026-09-19
 - Two looks: Glass (default, follows light/dark) and Terminal; switch in the header or View → ⌘1/⌘2. Remembered between launches.
 - "Show ≥" size threshold slider (10 MB – 10 GB, default 100 MB). Smaller items are hidden and can't be deleted.

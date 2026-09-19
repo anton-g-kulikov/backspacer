@@ -6,7 +6,7 @@
     "regen":  { "title": "Regenerable",         "blurb": "Comes back on the next build or install. Costs one slow build." },
     "decide": { "title": "Your call",           "blurb": "Real data or tooling. Delete only what you no longer use." },
     "keep":   { "title": "Keep",                "blurb": "Needed for current work. Shown so the numbers add up." },
-    "locked": { "title": "Managed by macOS",    "blurb": "System Integrity Protection. Can't be deleted; shown for accounting." }
+    "locked": { "title": "Managed by macOS",    "blurb": "macOS manages these itself — purged automatically or SIP-protected. Shown for accounting." }
   },
   "entries": [
 
@@ -24,11 +24,6 @@
       "label": "Staged macOS update download",
       "path": "/System/Volumes/Data/macOS Install Data",
       "note": "A queued OS update. Re-downloads unless automatic update downloads are turned off in Software Update." },
-    { "id": "regrow-snapshots", "group": "Regrowth sources", "bucket": "safe", "sudo": true,
-      "label": "Time Machine local snapshots",
-      "infoCmd": "tmutil listlocalsnapshots /",
-      "deleteCmd": "tmutil thinlocalsnapshots / 999999999999 4",
-      "note": "Size isn't reported by macOS; the info shows how many exist. Thinning is always safe — external backups are untouched." },
     { "id": "regrow-spotlight", "group": "Regrowth sources", "bucket": "keep", "sudo": true,
       "label": "Spotlight index",
       "path": "/System/Volumes/Data/.Spotlight-V100",
@@ -222,6 +217,10 @@
     { "id": "user-downloads", "group": "Your files", "bucket": "decide", "manual": true,
       "label": "Downloads", "path": "~/Downloads" },
 
+    { "id": "regrow-snapshots", "group": "Managed by macOS", "bucket": "locked", "sudo": true,
+      "label": "Time Machine local snapshots",
+      "infoCmd": "tmutil listlocalsnapshots /",
+      "note": "macOS purges these itself under storage pressure, and the free-space figure already counts them, so thinning gains nothing visible. Size isn't reported; Info shows how many exist. If a tool needs real (not purgeable) space: sudo tmutil thinlocalsnapshots / 999999999999 4" },
     { "id": "locked-ai", "group": "Managed by macOS", "bucket": "locked", "sudo": true,
       "label": "Apple Intelligence & Siri models",
       "glob": { "root": "/System/Volumes/Data/System/Library/AssetsV2", "name": "com_apple_MobileAsset_UAF_*", "maxdepth": 1, "type": "d" },

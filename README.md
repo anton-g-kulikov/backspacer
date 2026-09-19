@@ -31,7 +31,7 @@ shell around it.
 | `regen` | Comes back on the next build/install. Costs one slow build. | selectable, deletable |
 | `decide` | Real data or tooling — delete only what you no longer use. | selectable, deletable |
 | `keep` | Needed for current work. Listed so the numbers add up. | read-only |
-| `locked` | SIP-protected system assets. Can't be deleted by anyone. | read-only |
+| `locked` | Managed by macOS: SIP-protected assets, or things macOS purges itself (Time Machine local snapshots). Deleting them gains nothing. | read-only |
 
 Entries flagged `manual: true` are measured and explained but never deleted by
 the app (e.g. "keep only the iOS DeviceSupport folder for your current phone").

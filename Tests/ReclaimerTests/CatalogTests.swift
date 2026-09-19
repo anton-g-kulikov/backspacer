@@ -47,6 +47,15 @@ import Testing
         #expect(catalog.entry("no-such-entry") == nil)
     }
 
+    @Test("C8 — Time Machine snapshots are accounting-only, managed by macOS")
+    func snapshotsAreLocked() throws {
+        let e = try #require(catalog.entry("regrow-snapshots"))
+        #expect(e.bucket == "locked")
+        #expect(!e.isDeletable)
+        #expect(e.deleteCmd == nil)
+        #expect(e.infoCmd != nil)
+    }
+
     @Test("C7 — only a leading tilde is expanded")
     func tilde() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path

@@ -37,6 +37,7 @@ says what the tests prove, not how the system works.
 | C5 | entries in keep/locked are never deletable | pass |
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
+| C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
 
 ### PrefTests — `Bridge.prefKey` / `prefValue`
 | # | Case | Expect |
@@ -64,6 +65,6 @@ says what the tests prove, not how the system works.
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S7 | passing |
-| CatalogTests | C1–C7 | passing |
+| CatalogTests | C1–C8 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
