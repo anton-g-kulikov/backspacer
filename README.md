@@ -161,3 +161,8 @@ CHANGELOG.md
 ```
 
 Internals: `_meta/system-documentation.md`. Roadmap and status: `_meta/project-task-list.md`.
+
+## License
+
+Proprietary; the source is published so you can read what the app does before
+trusting it with your disk. See [LICENSE](LICENSE).
