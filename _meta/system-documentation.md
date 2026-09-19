@@ -108,12 +108,18 @@ drive the real catalog commands against a fake `xcrun`.
 3. The reply carries the bytes measured just before deletion; the row greys
    out and the disk numbers refresh.
 
-Safety gate (`Bridge.isSafeToDelete`), applied to every path before `rm`:
-refuses `/`, home, every top-level *visible* folder in home, `~/Library`,
+Safety gate (`Bridge.isSafeToDelete`), applied to every path before `rm` or
+trash: the given path and its symlink-resolved form must both pass; names are
+compared case-insensitively (the default file system is). Refused: `/`, home,
+every top-level *visible* folder in home, `~/Library`,
 `~/Library/{Application Support,Developer,Containers}`, `/Users`, `/Library`,
-`/System`, `/Applications`, `/private`, `/opt`; allows only paths under `~/`,
-`/Library/Developer/` or the staged macOS-update folder. Traversal is
-normalised first. Tests S1–S7 pin this behaviour.
+`/System`, `/Applications`, `/private`, `/opt`; anything outside `~/`,
+`/Library/Developer/` or the staged macOS-update folder (which is itself the
+target); and at any depth the user-data roots in `Bridge.userDataRoots`
+(Documents, Desktop, Pictures, Movies, Music, Public, Mail, Messages,
+Keychains, Mobile Documents, CloudStorage, Group Containers, Accounts,
+Cookies, Safari, `.ssh`, `.gnupg`) plus any `*.photoslibrary` — except inside
+a configured project folder. Tests S1–S11 pin this behaviour.
 
 ## Preferences
 

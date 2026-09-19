@@ -54,9 +54,14 @@ password dialog.
   or injection in the UI cannot delete anything the catalog doesn't already
   describe.
 - **`isSafeToDelete()`** is a second gate: refuses `/`, the home folder, every
-  top-level visible folder in home (`~/Documents`, `~/Projects`, …),
-  `~/Library` itself, and anything outside `~/`, `/Library/Developer/` or the
-  staged macOS update folder.
+  top-level visible folder in home, `~/Library` itself, anything outside `~/`,
+  `/Library/Developer/` or the staged macOS update folder — and, at any depth,
+  your data: Documents, Desktop, Pictures, Movies, Music, Photos libraries,
+  Mail, Messages, Keychains, iCloud Drive, cloud-storage folders, Safari,
+  `.ssh`, `.gnupg`. Symlinks are resolved first and names are compared
+  case-insensitively. The one exception is a project folder you added
+  yourself: what the globs find inside it (`node_modules`, `Pods`, build
+  output) is yours to reclaim.
 - **Every delete goes through a confirmation** listing exactly what will go
   and how much. Nothing is removed by a single click.
 - **Your call goes to the Trash; caches are removed for good.** Real data

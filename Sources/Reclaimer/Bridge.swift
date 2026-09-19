@@ -516,26 +516,50 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     /// Last line of defence. Even though paths come from the catalog, refuse
     /// anything that could take a user's data with it.
+    /// User data the catalog must never be able to reach, even below depth 2. Relative to home.
+    static let userDataRoots = [
+        "Documents", "Desktop", "Pictures", "Movies", "Music", "Public",
+        "Library/Mail", "Library/Messages", "Library/Keychains", "Library/Mobile Documents",
+        "Library/CloudStorage", "Library/Group Containers", "Library/Accounts", "Library/Cookies", "Library/Safari",
+        ".ssh", ".gnupg",
+    ]
+
     func isSafeToDelete(_ path: String) -> Bool {
-        let p = (path as NSString).standardizingPath
-        guard p.hasPrefix("/"), !p.contains("/../"), p != "/" else { return false }
+        let given = (path as NSString).standardizingPath
+        guard given.hasPrefix("/"), !given.contains("/../"), given != "/" else { return false }
+        // Symlinks are resolved so a link inside an allowed folder can't point at user data;
+        // both spellings must pass. Comparisons fold case: the default file system does.
+        let resolved = URL(fileURLWithPath: given).resolvingSymlinksInPath().path
+        return [given, resolved].allSatisfy(passesGate)
+    }
 
-        let forbidden: Set<String> = [
-            home, home + "/Library", home + "/Projects", home + "/Documents", home + "/Desktop",
-            home + "/Downloads", home + "/Pictures", home + "/Movies", home + "/Music",
-            home + "/Library/Application Support", home + "/Library/Developer", home + "/Library/Containers",
-            "/Users", "/Library", "/System", "/Applications", "/private", "/private/var", "/opt",
+    private func passesGate(_ p: String) -> Bool {
+        let home = self.home.lowercased()
+        let lp = p.lowercased()
+        func under(_ root: String) -> Bool { lp == root || lp.hasPrefix(root + "/") }
+        func within(_ root: String) -> Bool { lp.hasPrefix(root + "/") }
+
+        let forbidden = [
+            home, home + "/library", home + "/projects", home + "/downloads",
+            home + "/library/application support", home + "/library/developer", home + "/library/containers",
+            "/users", "/library", "/system", "/applications", "/private", "/private/var", "/opt",
         ]
-        if forbidden.contains(p) { return false }
+        if forbidden.contains(lp) { return false }
 
-        let allowedRoots = [home + "/", "/Library/Developer/", "/System/Volumes/Data/macOS Install Data"]
-        guard allowedRoots.contains(where: { p.hasPrefix($0) }) else { return false }
+        // Only these roots at all, and only below them (a root needs its separator: "…Data-2" is not
+        // "…Data/"). The staged-update folder is the one root that is itself the thing to delete.
+        guard within(home) || within("/library/developer") || under("/system/volumes/data/macos install data") else { return false }
 
-        if p.hasPrefix(home + "/") {
-            let rel = p.dropFirst(home.count + 1)
-            let depth = rel.split(separator: "/").count
+        if within(home) {
+            let rel = lp.dropFirst(home.count + 1)
             // Top-level visible folders in home are never deletable; dot-folders (~/.cache) are.
-            if depth < 2 && !rel.hasPrefix(".") { return false }
+            if rel.split(separator: "/").count < 2 && !rel.hasPrefix(".") { return false }
+            // Photos libraries, wherever they are.
+            if lp.contains(".photoslibrary/") || lp.hasSuffix(".photoslibrary") { return false }
+            // User data — unless the user pointed a project folder there, in which case what
+            // the globs find inside it (node_modules, Pods, build/) is theirs to reclaim.
+            let insideProjectRoot = projectRoots().map { $0.lowercased() }.contains(where: within)
+            if !insideProjectRoot && Self.userDataRoots.contains(where: { under(home + "/" + $0.lowercased()) }) { return false }
         }
         return true
     }

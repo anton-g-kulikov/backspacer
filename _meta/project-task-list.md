@@ -14,14 +14,6 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
 ### Critical — the deletion gate has holes
-3. **R3 · `isSafeToDelete` allows real user data.** Depth ≥ 2 under home and
-   every dot-folder pass: Photos Library, `~/Documents/*`, `~/Desktop/*`,
-   `~/Library/Mail`, `~/Library/Keychains`, `~/Library/Mobile Documents`,
-   `~/Library/CloudStorage`, `~/.ssh`, `~/.gnupg`. Comparison is
-   case-sensitive on case-insensitive APFS; the staged-update root lacks a
-   trailing `/`. Fix: explicit deny-list by prefix, case-insensitive, over a
-   symlink-resolved path. Tests S8 deny cases, S9 case folding, S10 root
-   trailing slash.
 4. **R7 · Root is one catalog edit away.** A future `sudo` + `deleteCmd` /
    `deleteItemCmd` entry would run a PATH-resolved tool as root. Fix:
    CatalogTests invariant forbidding `sudo` with any command; `runAsAdmin`
@@ -125,6 +117,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R3: user-data deny-list at any depth, case-folded, symlink-resolved, project-folder exemption (S8–S11).
 - 2026-09-20 — R2: `esc` escapes quotes; CSP `script-src 'self'` with inline scripts moved to boot.js/app.js (J2, J15; ADR-17; verified in browser and app).
 - 2026-09-20 — R1: Escape could confirm a delete; `confirmDialog` resets `returnValue` and both flows use it (J14, verified against the real dialog).
 - 2026-09-20 — 0.6.1 released.

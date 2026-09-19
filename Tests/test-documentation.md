@@ -30,6 +30,10 @@ fails even when the values are equal — bind the expected value to a typed `let
 | S5 | traversal: `~/Library/Caches/../../Documents` normalises to a refused path | refused |
 | S6 | relative path | refused |
 | S7 | every static `path`/`paths` of a deletable catalog entry (with a home-relative or allowed root) passes the gate — the catalog can never name something the gate refuses |
+| S8 | user-data deny-list (R3) | refused anywhere under: `~/Documents`, `~/Desktop`, `~/Pictures`, `~/Movies`, `~/Music`, `~/Public`, `~/Library/Mail`, `~/Library/Messages`, `~/Library/Keychains`, `~/Library/Mobile Documents`, `~/Library/CloudStorage`, `~/Library/Group Containers`, `~/Library/Accounts`, `~/Library/Cookies`, `~/Library/Safari`, `~/.ssh`, `~/.gnupg`, and any `*.photoslibrary`; a path inside a configured project folder is exempt (`~/Documents/mycode/app/node_modules` once `~/Documents/mycode` is added as a root) |
+| S9 | case folding | `~/library/MAIL/x` is refused on the case-insensitive default file system; `~/Library/Caches` in any case is allowed |
+| S10 | roots need a separator | `/System/Volumes/Data/macOS Install Data-2` refused; `…/macOS Install Data/x` allowed |
+| S11 | symlinks are resolved first | a symlink inside `~/Library/Caches` that points at `~/Documents` is refused |
 
 ### CatalogTests — `Catalog` decoding and invariants (real `catalog.json`)
 | # | Case | Expect |
@@ -194,7 +198,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 
 | Suite | Cases | State |
 |---|---|---|
-| SafetyGateTests | S1–S7 | passing |
+| SafetyGateTests | S1–S11 | passing |
 | CatalogTests | C1–C10 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
