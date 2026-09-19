@@ -111,6 +111,14 @@ Fixture: temp home with a `safe` cache, a `decide` folder, a `decide` `children`
 | D4 | the trasher throws | the error surfaces, the source is untouched — no fallback to `rm` |
 | D5 | whole-entry delete of a `safe` folder | removed permanently, trasher not called, reply has no `trashed` |
 
+### SchemaTests — `catalog.schema.json`
+Validated with a small JSON-Schema subset validator in `Tests/ReclaimerTests/Support/MiniSchema.swift` (type, required, properties, additionalProperties, enum, const, items, minItems, pattern, anyOf, not, dependentRequired, dependentSchemas — the keywords the schema uses).
+| # | Case | Expect |
+|---|---|---|
+| V1 | the shipped `catalog.json` | validates |
+| V2 | an entry with an unknown field, an unknown bucket, an `id` with spaces, `children` without `path`, `children` alongside `glob`, `itemsCmd` without `deleteItemCmd`, `deleteItemCmd` without `{key}`, `childLabel` without `children`, no source at all | each rejected, with a message naming the entry's path in the document |
+| V3 | the validator itself: a handful of positive/negative cases per keyword | as expected (guards against the validator silently accepting everything) |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -131,3 +139,4 @@ Fixture: temp home with a `safe` cache, a `decide` folder, a `decide` `children`
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T7 | passing |
 | DisposalTests | D1–D5 | passing |
+| SchemaTests | V1–V3 | passing |

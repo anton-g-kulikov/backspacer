@@ -74,7 +74,11 @@ password dialog.
 - No App Sandbox (it can't delete outside its container). Hardened runtime is
   on, which is what notarization requires.
 
-## Develop
+## Build from source
+
+The source is published so you can check what the app does before trusting it
+with your disk, and so catalog entries can be proposed — see [LICENSE](LICENSE)
+for what that does and doesn't permit.
 
 **UI only** — no Xcode needed. The page falls back to a mock bridge with
 random sizes when it isn't inside the app:
@@ -95,7 +99,8 @@ Right-click → *Inspect Element* works inside the app (WKWebView inspector).
 `swift build` alone gives you the bare binary for compile checks; `swift test`
 runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
 
-**Adding an entry** is a JSON edit. The fields:
+**Adding an entry** is a JSON edit, validated by `catalog.schema.json` (your
+editor picks it up from the `$schema` line; `swift test` checks it too). The fields:
 
 ```jsonc
 {
@@ -145,23 +150,6 @@ folders (Safari, Mail, Messages, Containers of sandboxed apps) unless the app
 has Full Disk Access. Reclaimer detects this and shows a banner with a button
 that opens the right System Settings pane. Grant it, then Rescan. Without it,
 those entries under-report or show `?`.
-
-## Layout
-
-```
-catalog.json              the knowledge — what to scan and how safe it is
-web/index.html            the UI (single file, no dependencies)
-Sources/Reclaimer/        AppDelegate, Bridge, Catalog, Shell, main
-scripts/build-app.sh      package → .app (ad-hoc, or Developer ID with IDENTITY set)
-scripts/notarize.sh       notarize → staple → dmg — see _meta/release-checklist.md
-scripts/entitlements.plist
-scripts/mac-storage-review.sh   the original read-only terminal audit
-Tests/                    Swift Testing suites + test-documentation.md
-_meta/                    how it works, bridge API, decisions, task list, release checklist
-CHANGELOG.md
-```
-
-Internals: `_meta/system-documentation.md`. Roadmap and status: `_meta/project-task-list.md`.
 
 ## License
 

@@ -8,7 +8,7 @@ behind the design in `architecture-decisions.md`.
 
 | Piece | Role |
 |---|---|
-| `catalog.json` | The knowledge: what to measure, which bucket it belongs to, how to delete it, what to warn about. Schema in README → *Adding an entry*. |
+| `catalog.json` | The knowledge: what to measure, which bucket it belongs to, how to delete it, what to warn about. `catalog.schema.json` (JSON Schema 2020-12) describes it — field docs, the bucket enum, and the cross-field rules (`children` ⇒ single `path`, `itemsCmd` ⇔ `deleteItemCmd` with `{key}`, every entry has something to measure or show). Editors validate on the `$schema` line; `SchemaTests` validate in `swift test`. |
 | `web/index.html` | The whole UI: markup, two theme stylesheets, and the JS that renders buckets, scans, filters, and asks the host to delete. Runs standalone in a browser with a mock bridge. |
 | `Sources/Reclaimer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
@@ -143,10 +143,11 @@ are not part of CI — they need the local keychain (see `release-checklist.md`)
 ## Repository layout
 
 ```
-catalog.json              knowledge
+catalog.json              knowledge; catalog.schema.json describes it
 web/index.html            UI (single file)
 Sources/Reclaimer/        app
-Tests/ReclaimerTests/     Swift Testing suites; Tests/test-documentation.md owns test intent
+Tests/ReclaimerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
+.github/workflows/ci.yml  swift test + universal release build on push/PR
 scripts/                  build-app.sh, notarize.sh, entitlements.plist, mac-storage-review.sh
 assets/                   icon sources and the .icns the build embeds
 _meta/                    this file, api-design, architecture-decisions, project-task-list, release-checklist

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/anton-g-kulikov/reclaimer/catalog.schema.json",
+  "title": "Reclaimer catalog",
+  "description": "What Reclaimer measures, which bucket it belongs to, and how it is removed. Every disk path the app ever touches comes from here.",
+  "type": "object",
+  "required": ["version", "buckets", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
+    "buckets": {
+      "type": "object",
+      "required": ["safe", "regen", "decide", "keep", "locked"],
+      "additionalProperties": false,
+      "properties": {
+        "safe":   { "$ref": "#/$defs/bucket" },
+        "regen":  { "$ref": "#/$defs/bucket" },
+        "decide": { "$ref": "#/$defs/bucket" },
+        "keep":   { "$ref": "#/$defs/bucket" },
+        "locked": { "$ref": "#/$defs/bucket" }
+      }
+    },
+    "entries": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "bucket": {
+      "type": "object",
+      "required": ["title", "blurb"],
+      "additionalProperties": false,
+      "properties": { "title": { "type": "string" }, "blurb": { "type": "string" } }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "group", "bucket", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Stable; the UI and the bridge key on it." },
+        "group":  { "type": "string", "description": "Sub-heading inside the bucket." },
+        "bucket": { "type": "string", "enum": ["safe", "regen", "decide", "keep", "locked"] },
+        "label":  { "type": "string" },
+        "note":   { "type": "string", "description": "Shown under the label." },
+        "path":   { "type": "string", "description": "One path; ~ is the home folder." },
+        "paths":  { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "glob": {
+          "type": "object",
+          "required": ["root"],
+          "additionalProperties": false,
+          "properties": {
+            "root":           { "type": "string", "description": "A folder, or \"$PROJECTS\" for the user's project folders." },
+            "name":           { "type": "string" },
+            "names":          { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "pathPatterns":   { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "find -path patterns, relative to root." },
+            "maxdepth":       { "type": "integer" },
+            "type":           { "type": "string", "enum": ["d", "f"] },
+            "then":           { "type": "string", "description": "Appended to each match (e.g. \".next\" → \".next/cache\")." },
+            "requireSibling": { "type": "string", "description": "Keep a match only if its parent holds a file matching this glob (e.g. \"*.csproj\")." }
+          },
+          "anyOf": [ { "required": ["name"] }, { "required": ["names"] }, { "required": ["pathPatterns"] } ],
+          "description": "a glob needs name, names or pathPatterns"
+        },
+        "children":   { "type": "boolean", "description": "List the path's immediate subfolders as separately deletable items." },
+        "childLabel": {
+          "type": "object",
+          "required": ["file", "keys"],
+          "additionalProperties": false,
+          "properties": { "file": { "type": "string" }, "keys": { "type": "array", "minItems": 1, "items": { "type": "string" } } },
+          "description": "With children: name each subfolder after the first present key in <child>/<file> (JSON)."
+        },
+        "sudo":   { "type": "boolean", "description": "Measured and removed through the macOS admin dialog." },
+        "manual": { "type": "boolean", "description": "Measured and explained, never removed by the app." },
+        "sizeCmd":       { "type": "string", "description": "Prints the size in KB." },
+        "infoCmd":       { "type": "string", "description": "Output shown by Details." },
+        "deleteCmd":     { "type": "string", "description": "Replaces rm -rf <path>." },
+        "itemsCmd":      { "type": "string", "description": "Prints one item per line: key<TAB>label<TAB>KB." },
+        "deleteItemCmd": { "type": "string", "pattern": "\\{key\\}", "description": "Removes one item; {key} is replaced by the shell-quoted key." }
+      },
+      "anyOf": [
+        { "required": ["path"] }, { "required": ["paths"] }, { "required": ["glob"] },
+        { "required": ["sizeCmd"] }, { "required": ["infoCmd"] }, { "required": ["itemsCmd"] }
+      ],
+      "description": "an entry needs something to measure or show: path, paths, glob, sizeCmd, infoCmd or itemsCmd",
+      "dependentRequired": {
+        "children":      ["path"],
+        "childLabel":    ["children"],
+        "itemsCmd":      ["deleteItemCmd"],
+        "deleteItemCmd": ["itemsCmd"]
+      },
+      "dependentSchemas": {
+        "children": {
+          "not": { "anyOf": [ { "required": ["paths"] }, { "required": ["glob"] }, { "required": ["deleteCmd"] } ],
+                   "description": "children needs a single path and no paths, glob or deleteCmd" }
+        }
+      }
+    }
+  }
+}

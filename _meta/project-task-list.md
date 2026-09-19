@@ -8,10 +8,6 @@ _(none)_
 
 ## Queued
 
-- **`catalog.schema.json`.** `catalog.json` references it but it doesn't
-  exist. Write it (entry fields, bucket enum, `children` ⇒ single `path`,
-  `itemsCmd` ⇔ `deleteItemCmd` with `{key}`), and add a test that validates
-  the catalog against it so edits from outside are caught.
 
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
@@ -35,6 +31,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — `catalog.schema.json` + SchemaTests V1–V3 (MiniSchema validator in test support); README reframed for a public, source-available repo.
 
 - 2026-09-20 — Repo public with the EULA as LICENSE; CI (swift test + universal release build) on push/PR.
 - 2026-09-19 — 0.4.0 released.
