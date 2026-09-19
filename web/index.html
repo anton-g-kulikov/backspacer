@@ -514,6 +514,7 @@ function mockBridge() {
         case 'reveal': case 'openFDA': return { ok: true };
         case 'appInfo': return { version: 'dev', build: 'browser' };
         case 'log': return { ok: true };
+        case 'scanHints': return { durations: {} };
         case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Reclaimer/Reclaimer.log' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
@@ -683,7 +684,8 @@ async function scan(only) {
   $('#scan').disabled = true; updateScanBtn(); startScanWords();
   const entries = only || state.catalog.entries;
   for (const e of entries) { state.size.delete(e.id); state.items.delete(e.id); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '…'; el.className = 'size pending'; }
-  const queue = [...entries]; const workers = Array.from({ length: 3 }, worker);
+  let hints = {}; try { hints = (await bridge.call('scanHints')).durations || {}; } catch {}
+  const queue = scanOrder(entries, hints); const workers = Array.from({ length: SCAN_WORKERS }, worker);
   async function worker() {
     while (queue.length) {
       const e = queue.shift();

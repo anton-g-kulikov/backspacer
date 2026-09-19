@@ -37,6 +37,7 @@ replies `window.__reclaimerReply(id, ok, payload)`. Transport is
 | `removeProjectRoot` | `{path}` | `{roots}` | `path` must be a listed root (selector, like `delete.item`) |
 | `log` | `{level, message}` | `{ok}` | appends a `page:` line to the diagnostics file; unknown level → `info`; message capped at 2000 chars |
 | `logPath` | — | `{path}` | where the diagnostics file lives |
+| `scanHints` | — | `{durations: {id: ms}}` | how long each entry's last `size` took; the page starts the slow ones first |
 | `revealLog` | — | `{path}` | selects the diagnostics file in Finder |
 
 ## Host → page calls

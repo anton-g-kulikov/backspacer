@@ -19,6 +19,7 @@ import Testing
           { "id": "adm", "group": "t", "bucket": "safe",   "label": "admin",  "path": "/Library/Developer/CoreSimulator/Caches", "sudo": true },
           { "id": "cmd", "group": "t", "bucket": "safe",   "label": "custom", "path": "~/Library/Logs", "deleteCmd": "brew cleanup -s" },
           { "id": "sz",  "group": "t", "bucket": "decide", "label": "sized",  "sizeCmd": "some-tool --kb", "manual": true },
+          { "id": "multi", "group": "t", "bucket": "safe", "label": "two", "paths": ["~/Library/Caches", "~/Library/Logs"] },
           { "id": "it",  "group": "t", "bucket": "decide", "label": "items",  "itemsCmd": "list-things", "deleteItemCmd": "rm-thing {key}" }
         ] }
         """
@@ -71,7 +72,7 @@ import Testing
         defer { cleanup() }
         let root = home.path + "/Projects"
         shell.on("find ", stdout: "\(root)/my app/node_modules\u{0}\(root)/b/node_modules\u{0}")
-        shell.on("du -skxc", stdout: "10\t\(root)/my app/node_modules\n20\t\(root)/b/node_modules\n30\ttotal\n")
+        shell.on("xargs", stdout: "10\t\(root)/my app/node_modules\n20\t\(root)/b/node_modules\n")
         let r = try bridge.handle(op: "size", args: ["id": "g"]) as? [String: Any]
         #expect(shell.calls.first == "find '\(root)' -maxdepth 3 -type d \\( -name 'node_modules' \\) -prune -print0 2>/dev/null")
         #expect((r?["paths"] as? [String] ?? []).sorted() == ["\(root)/b/node_modules", "\(root)/my app/node_modules"])
@@ -94,6 +95,29 @@ import Testing
         shell.on("some-tool", stdout: "error: not installed\n")
         let r = try bridge.handle(op: "size", args: ["id": "sz"]) as? [String: Any]
         #expect(r?["bytes"] is NSNull)
+    }
+
+    @Test("F9 — several paths are measured in parallel with xargs")
+    func parallelDu() throws {
+        defer { cleanup() }
+        let a = home.path + "/Library/Caches", b = home.path + "/Library/Logs"
+        shell.on("xargs", stdout: "10\t\(b)\n30\t\(a)\n")
+        let r = try bridge.handle(op: "size", args: ["id": "multi"]) as? [String: Any]
+        let cmd = try #require(shell.calls.first { $0.contains("xargs") })
+        #expect(cmd == "printf '%s\\0' '\(a)' '\(b)' | xargs -0 -P 2 -n 1 du -skx 2>/dev/null", Comment(rawValue: cmd))
+        let expected: Int64 = 40 * 1024
+        #expect(n(r?["bytes"]) == expected)
+        let items = r?["items"] as? [[String: Any]] ?? []
+        #expect(items.map { $0["path"] as? String } == [a, b], "largest first")
+        #expect(!shell.calls.contains { $0.hasPrefix("du -skxc") })
+    }
+
+    @Test("F10 — a single path still uses plain du")
+    func singleDu() throws {
+        defer { cleanup() }
+        shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
+        _ = try bridge.handle(op: "size", args: ["id": "p"])
+        #expect(!shell.calls.contains { $0.contains("xargs") })
     }
 
     @Test("F8 — deleteCmd runs verbatim instead of rm")

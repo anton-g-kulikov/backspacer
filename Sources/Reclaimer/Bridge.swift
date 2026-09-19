@@ -119,16 +119,30 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints"]
+
+    // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
+
+    private static let durationsKey = "scan.durations"
+    private let durationsLock = NSLock()
+
+    private func rememberDuration(_ id: String, _ ms: Int) {
+        durationsLock.lock(); defer { durationsLock.unlock() }
+        var d = defaults.dictionary(forKey: Self.durationsKey) as? [String: Int] ?? [:]
+        d[id] = ms
+        defaults.set(d, forKey: Self.durationsKey)
+    }
 
     func handle(op: String, args: [String: Any]) throws -> Any {
         let started = Date()
         let subject = (args["id"] as? String).map { $0 + ((args["item"] as? String).map { " · " + $0 } ?? "") } ?? ""
         do {
             let r = try dispatch(op: op, args: args)
+            let ms = Int(Date().timeIntervalSince(started) * 1000)
             if !Self.quietOps.contains(op) {
-                diagnostics.log(.info, "\(op) \(subject) ok (\(Int(Date().timeIntervalSince(started) * 1000)) ms)".replacingOccurrences(of: "  ", with: " "))
+                diagnostics.log(.info, "\(op) \(subject) ok (\(ms) ms)".replacingOccurrences(of: "  ", with: " "))
             }
+            if op == "size", let id = args["id"] as? String { rememberDuration(id, ms) }
             return r
         } catch {
             diagnostics.log(.error, "\(op) \(subject): \(error.localizedDescription)".replacingOccurrences(of: "  ", with: " "))
@@ -158,6 +172,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             diagnostics.log(level, "page: " + String((args["message"] as? String ?? "").prefix(2000)))
             return ["ok": true]
         case "logPath":  return ["path": diagnostics.file.path]
+        case "scanHints": return ["durations": defaults.dictionary(forKey: Self.durationsKey) as? [String: Int] ?? [:]]
         case "revealLog":
             diagnostics.log(.info, "revealing the log file")
             let url = diagnostics.file
@@ -292,20 +307,35 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             let bytes: Any = hasSource ? Int64(0) : NSNull()
             return ["bytes": bytes, "paths": [String]()]
         }
-        let r = shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600, login: false)
-        let total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
+        // One path: plain du. Several (glob matches, path lists): two dus at a time — du is
+        // I/O-bound, and node_modules across a dozen projects was a 16-second serial measure.
+        // Two, not more: with four scan workers that's at most eight dus on the user's machine.
+        let perPath: [(path: String, kb: Int64)]
+        let total: Int64
+        if paths.count == 1 {
+            let r = shell.run("du -skxc " + Shell.q(paths[0]) + " 2>/dev/null", timeout: 600, login: false)
+            total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
+            perPath = Self.parseDu(r.stdout)
+        } else {
+            perPath = Self.parseDu(parallelDu(paths))
+            total = perPath.reduce(0) { $0 + $1.kb } * 1024
+        }
         var reply: [String: Any] = ["bytes": total, "paths": paths]
         if e.isGranular {
-            // Per-item sizes: for glob/paths the du above already has one line per path;
-            // children need their own pass.
-            let lines = e.children == true
-                ? shell.run("du -skx " + resolveItems(e).map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600, login: false).stdout
-                : r.stdout
-            reply["items"] = Self.parseDu(lines)
+            // children need their own pass over the subfolders; glob/paths already have one line per path.
+            let lines = e.children == true ? parallelDu(resolveItems(e)) : nil
+            reply["items"] = (lines.map(Self.parseDu) ?? perPath)
                 .sorted { $0.kb > $1.kb }
                 .map { ["path": $0.path, "bytes": $0.kb * 1024, "display": display(of: $0.path, in: e)] }
         }
         return reply
+    }
+
+    /// `du -skx` of each path, two at a time; one `KB<TAB>path` line per path (no total line).
+    private func parallelDu(_ paths: [String]) -> String {
+        guard !paths.isEmpty else { return "" }
+        let cmd = "printf '%s\\0' " + paths.map(Shell.q).joined(separator: " ") + " | xargs -0 -P 2 -n 1 du -skx 2>/dev/null"
+        return shell.run(cmd, timeout: 600, login: false).stdout
     }
 
     /// How an item is named in the Details list: a glob match relative to the project folder it

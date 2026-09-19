@@ -118,3 +118,11 @@ test('J12 rowSizeText', () => {
   assert.equal(L.rowSizeText(0, true), 'in Trash');
   assert.equal(L.rowSizeText(null, false), '—');
 });
+
+test('J13 scanOrder puts the slow ones first', () => {
+  const entries = ['a', 'b', 'c', 'd'].map(id => ({ id }));
+  const order = L.scanOrder(entries, { b: 16000, d: 300, a: 50 }).map(e => e.id);
+  assert.deepEqual(order, ['b', 'd', 'a', 'c']);
+  assert.deepEqual(L.scanOrder(entries, {}).map(e => e.id), ['a', 'b', 'c', 'd'], 'no hints: catalog order');
+  assert.equal(L.SCAN_WORKERS, 4);
+});

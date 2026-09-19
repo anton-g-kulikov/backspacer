@@ -70,6 +70,21 @@ import Testing
         #expect(t.contains("[info] page: scan complete"))
     }
 
+    @Test("L7 — scan hints remember each entry's last duration")
+    func scanHints() throws {
+        defer { cleanup() }
+        let suite = "reclaimer-hints-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
+        let shell = FakeShell()
+        let bridge = Bridge(catalog: try Fixture.catalog(), defaults: defaults, shell: shell, diagnostics: diag)
+        _ = try bridge.handle(op: "size", args: ["id": "cache-brew-orphans"])   // no source: measured instantly
+        _ = try bridge.handle(op: "info", args: ["id": "cache-brew-orphans"])   // not a size op: no hint
+        let hints = (try bridge.handle(op: "scanHints", args: [:]) as? [String: Any])?["durations"] as? [String: Int] ?? [:]
+        #expect(hints["cache-brew-orphans"] != nil)
+        #expect(hints.count == 1)
+        #expect(defaults.dictionary(forKey: "scan.durations")?["cache-brew-orphans"] != nil)
+    }
+
     @Test("L6 — revealLog replies with the path")
     func reveal() throws {
         defer { cleanup() }

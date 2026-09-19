@@ -8,11 +8,6 @@ _(none)_
 
 ## Queued
 
-- **Scan speed, round two.** After ADR-16 the shell overhead is gone; the
-  remaining cost is real `du` I/O: `proj-node-modules` 16 s, iOS/Android build
-  output 3–4 s each, DerivedData 4 s (2026-09-20, 27 s wall). Options: more
-  than three workers (du is I/O-bound), measure glob matches in parallel,
-  or show the total early and refine per item.
 - **"Crashed but returned" report** (2026-09-20, after emptying the Trash and
   rescanning): no crash report existed; likely a WebKit content-process
   termination, now logged and auto-reloaded. Wait for the next occurrence
@@ -35,6 +30,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — Scan speed round two: 4 workers, 2-way `du` for multi-path entries, heavy-first order from remembered durations; 27 s → 16 s wall, ≤ 8 `du` processes (tests F9, F10, L7, J13).
 
 - 2026-09-20 — 0.6.0 released.
 - 2026-09-20 — App data revamp: Electron-cache glob, per-app items for `~/Library/Caches` and `~/.cache`, iOS backups by device (plist `childLabel`), Ollama per model, dictation models, previews, Spotify, Bun/pub/Maven/conda, VMs; "in Trash" row state. Tests C10, I12, I13, T8, J12.

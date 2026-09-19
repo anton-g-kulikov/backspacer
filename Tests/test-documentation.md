@@ -139,6 +139,8 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | F6 | `itemsCmd` prints garbage | items empty, no error |
 | F7 | `sizeCmd` prints non-numeric output | bytes `null` |
 | F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
+| F9 | `size` on an entry with several paths | one `xargs -0 -P 2 -n 1 du -skx` over NUL-separated quoted paths; total = sum of the per-path lines; items keep per-path bytes. Ceiling: 4 workers × 2 = at most 8 `du` processes during a scan |
+| F10 | `size` on a single-path entry | still a plain `du -skxc` (no xargs) |
 
 ### Web logic — `Tests/web/logic.test.js` (Node's `node:test`, run with `node --test Tests/web`)
 Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM and state glue. Runs against the real `catalog.json`.
@@ -153,6 +155,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J7 | `meterSegments` | order `other, locked, keep, decide, regen, safe`; `other` = used − buckets, floored at 0; titles from the catalog |
 | J8 | `itemName` | `display` wins, then `label`, then the last two path components |
 | J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
+| J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
@@ -165,6 +168,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | L3 | messages are one line | embedded newlines are collapsed to `⏎` |
 | L4 | bridge ops are logged | a successful op logs `op id ok (ms)`; a failing op logs the error; `catalog`/`disk`/`fdaStatus`/`prefGet` chatter is not logged |
 | L5 | the page's `log` op | `{level, message}` from the page lands in the file with a `page` tag; an unknown level becomes `info` |
+| L7 | scan hints | after `size` ops, `scanHints` returns each entry's last duration in ms (persisted in `UserDefaults` under `scan.durations`); unknown entries absent |
 | L6 | `revealLog` op | replies with the log path (Finder reveal is a side effect not asserted) |
 
 ### ShellModeTests — plain shell for measurement, login shell for tools
@@ -198,7 +202,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
-| FakeShellTests | F1–F8 | passing |
-| Web logic (node) | J1–J12 | passing |
-| DiagnosticsTests | L1–L6 | passing |
+| FakeShellTests | F1–F10 | passing |
+| Web logic (node) | J1–J13 | passing |
+| DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M5 | passing |

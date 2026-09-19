@@ -64,6 +64,15 @@ function meterSegments(disk, bytesByBucket, buckets) {
   ];
 }
 
+/** Concurrent size requests during a scan. With the bridge's 2-way du for multi-path entries that
+ *  caps a scan at 8 du processes — noticeable on an SSD, not a strain on the machine. */
+const SCAN_WORKERS = 4;
+/** Longest-known-first: the slow entries start first so no 16-second du begins when everything else is done. */
+const scanOrder = (entries, durations) => entries
+  .map((e, i) => ({ e, i, d: durations[e.id] ?? -1 }))
+  .sort((a, b) => b.d - a.d || a.i - b.i)
+  .map(x => x.e);
+
 /** What the header says while a scan runs, Claude-Code style: a rotating verb with breathing dots. */
 const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
@@ -72,5 +81,5 @@ const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let 
 const scanFrame = (tick, words = SCAN_WORDS) => words[Math.floor(tick / 8) % words.length] + '.'.repeat(tick % 4);
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORDS, shuffled, scanFrame, rowSizeText, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, SCAN_WORDS, shuffled, scanFrame, rowSizeText, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

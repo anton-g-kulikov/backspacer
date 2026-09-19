@@ -32,10 +32,16 @@ behind the design in `architecture-decisions.md`.
 
 ## Scan
 
-- Three JS workers call `size {id}` for every entry. The bridge returns bytes
-  and the resolved paths. `du -skxc` measures static paths; `sizeCmd` entries
-  run their command and parse the first token as KB; `glob` entries run `find`
-  with `-prune` and optional `then` / `requireSibling` filters.
+- Four JS workers (`SCAN_WORKERS`) call `size {id}` for every entry, slowest
+  first: the bridge remembers each entry's last duration (`scan.durations` in
+  `UserDefaults`, served by `scanHints`) and `scanOrder` sorts by it, so a
+  10-second `du` starts at the beginning instead of the end. The bridge returns
+  bytes and the resolved paths. A single path is a plain `du -skxc`; several
+  paths (glob matches, path lists, children) go through `xargs -P 2 du -skx`,
+  two at a time. Ceiling: 4 workers × 2 = at most eight `du` processes — enough
+  to overlap I/O, not enough to strain a laptop. `sizeCmd` entries run their
+  command and parse the first token as KB; `glob` entries run `find` with
+  `-prune` and optional `then` / `requireSibling` filters.
 - Sizes below the "Show ≥" threshold hide the row, untick it, and drop it from
   bucket totals. Rows still measuring stay visible. Empty groups collapse; an
   empty bucket shows "Nothing N or larger."
