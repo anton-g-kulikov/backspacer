@@ -6,152 +6,129 @@ Temporal: active work, queued tasks, roadmap. Status lives here and nowhere else
 
 _(none)_
 
-## Queued
+## Queued — in order
 
-- **"Crashed but returned" report** (2026-09-20, after emptying the Trash and
-  rescanning): no crash report existed; likely a WebKit content-process
-  termination, now logged and auto-reloaded. Wait for the next occurrence
-  with the log.
+Numbered by priority. R-numbers are the 2026-09-20 technical review's findings
+(file:line and the test that pins each); un-numbered items are earlier work.
+Each becomes a bounded task: failing test first, one change, docs in the owning
+file, then moved to Done.
 
-- **App data, round two.** Sandboxed apps' caches need Full Disk Access to
-  even measure (Teams, Mail downloads, Messages attachments); Notion's
-  partition holds a local DB so it stays *Your call*; Steam's and Google
-  Updater's bundles are app code, not cache. Revisit with an FDA-aware entry
-  flag and per-app verification.
-- **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
-  together — a two-path item; decide whether `children` grows a sibling rule
-  or AVDs use `itemsCmd`.
+### Critical — the deletion gate has holes
+1. **R1 · Escape can confirm a delete.** Both confirm flows read
+   `dlg.returnValue` on `close` and never reset it; Escape leaves the previous
+   value, so after one real Delete the next dialog's Escape resolves to `ok`.
+   Fix: reset `returnValue` before `showModal()` and resolve on the form's
+   `submit` via `e.submitter.value`. Test: cancel-path close after an `ok`
+   close yields not-`ok`.
+2. **R2 · Attribute injection from folder names.** `esc()` escapes only
+   `& < >`; paths go into double-quoted attributes (rows, chips, items). A
+   cloned repo with a folder named `x" onmouseover="…` runs script inside
+   the page, which can call `delete` on any entry with no dialog. Fix: escape
+   `"` and `'` (fix J2), build item/row attributes from the escaped form,
+   add a CSP `<meta>`. Test: J2 quotes; a J-test rendering a hostile name.
+3. **R3 · `isSafeToDelete` allows real user data.** Depth ≥ 2 under home and
+   every dot-folder pass: Photos Library, `~/Documents/*`, `~/Desktop/*`,
+   `~/Library/Mail`, `~/Library/Keychains`, `~/Library/Mobile Documents`,
+   `~/Library/CloudStorage`, `~/.ssh`, `~/.gnupg`. Comparison is
+   case-sensitive on case-insensitive APFS; the staged-update root lacks a
+   trailing `/`. Fix: explicit deny-list by prefix, case-insensitive, over a
+   symlink-resolved path. Tests S8 deny cases, S9 case folding, S10 root
+   trailing slash.
+4. **R7 · Root is one catalog edit away.** A future `sudo` + `deleteCmd` /
+   `deleteItemCmd` entry would run a PATH-resolved tool as root. Fix:
+   CatalogTests invariant forbidding `sudo` with any command; `runAsAdmin`
+   accepts only paths and builds `rm -rf` itself.
+5. **R9 · Symlinks are never checked.** `remove()` and `children` items
+   accept a symlinked directory. Fix: `lstat` every target, refuse
+   `S_IFLNK` before `rm`/trash. Tests S11 symlinked child, S12 symlinked
+   `glob.then` target.
 
-### Review findings — 2026-09-20 (technical / security / accessibility / OSS audit)
-Source: full-repo review in the "Project technical review" session. Ordered by
-severity; each item names the file and the test that should pin it. Address
-Critical and Severe before anything else on the roadmap; ship as 0.6.1.
+### Severe — wrong results or a frozen app
+6. **R4 · `user-screenshots.sizeCmd` never runs for most users.** The login
+   zsh aborts on an unmatched glob (`~/Desktop/*.mov`) → `?`. Fix: `find`
+   or `/bin/sh`. Test: fake home with no matches measures 0, not `?`.
+7. **R5 · Admin deletes freeze the UI.** `runAsAdmin` blocks the main thread
+   in `NSAppleScript` for the whole `rm -rf` (a multi-GB delete is a
+   beachball). Fix: authorise on the main thread only, run the work off it,
+   or show an explicit progress state.
+8. **R6 · Login shell mismatch.** `zsh -lc` reads `.zprofile`, not `.zshrc`;
+   fish/bash users get `brew: command not found`. Fix: `$SHELL -lc`, or
+   resolve tools from known prefixes (`/opt/homebrew/bin`, `/usr/local/bin`)
+   first.
+9. **R8 · Timeouts leave orphans.** `Shell.run` terminates the shell, not
+   the process group; `du`/`rm` keep running. Fix: own process group per
+   command, `killpg` on timeout.
+10. **R21 · `cache-logs` deletes crash reports and the app's own diagnostics
+    log mid-session.** Reconsider the bucket or exclude `Reclaimer/` and
+    `DiagnosticReports/`.
+11. **R20 · `isInspectable` is on in release.** Gate behind `DEBUG` or a
+    defaults key.
+12. **"Crashed but returned" report** (2026-09-20): now logged and
+    auto-reloaded; wait for the next occurrence with the log.
 
-#### Critical — the deletion gate has holes
-- **R1 · Escape can confirm a delete.** Both confirmation flows read
-  `dlg.returnValue` on `close` (`web/index.html:810`, `:836`) and never reset
-  it. Per the HTML spec Escape closes the dialog without touching the return
-  value, so after one real "Delete" the next dialog's Escape resolves to `ok`
-  and the delete proceeds (reproduced). Fix: `dlg.returnValue = ''` before
-  every `showModal()`, or resolve on the form's `submit` via `e.submitter.value`.
-  Test: J-test that a cancel-path close after an `ok` close yields not-`ok`.
-- **R2 · Attribute injection from folder names → deletes without a dialog.**
-  `esc()` escapes only `& < >` (`web/logic.js:13`; J2 asserts quotes stay
-  unescaped). Real paths are interpolated into double-quoted attributes
-  (`index.html:579`, `:642`, `:793`, `:795`). Glob matches come from `find`
-  over project folders, so a cloned repo containing a folder named
-  `x" onmouseover="…` runs script inside the WKWebView that holds the bridge
-  and can call every deletable entry with no confirmation. Fix: escape `"`
-  and `'` in `esc` (fix J2), or build rows with `dataset`/`textContent`
-  instead of HTML strings; add a CSP `<meta>` to `index.html`.
-- **R3 · `isSafeToDelete` allows real user data.** `Bridge.swift:466` forbids
-  a short list, then allows anything at depth ≥ 2 under home and every
-  dot-folder: Photos Library, `~/Documents/*`, `~/Desktop/*`,
-  `~/Library/Mail`, `~/Library/Keychains`, `~/Library/Mobile Documents`,
-  `~/Library/CloudStorage`, `~/.ssh`, `~/.gnupg` all pass. Comparison is
-  case-sensitive on a case-insensitive APFS; the staged-update root lacks a
-  trailing `/` (`…/macOS Install Data-2` passes). Fix: an explicit deny-list
-  by prefix, compared case-insensitively over a symlink-resolved path
-  (`URL.standardizedFileURL.resolvingSymlinksInPath()`). Tests: S8 deny
-  cases above, S9 case folding, S10 trailing-slash root.
+### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
+13. **R10 · Bucket headers are click-only `<div>`s** — not focusable, no
+    `aria-expanded`; Keep/Managed start collapsed so keyboard users can never
+    open them. Fix: `<button aria-expanded aria-controls>` in the `<h2>`.
+14. **R11 · No accessible names**: row checkboxes read "unchecked checkbox",
+    bucket "all", the `×` root chip has only `title`. Fix:
+    `aria-labelledby`/`aria-label`.
+15. **R12 · Slider announces the raw index** ("3", not "100 MB"). Fix:
+    `aria-valuetext` in `setThreshold` + `aria-label`.
+16. **R13 · No live region** for scan start/end, delete outcomes, `#sum`.
+    Fix: visually-hidden `aria-live="polite"`; `#log` → `role="log"`; don't
+    disable the focused Scan button.
+17. **R14 · Contrast**: `--faint` ≈ 1.9:1, `--muted` ≈ 3.6:1 (Glass);
+    Terminal `--faint` ≈ 2.5:1. Fix: raise alphas (≥ .55 / ≥ .75), add
+    `@media (prefers-contrast: more)`.
+18. **R15 · No `prefers-reduced-motion`**: infinite blinks, the 250 ms
+    ticker, scale transforms. Fix: the standard override; freeze the ticker
+    to "Scanning…".
+19. **R16 · Disk meter is colour-only.** `role="img"` + a summarising
+    `aria-label` rebuilt in `updateMeter`.
+20. **R17 · Disclosure state invisible**: Details, Log/About tabs, theme
+    segment signal state only by class. Fix: `aria-expanded` /
+    `aria-pressed`; `:focus-visible` outline; dialog `aria-labelledby` /
+    `aria-describedby`; badges ≥ 11 px; About heading order; allow selecting
+    paths.
 
-#### Severe — wrong results or a frozen app
-- **R4 · `user-screenshots.sizeCmd` never runs for most users.** A login zsh
-  aborts the whole command on an unmatched glob (`~/Desktop/*.mov`), so the
-  entry shows `?` unless both a `.mov` and a `.png` exist on the Desktop
-  (reproduced). Fix: `setopt nullglob;` prefix, or `find`, or run it in
-  `/bin/sh`. Test: fake-home M-test with no matches.
-- **R5 · Admin deletes freeze the UI.** `runAsAdmin` hops to the main thread
-  and blocks in `NSAppleScript` for the whole `rm -rf` (`Shell.swift:63`).
-  A multi-GB simulator-cache delete is a beachball with no progress. Fix:
-  keep only the authorization on the main thread, or show an explicit modal
-  progress state while it runs.
-- **R6 · Login shell mismatch.** `zsh -lc` reads `.zprofile`, not `.zshrc`,
-  and ignores fish/bash users. Anyone who sets PATH in `.zshrc` gets
-  `brew: command not found`. Fix: run `$SHELL -lc`, or resolve tools from
-  known prefixes (`/opt/homebrew/bin`, `/usr/local/bin`) before falling back.
-- **R7 · Root is one catalog edit away.** `runCatalogCommand(admin:)`
-  (`Bridge.swift:353`, `:381`) would run any future `sudo` + `deleteCmd` /
-  `deleteItemCmd` entry as root with a PATH-resolved tool. Fix: CatalogTests
-  invariant that no entry combines `sudo` with a command; have `runAsAdmin`
-  accept only paths and build `rm -rf` itself.
-- **R8 · Timeouts leave orphans.** On timeout `Shell.run` terminates the
-  shell, not the process group; `du`/`rm` keep running. Fix: start each
-  command in its own process group and `killpg` on timeout.
-- **R9 · Symlinks are never checked.** `remove()` and `children: true`
-  items accept a symlinked directory (`fileExists(isDirectory:)` follows
-  links). Harmless today (no trailing slash → `rm -rf` removes the link),
-  dangerous the day one is added. Fix: `lstat` every target and refuse
-  `S_IFLNK` before `rm`/trash. Tests: S11 symlinked child, S12 symlinked
-  `glob.then` target.
+### Features (earlier queue)
+21. **AVD per-item delete** — `<name>.avd` + `<name>.ini` as one item;
+    decide whether `children` grows a sibling rule or AVDs use `itemsCmd`.
+22. **App data, round two** — sandboxed apps need Full Disk Access to even
+    measure (Teams, Mail, Messages); Notion stays *Your call*; Steam/Google
+    Updater bundles are app code. Needs an FDA-aware entry flag.
 
-#### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
-- **R10 · Bucket headers are click-only `<div>`s** (`index.html:147`,
-  `:762`): not focusable, no `aria-expanded`; Keep/Managed start collapsed
-  so keyboard users can never open them. Fix: `<button aria-expanded
-  aria-controls>` inside the `<h2>`.
-- **R11 · No accessible names**: row checkboxes (`:638`) read "unchecked
-  checkbox"; bucket "all" (`:627`) reads "all"; the `×` root chip (`:579`)
-  has only `title`. Fix: `aria-labelledby`/`aria-label`.
-- **R12 · Slider announces the raw index** (`:384`): "3", not "100 MB". Fix:
-  `aria-valuetext = fmt(minBytes())` in `setThreshold` + `aria-label`.
-- **R13 · No live region**: scan start/end, delete outcomes and `#sum`
-  (`:710`) are silent. Fix: visually-hidden `aria-live="polite"` region;
-  `#log` → `role="log"`; don't `disabled` the focused Scan button (`:680`).
-- **R14 · Contrast**: `--faint` ≈ 1.9:1, `--muted` ≈ 3.6:1 (Glass);
-  Terminal `--faint` ≈ 2.5:1. Fix: raise alphas (≥ .55 / ≥ .75) and add
-  `@media (prefers-contrast: more)`.
-- **R15 · No `prefers-reduced-motion`**: infinite caret/pending blink
-  (`:226`, `:306`), 250 ms verb ticker, scale transforms. Fix: the standard
-  reduce-motion override; freeze the ticker to "Scanning…".
-- **R16 · Disk meter is colour-only** (`:390`, `:689`): give it `role="img"`
-  + a summarising `aria-label` rebuilt in `updateMeter`.
-- **R17 · Disclosure state invisible**: Details buttons, Log/About tabs,
-  theme segment signal state only by class. Fix: `aria-expanded` /
-  `aria-pressed`. Also: `:focus-visible` outline, dialog `aria-labelledby`
-  /`aria-describedby`, 10 px badges → ≥ 11 px, h3→h4 skip in About,
-  `user-select: none` blocks copying paths.
+### Hygiene — repo, release, open source
+23. **R22 · CI hardening**: `permissions: contents: read`; SHA-pin actions;
+    on tags run an ad-hoc `build-app.sh` + `codesign --verify --strict` +
+    `plutil -lint`; `dependabot.yml`; the `Xcode_16.4` fallback is brittle.
+24. **R27 · Test gaps**: S7 only covers static `path`/`paths` — extend to
+    glob roots/`then` and `children` items; `Shell.runAsAdmin` escaping;
+    `Shell.q` with newline; catalog `note` free of HTML; every glob root
+    under an allowed prefix.
+25. **R26 · OSS files**: CODE_OF_CONDUCT.md, `.github/FUNDING.yml`, GitHub
+    topics; license detected as "Other" (custom preamble) — consider pure
+    PolyForm text + NOTICE and an SPDX line.
+26. **R19 · README has no screenshot**; `assets/preview-512.png` is unused.
+27. **R18 · `scripts/mac-storage-review.sh`** is a personal script; move to
+    `_meta/` or delete.
+28. **R25 · Standard menus**: Help, Edit ▸ Undo/Cut/Paste, Window ▸ Zoom /
+    Bring All to Front; `CFBundleInfoDictionaryVersion`.
+29. **R24 · `codesign --deep`** is discouraged by Apple; wrong once nested
+    code (Sparkle) exists.
+30. **R23 · Swift 6 language mode** + strict concurrency; drop `@unchecked
+    Sendable` on `Diagnostics`; SwiftLint/SwiftFormat, `.editorconfig`.
 
-#### Hygiene — repo, release, open source
-- **R18 · `scripts/mac-storage-review.sh`** is a personal script ("Anton's
-  MacBook Air", "paste back into the chat"). Move to `_meta/` or delete.
-- **R19 · README has no screenshot**; `assets/preview-512.png` is unused.
-- **R20 · `isInspectable` is on in release** (`AppDelegate.swift:37`). Gate
-  behind `DEBUG` or a defaults key.
-- **R21 · `cache-logs` is "safe, no cost"** but deletes crash reports and the
-  app's own diagnostics log mid-session. Reconsider bucket or exclude
-  `Reclaimer/` and `DiagnosticReports/`.
-- **R22 · CI hardening**: add `permissions: contents: read`; SHA-pin actions;
-  on tags run `build-app.sh` ad-hoc + `codesign --verify --strict` +
-  `plutil -lint`; add `dependabot.yml` for actions; the hardcoded
-  `Xcode_16.4` fallback is brittle.
-- **R23 · Swift 6 language mode** + strict concurrency; drop `@unchecked
-  Sendable` on `Diagnostics`. Add SwiftLint/SwiftFormat + `.editorconfig`.
-- **R24 · `codesign --deep`** is discouraged by Apple; harmless without
-  nested code, wrong once Sparkle is added.
-- **R25 · Standard menus**: Help, Edit ▸ Undo/Cut/Paste, Window ▸ Zoom /
-  Bring All to Front; `CFBundleInfoDictionaryVersion` in Info.plist.
-- **R26 · OSS files**: CODE_OF_CONDUCT.md, `.github/FUNDING.yml`; GitHub
-  topics are empty and the license is detected as "Other" (custom preamble in
-  LICENSE — consider a pure PolyForm text + NOTICE, and an SPDX line).
-- **R27 · Test gaps**: S7 covers only static `path`/`paths` — extend to glob
-  roots/`then`, `children` items; `Shell.runAsAdmin` escaping; `Shell.q`
-  with newline; catalog `note` free of HTML; every glob root under an
-  allowed prefix.
+## Roadmap (ideas, not grounded)
 
-#### Not yet adopted (SOTA)
-- In-app updates (Sparkle 2, EdDSA + appcast) or a "Check for updates"
-  against the GitHub releases API.
-- Homebrew cask.
-- Tag-triggered release workflow: temp keychain + Developer ID, notarytool,
-  DMG upload, SLSA provenance (`actions/attest-build-provenance`), SHA-256
-  sums in release notes.
-- Unified logging (`os.Logger`) alongside the file log.
-- axe-core over the page in the Node suite; manual VoiceOver pass on the
-  release checklist.
-- Localization scaffolding.
+From the 2026-09-20 review: in-app updates (Sparkle 2 or a "Check for updates"
+against the GitHub releases API); Homebrew cask; a tag-triggered release
+workflow (temp keychain, notarytool, DMG upload, SLSA provenance, SHA-256 in
+the notes); `os.Logger` alongside the file log; axe-core in the Node suite and
+a VoiceOver pass on the release checklist; localization scaffolding.
 
-## Roadmap (from the 0.1.0 README)
+From the 0.1.0 README:
 
 - "Explain" panel per entry with the full reasoning from the catalog notes.
 - Per-project view for `~/Projects` with last-touched dates.
