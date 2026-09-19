@@ -678,7 +678,7 @@ function updateMeter() {
 
 async function scan(only) {
   if (state.scanning) return; state.scanning = true;
-  $('#scan').disabled = true; updateScanBtn(); $('#host').textContent = 'measuring';
+  $('#scan').disabled = true; updateScanBtn(); startScanWords();
   const entries = only || state.catalog.entries;
   for (const e of entries) { state.size.delete(e.id); state.items.delete(e.id); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '…'; el.className = 'size pending'; }
   const queue = [...entries]; const workers = Array.from({ length: 3 }, worker);
@@ -696,7 +696,7 @@ async function scan(only) {
   }
   await Promise.all(workers);
   state.scanning = false; state.scanned = true; $('#scan').disabled = false; updateScanBtn();
-  $('#host').textContent = '';   // no "reclaimable" total — how much to reclaim is the user's call
+  stopScanWords();   // no "reclaimable" total — how much to reclaim is the user's call
   log('scan complete');
 }
 
@@ -734,6 +734,12 @@ function setThreshold(i, save) {
 }
 
 /* ── events ─────────────────────────── */
+let scanTimer = null, scanTick = 0;
+function startScanWords() {
+  clearInterval(scanTimer); scanTick = 0; $('#host').textContent = scanFrame(0);
+  scanTimer = setInterval(() => { $('#host').textContent = scanFrame(++scanTick); }, 250);
+}
+function stopScanWords() { clearInterval(scanTimer); scanTimer = null; $('#host').textContent = ''; }
 function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
 $('#scan').onclick = () => scan();
 $('#thr').oninput = e => setThreshold(e.target.value, true);

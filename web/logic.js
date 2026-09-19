@@ -62,6 +62,11 @@ function meterSegments(disk, bytesByBucket, buckets) {
   ];
 }
 
+/** What the header says while a scan runs, Claude-Code style: a rotating verb with breathing dots. */
+const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
+/** Frame `tick` (≈ every 250 ms): the verb changes every 8 ticks, the dots every tick. */
+const scanFrame = tick => SCAN_WORDS[Math.floor(tick / 8) % SCAN_WORDS.length] + '.'.repeat(1 + tick % 3);
+
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORDS, scanFrame, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

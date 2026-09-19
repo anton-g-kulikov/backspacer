@@ -91,3 +91,13 @@ test('J9 catalog consistency', () => {
     if (e.children) assert.ok(L.granular(e), e.id);
   }
 });
+
+test('J10 scanFrame rotates words and breathes dots', () => {
+  assert.equal(L.scanFrame(0), 'measuring.');
+  assert.equal(L.scanFrame(1), 'measuring..');
+  assert.equal(L.scanFrame(2), 'measuring...');
+  assert.ok(L.scanFrame(8).startsWith('surveying.'));
+  assert.equal(new Set(L.SCAN_WORDS).size, L.SCAN_WORDS.length, 'no duplicates');
+  assert.ok(L.SCAN_WORDS.length >= 3 && L.SCAN_WORDS.length <= 8);
+  assert.ok(L.scanFrame(8 * L.SCAN_WORDS.length).startsWith('measuring.'), 'wraps around');
+});
