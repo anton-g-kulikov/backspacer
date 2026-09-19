@@ -590,7 +590,7 @@ function render() {
           </div>
           <span class="size pending" data-size="${e.id}">…</span>
           <div class="actions">
-            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}">Info</button>` : '<span></span>'}
+            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}">Details</button>` : '<span></span>'}
             ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}">Reveal</button>` : '<span></span>'}
             ${canDel ? `<button class="btn small danger" data-del="${e.id}">Delete</button>` : '<span></span>'}
           </div>
@@ -724,7 +724,7 @@ $('#deleteSel').onclick = () => confirmAndDelete([...state.selected]);
 
 function entry(id) { return state.catalog.entries.find(e => e.id === id); }
 
-// Granular entries (glob / paths / children): the Info panel lists every item with its
+// Granular entries (glob / paths / children): the Details panel lists every item with its
 // size and, when the entry is deletable by path, its own Delete.
 function renderItems(id) {
   const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];

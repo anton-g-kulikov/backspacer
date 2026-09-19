@@ -38,9 +38,9 @@ _(none)_
 
 ## Done
 
-- 2026-09-19 — Path granularity: items in Info with per-item Delete for glob/paths/children entries; Info breakdown for plain paths; Shell reader starvation fix (ADR-10, ADR-11; tests I1–I8, C9).
+- 2026-09-19 — Path granularity: items in Details with per-item Delete for glob/paths/children entries; Details breakdown for plain paths; Shell reader starvation fix (ADR-10, ADR-11; tests I1–I8, C9).
 
-- 2026-09-19 — Homebrew orphans Info: list + total, on demand only (catalog; tests B1–B3 run the real command against a fake brew).
+- 2026-09-19 — Homebrew orphans Details: list + total, on demand only (catalog; tests B1–B3 run the real command against a fake brew).
 - 2026-09-19 — Time Machine snapshots → Managed by macOS (catalog only; test C8 pins it).
 - 2026-09-19 — Test target (`Tests/ReclaimerTests`, 21 tests) and `_meta/` docs bootstrapped.
 - 2026-09-19 — 0.2.0 released: themes, threshold slider, coloured meter, About panel, de-duplicated totals.

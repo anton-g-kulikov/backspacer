@@ -60,7 +60,7 @@ Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebr
 |---|---|---|
 | B1 | `cache-brew-orphans.infoCmd` with a dry run listing `libfoo` and `user/tap/libbar` (2 MB + 1 MB in the Cellar) | output lists both names and ends with `Total: 3 MB` |
 | B2 | same with an empty dry run | output is exactly `No orphaned dependencies.` |
-| B3 | the entry has no `sizeCmd` — the check runs only from Info, never during a scan | pass |
+| B3 | the entry has no `sizeCmd` — the check runs only from Details, never during a scan | pass |
 
 ### ItemTests — per-item granularity (`Bridge.size` / `delete` / `info` via `handle`)
 Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 MB), `Projects/b/node_modules` (2 MB), a nested `Projects/a/node_modules/x/node_modules` (must be pruned), and `Library/Developer/Xcode/iOS DeviceSupport/{17.0,18.0}`. A catalog built from JSON in the test.

@@ -94,13 +94,13 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
   "sudo": false,                     // needs admin to measure/delete
   "manual": false,                   // measure + explain, never delete
   "sizeCmd": "…",                    // optional: command printing size in KB
-  "infoCmd": "xcrun simctl runtime list",  // optional: shown by the Info button
+  "infoCmd": "xcrun simctl runtime list",  // optional: shown by the Details button
   "deleteCmd": "xcrun simctl erase all"    // optional: replaces rm -rf <path>
 }
 ```
 
 `glob` finds many paths: `{ "root": "~/Projects", "name": "node_modules", "maxdepth": 4, "type": "d" }`.
-Entries with `glob`, `paths` or `children` list each match in the Info panel
+Entries with `glob`, `paths` or `children` list each match in the Details panel
 with its size and its own Delete. Entries with a plain `path` and no `infoCmd`
 show a size breakdown of what's inside.
 Extras: `names` (several), `pathPatterns` (`find -path`), `then` (append a
