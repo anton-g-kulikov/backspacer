@@ -3,6 +3,7 @@
 [![Download the latest release](https://img.shields.io/github/v/release/anton-g-kulikov/reclaimer?label=download&color=0a84ff)](https://github.com/anton-g-kulikov/reclaimer/releases/latest)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)
 ![Apple silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-lightgrey)
+[![CI](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml)
 
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and

@@ -8,6 +8,11 @@ _(none)_
 
 ## Queued
 
+- **`catalog.schema.json`.** `catalog.json` references it but it doesn't
+  exist. Write it (entry fields, bucket enum, `children` ⇒ single `path`,
+  `itemsCmd` ⇔ `deleteItemCmd` with `{key}`), and add a test that validates
+  the catalog against it so edits from outside are caught.
+
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
   or AVDs use `itemsCmd`.

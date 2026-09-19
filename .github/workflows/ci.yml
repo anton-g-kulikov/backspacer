@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  test:
+    name: swift test + release build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | tail -1)"
+      - name: Toolchain
+        run: swift --version && xcodebuild -version
+      - name: Tests
+        run: swift test 2>&1 | tail -30
+      - name: Release build (universal)
+        run: swift build -c release --arch arm64 --arch x86_64 2>&1 | tail -5
+      - name: Catalog is valid JSON
+        run: python3 -c "import json; json.load(open('catalog.json'))"
