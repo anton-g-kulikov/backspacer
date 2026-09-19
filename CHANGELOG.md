@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fixed: Homebrew, .NET and other tool-based entries work even when your shell profile doesn't put those tools on the login PATH (`.zshrc`-only setups, bash, fish).
 - Fixed: deleting an admin-only item (simulator caches, staged updates) no longer freezes the app for the duration of the delete. The password prompt is unchanged.
 - Fixed: "Screenshots and screen recordings" showed `?` unless the Desktop happened to hold both a .mov and a .png; it now measures `~/Screenshots` plus Desktop recordings and screenshots on every Mac (2.2 GB on the reference Mac that were previously invisible).
 - Hardened: symbolic links are never deleted or trashed, whatever they point at.

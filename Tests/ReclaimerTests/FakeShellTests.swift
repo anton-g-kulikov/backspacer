@@ -136,7 +136,7 @@ import Testing
     func customDelete() throws {
         defer { cleanup() }
         _ = try bridge.handle(op: "delete", args: ["id": "cmd"])
-        #expect(shell.calls.contains("brew cleanup -s"))
+        #expect(shell.calls.contains { $0.hasSuffix("; brew cleanup -s") })
         #expect(!shell.calls.contains { $0.hasPrefix("rm") })
     }
 }

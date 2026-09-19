@@ -44,7 +44,9 @@ import Testing
         _ = try bridge.handle(op: "delete", args: ["id": "c"])
         _ = try bridge.handle(op: "size", args: ["id": "it"])
         _ = try bridge.handle(op: "delete", args: ["id": "it", "item": "k1"])
-        let plain = shell.modes.filter { !$0.login }.map(\.command), login = shell.modes.filter { $0.login }.map(\.command)
+        // catalog commands carry the PATH fallback prefix (M8); compare what follows it
+        let tail = { (c: String) in c.components(separatedBy: "; ").last ?? c }
+        let plain = shell.modes.filter { !$0.login }.map(\.command), login = shell.modes.filter { $0.login }.map { tail($0.command) }
         #expect(plain.allSatisfy { $0.hasPrefix("du ") || $0.hasPrefix("find ") || $0.hasPrefix("rm -rf ") }, Comment(rawValue: plain.joined(separator: " | ")))
         #expect(plain.contains { $0.hasPrefix("du -skxc") } && plain.contains { $0.hasPrefix("find ") } && plain.contains { $0.hasPrefix("rm -rf") })
         // sizeCmd runs twice: once for `size`, once inside `delete` for the before-bytes
@@ -99,6 +101,30 @@ import Testing
         #expect(Shell.AdminHelper.main([]) == 64)
         #expect(Shell.AdminHelper.main(["--other", "x"]) == 64)
         #expect(Shell.AdminHelper.main([Shell.adminFlag]) == 64)
+    }
+
+    @Test("M8 — catalog commands get the known tool prefixes as a PATH fallback")
+    func toolFallback() throws {
+        let json = """
+        { "version": 1, "buckets": {}, "entries": [
+          { "id": "c", "group": "t", "bucket": "safe", "label": "custom", "infoCmd": "brew info" },
+          { "id": "p", "group": "t", "bucket": "safe", "label": "plain", "path": "/Library/Developer/CoreSimulator/Caches", "sudo": true }
+        ] }
+        """
+        var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
+        let shell = FakeShell()
+        let home = "/Users/tester"
+        let bridge = Bridge(catalog: cat, home: home, tildeHome: home, pathPrefix: "/fake/bin", shell: shell)
+        _ = try bridge.handle(op: "info", args: ["id": "c"])
+        _ = try bridge.handle(op: "size", args: ["id": "p"])
+        let info = try #require(shell.calls.first { $0.contains("brew info") })
+        #expect(info.hasPrefix("export PATH='/fake/bin':$PATH:"), Comment(rawValue: info))
+        for prefix in ["/opt/homebrew/bin", "/opt/homebrew/sbin", "/usr/local/bin", "/usr/local/share/dotnet", home + "/.dotnet/tools", home + "/.cargo/bin", home + "/.bun/bin", home + "/.pub-cache/bin", home + "/.local/bin"] {
+            #expect(info.contains(prefix), Comment(rawValue: prefix))
+        }
+        #expect(info.hasSuffix("; brew info"))
+        let du = try #require(shell.calls.first { $0.hasPrefix("du ") })
+        #expect(!du.contains("PATH"), "measurement runs in the plain shell with its fixed PATH")
     }
 
     @Test("M5 — ten plain dus are fast")

@@ -81,8 +81,18 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     /// always as the user. Admin work is never a catalog command: the only thing that runs as
     /// root is an `rm -rf` the bridge builds itself from gate-checked paths (R7).
     /// `pathPrefix` lets tests put fake tools (brew, xcrun) first on PATH.
+    /// Where the tools catalog commands need usually live. Appended *after* the user's PATH, so
+    /// this is a fallback for shells whose profile doesn't set PATH the way Terminal does
+    /// (`.zshrc`-only setups, bash, fish) — never a way to shadow the user's own choice (R6).
+    private var toolFallbackPath: String {
+        ["/opt/homebrew/bin", "/opt/homebrew/sbin", "/usr/local/bin", "/usr/local/share/dotnet",
+         tildeHome + "/.dotnet/tools", tildeHome + "/.cargo/bin", tildeHome + "/.bun/bin", tildeHome + "/.pub-cache/bin", tildeHome + "/.local/bin"]
+            .map(Shell.q).joined(separator: ":")
+    }
+
     private func runCatalogCommand(_ cmd: String, timeout: TimeInterval) -> ShellResult {
-        let full = pathPrefix.map { "export PATH=\(Shell.q($0)):$PATH; " + cmd } ?? cmd
+        let head = pathPrefix.map { Shell.q($0) + ":" } ?? ""
+        let full = "export PATH=\(head)$PATH:\(toolFallbackPath); " + cmd
         let r = shell.run(full, timeout: timeout, login: true)
         if !r.ok { diagnostics.log(.warn, "command failed (\(r.status)): \(cmd.prefix(200)) — \(r.stderr.prefix(300))") }
         return r

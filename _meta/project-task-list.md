@@ -15,10 +15,6 @@ file, then moved to Done.
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
-8. **R6 · Login shell mismatch.** `zsh -lc` reads `.zprofile`, not `.zshrc`;
-   fish/bash users get `brew: command not found`. Fix: `$SHELL -lc`, or
-   resolve tools from known prefixes (`/opt/homebrew/bin`, `/usr/local/bin`)
-   first.
 9. **R8 · Timeouts leave orphans.** `Shell.run` terminates the shell, not
    the process group; `du`/`rm` keep running. Fix: own process group per
    command, `killpg` on timeout.
@@ -101,6 +97,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R6: known tool prefixes appended to PATH for catalog commands (M8).
 - 2026-09-20 — R5: admin commands run in a helper copy of the app (`--admin`), the main thread never blocks (M6, M7, M7b; ADR-18).
 - 2026-09-20 — R4: screenshots entry uses `find`, never an unmatched glob (B4, B5).
 - 2026-09-20 — R9: `remove()` lstat-refuses symlinks for whole entries, children and `glob.then` targets (I14).
