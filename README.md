@@ -4,7 +4,7 @@
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)
 ![Apple silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-lightgrey)
 [![CI](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml)
-[![Buy me a coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-%E2%98%95-ffdd00)](https://buymeacoffee.com/antonkulikov)
+[![Buy me a book](https://img.shields.io/badge/buy%20me%20a%20book-%F0%9F%93%96-ffdd00)](https://buymeacoffee.com/antonkulikov)
 
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and
@@ -161,5 +161,5 @@ the author. The Reclaimer name and icon aren't licensed: a modified build must
 be renamed. Full text and details in [LICENSE](LICENSE).
 
 If Reclaimer got you your disk back, you can
-[buy me a coffee](https://buymeacoffee.com/antonkulikov). Support:
+[buy me a book](https://buymeacoffee.com/antonkulikov). Support:
 anton.g.kulikov@gmail.com.
