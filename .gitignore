@@ -13,3 +13,4 @@ build/
 
 # local-only material
 _meta/marketing/
+.claude/
