@@ -31,6 +31,7 @@ struct Catalog: Decodable {
         var glob: Glob?
         var children: Bool?          // list the path's immediate subfolders as individually deletable items
         var childLabel: ChildLabel?  // with children: label each subfolder from a JSON file inside it
+        var exclude: [String]?       // with children: subfolder names never listed nor removed
         var sudo: Bool?
         var manual: Bool?
         var note: String?

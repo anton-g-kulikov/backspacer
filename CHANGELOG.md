@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- `~/Library/Logs` is listed per app in Details; deleting it no longer removes crash reports or Reclaimer's own diagnostics log.
 - Fixed: a command that hits its time limit is now stopped together with everything it started; before, the shell was stopped but a long `du` or `rm` could keep running in the background.
 - Fixed: Homebrew, .NET and other tool-based entries work even when your shell profile doesn't put those tools on the login PATH (`.zshrc`-only setups, bash, fish).
 - Fixed: deleting an admin-only item (simulator caches, staged updates) no longer freezes the app for the duration of the delete. The password prompt is unchanged.

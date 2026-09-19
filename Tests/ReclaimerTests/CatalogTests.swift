@@ -82,6 +82,14 @@ import Testing
         #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
     }
 
+    @Test("C12 — the logs sweep spares our diagnostics and crash reports")
+    func logsExclude() throws {
+        let e = try #require(catalog.entry("cache-logs"))
+        #expect(e.children == true)
+        #expect(Set(e.exclude ?? []) == ["Reclaimer", "DiagnosticReports"])
+        for x in catalog.entries where x.exclude != nil { #expect(x.children == true, Comment(rawValue: x.id)) }
+    }
+
     @Test("C11 — admin never runs a catalog command")
     func noSudoCommands() {
         for e in catalog.entries where e.needsAdmin {

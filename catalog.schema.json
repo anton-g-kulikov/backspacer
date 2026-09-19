@@ -60,6 +60,7 @@
           "description": "a glob needs name, names or pathPatterns"
         },
         "children":   { "type": "boolean", "description": "List the path's immediate subfolders as separately deletable items." },
+        "exclude":    { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "With children: subfolder names that are never listed nor removed (e.g. crash reports inside ~/Library/Logs)." },
         "childLabel": {
           "type": "object",
           "required": ["file", "keys"],
@@ -83,6 +84,7 @@
       "dependentRequired": {
         "children":      ["path"],
         "childLabel":    ["children"],
+        "exclude":       ["children"],
         "itemsCmd":      ["deleteItemCmd"],
         "deleteItemCmd": ["itemsCmd"]
       },

@@ -117,6 +117,7 @@ editor picks it up from the `$schema` line; `swift test` checks it too). The fie
   "path": "~/Library/Developer/Xcode/DerivedData",   // or "paths": [...], or "glob": {...}
   "children": true,                  // list the path's subfolders as separately deletable items
   "childLabel": { "file": "workspace.json", "keys": ["folder"] },  // name each subfolder from a JSON or .plist file inside it
+  "exclude": ["DiagnosticReports"],  // with children: subfolders never listed nor removed
   "note": "Rebuilt on next build.",  // optional, shown under the label
   "sudo": false,                     // needs admin to measure/delete
   "manual": false,                   // measure + explain, never delete

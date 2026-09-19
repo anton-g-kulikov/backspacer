@@ -343,9 +343,10 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         if e.isGranular {
             // children need their own pass over the subfolders; glob/paths already have one line per path.
             let lines = e.children == true ? parallelDu(resolveItems(e)) : nil
-            reply["items"] = (lines.map(Self.parseDu) ?? perPath)
-                .sorted { $0.kb > $1.kb }
-                .map { ["path": $0.path, "bytes": $0.kb * 1024, "display": display(of: $0.path, in: e)] }
+            let items = (lines.map(Self.parseDu) ?? perPath).sorted { $0.kb > $1.kb }
+            reply["items"] = items.map { ["path": $0.path, "bytes": $0.kb * 1024, "display": display(of: $0.path, in: e)] }
+            // With exclusions the parent's du would count what we never touch.
+            if !(e.exclude ?? []).isEmpty { reply["bytes"] = items.reduce(Int64(0)) { $0 + $1.kb * 1024 } }
         }
         return reply
     }
@@ -444,7 +445,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
             return ["ok": true, "freedBytes": before]
         }
-        let paths = resolvePaths(e)
+        // A children entry with exclusions is swept child by child so the excluded ones stay.
+        let paths = (e.exclude ?? []).isEmpty ? resolvePaths(e) : resolveItems(e)
         guard !paths.isEmpty else { return ["ok": true, "freedBytes": 0] }
         for p in paths where !isSafeToDelete(p) { throw BridgeError.unsafePath(p) }
         let trashed = try remove(paths, for: e)
@@ -498,9 +500,11 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private func resolveItems(_ e: Catalog.Entry) -> [String] {
         let paths = resolvePaths(e)
         guard e.children == true else { return paths }
+        let excluded = Set(e.exclude ?? [])
         return paths.flatMap { p -> [String] in
             let names = (try? fm.contentsOfDirectory(atPath: p)) ?? []
-            return names.sorted().map { p + "/" + $0 }.filter { var d: ObjCBool = false; return fm.fileExists(atPath: $0, isDirectory: &d) && d.boolValue }
+            return names.sorted().filter { !excluded.contains($0) }.map { p + "/" + $0 }
+                .filter { var d: ObjCBool = false; return fm.fileExists(atPath: $0, isDirectory: &d) && d.boolValue }
         }
     }
 

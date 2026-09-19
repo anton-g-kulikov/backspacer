@@ -84,6 +84,12 @@ get a read-only breakdown of their contents from Details instead.
 fresh set, then applies the normal safety gate, then `rm -rf` that one path.
 Tests I1–I8 run this against a temp directory used as `home`.
 
+A `children` entry may `exclude` subfolder names: they are neither listed
+nor removed, the total counts only the listed children, and a whole-entry
+delete sweeps child by child so the excluded ones and the parent stay.
+`~/Library/Logs` uses it to spare crash reports and Reclaimer's own
+diagnostics log (I15, C12).
+
 Symbolic links are never delete targets: `remove()` (the single path for
 `rm` and trash) `lstat`s every path and refuses a link, so a symlinked
 `children` item, `glob.then` target or entry path can't drag its destination

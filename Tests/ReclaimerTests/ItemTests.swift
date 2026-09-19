@@ -34,6 +34,7 @@ import Testing
         try blob("Projects/n/.next/real/f.bin", mb: 1)
         try fm.createSymbolicLink(atPath: home.path + "/Projects/n/.next/cache", withDestinationPath: home.path + "/Library/Caches/target")
         try fm.createSymbolicLink(atPath: home.path + "/Library/Caches/alias", withDestinationPath: home.path + "/Library/Caches/target")
+        for d in ["Library/Logs/Reclaimer", "Library/Logs/DiagnosticReports", "Library/Logs/Zoom", "Library/Logs/Notion"] { try blob("\(d)/x.log", mb: 1) }
         for d in ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "App/Other", "App/Cache/inner", "Two/GPUCache"] {
             try blob("Library/Application Support/\(d)/f.bin", mb: 1)
         }
@@ -59,6 +60,7 @@ import Testing
           { "id": "arch", "group": "t", "bucket": "safe", "label": "archives", "path": "~/Library/Developer/Xcode/Archives", "children": true },
           { "id": "next", "group": "t", "bucket": "safe", "label": "next", "glob": { "root": "~/Projects", "name": ".next", "maxdepth": 3, "type": "d", "then": "cache" } },
           { "id": "alias", "group": "t", "bucket": "safe", "label": "alias", "path": "~/Library/Caches/alias" },
+          { "id": "logs", "group": "t", "bucket": "safe", "label": "logs", "path": "~/Library/Logs", "children": true, "exclude": ["Reclaimer", "DiagnosticReports"] },
           { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
             "path": "~/Library/Application Support/Code/User/workspaceStorage",
             "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] } }
@@ -190,6 +192,21 @@ import Testing
         // a whole entry whose path is a symlink
         #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "alias"]) }
         #expect(fm.fileExists(atPath: target) && (try? fm.destinationOfSymbolicLink(atPath: home.path + "/Library/Caches/alias")) != nil)
+    }
+
+    @Test("I15 — exclude keeps our own log and crash reports out of a logs sweep")
+    func excludes() throws {
+        defer { cleanup() }
+        let r = try bridge.handle(op: "size", args: ["id": "logs"]) as? [String: Any]
+        let names = ((r?["items"] as? [[String: Any]]) ?? []).compactMap { $0["display"] as? String }.sorted()
+        #expect(names == ["Notion", "Zoom"], Comment(rawValue: names.joined(separator: " | ")))
+        let expected: Int64 = 2 * 1024 * 1024
+        #expect((r?["bytes"] as? NSNumber)?.int64Value == expected, "total counts the listed items only")
+        _ = try bridge.handle(op: "delete", args: ["id": "logs"])
+        let logs = home.path + "/Library/Logs"
+        #expect(fm.fileExists(atPath: logs + "/Reclaimer/x.log") && fm.fileExists(atPath: logs + "/DiagnosticReports/x.log"))
+        #expect(!fm.fileExists(atPath: logs + "/Zoom") && !fm.fileExists(atPath: logs + "/Notion"))
+        #expect(fm.fileExists(atPath: logs), "the parent folder stays")
     }
 
     @Test("I8 — parseDu")

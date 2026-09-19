@@ -46,6 +46,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C12 | `cache-logs` is a `children` entry excluding `Reclaimer` and `DiagnosticReports` (R21); `exclude` only ever appears with `children` | pass |
 | C11 | no entry combines `sudo` with `deleteCmd` or `deleteItemCmd` (R7): admin work is only ever an `rm -rf` the bridge builds from gate-checked paths | pass |
 | C10 | app-data revamp shape: `electron-caches` is a `safe` glob with the six cache names and the Service-Worker path pattern; `app-slack` is gone and `vscode-cache` no longer lists `Code/Cache` (both covered by the glob); `cache-user` and `cache-dot` are `children`; `ios-backups` has a plist `childLabel`; `ollama-models` pairs `itemsCmd`/`deleteItemCmd` | pass |
 | C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
@@ -91,6 +92,7 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | I12 | `childLabel` with a `.plist` file | reads the key from a property list (iOS backup `Info.plist` → "Device Name") |
 | I13 | glob with `names` + `pathPatterns` at depth 3 | matches `App/Cache`, `App/Code Cache`, `App/Service Worker/CacheStorage`; not `App/Other`, not `App/Cache/inner` (pruned) |
 | I14 | symlinks are refused as delete targets (R9) | a symlinked child of a `children` entry is listed but `delete {id, item}` throws and neither the link nor its target is touched; a symlinked `glob.then` target likewise; a whole-entry delete whose `path` is a symlink throws |
+| I15 | `exclude` on a `children` entry (R21) | excluded names are not listed as items, the total is the sum of the listed items, and a whole-entry delete removes the listed children only — the excluded folders and the parent stay |
 | I11 | `childLabel: {file, keys}` | a child's label is read from `<child>/<file>` JSON, first present key, `file://` stripped and home shown as `~`; a child without the file, or with none of the keys, falls back to its folder name |
 
 ### ProjectRootTests — configurable project folders (`$PROJECTS`)
@@ -209,11 +211,11 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S11 | passing |
-| CatalogTests | C1–C11 | passing |
+| CatalogTests | C1–C12 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
-| ItemTests | I1–I14 | passing |
+| ItemTests | I1–I15 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
