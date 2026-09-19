@@ -15,9 +15,6 @@ file, then moved to Done.
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
-9. **R8 · Timeouts leave orphans.** `Shell.run` terminates the shell, not
-   the process group; `du`/`rm` keep running. Fix: own process group per
-   command, `killpg` on timeout.
 10. **R21 · `cache-logs` deletes crash reports and the app's own diagnostics
     log mid-session.** Reconsider the bucket or exclude `Reclaimer/` and
     `DiagnosticReports/`.
@@ -97,6 +94,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R8: posix_spawn in its own process group, clean signal mask, killpg on timeout (M9, M10).
 - 2026-09-20 — R6: known tool prefixes appended to PATH for catalog commands (M8).
 - 2026-09-20 — R5: admin commands run in a helper copy of the app (`--admin`), the main thread never blocks (M6, M7, M7b; ADR-18).
 - 2026-09-20 — R4: screenshots entry uses `find`, never an unmatched glob (B4, B5).

@@ -191,6 +191,8 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | M3 | routing (via `FakeShell`) | `du`/`find`/`rm` from `size`, glob resolution, per-item measurement and permanent deletes run with `login: false`; `sizeCmd`, `infoCmd`, `deleteCmd`, `itemsCmd`, `deleteItemCmd` run with `login: true` |
 | M4 | the breakdown (`info` without `infoCmd`) works in plain sh | no `setopt`; a folder with no dotfiles still lists its children |
 | M5 | ten plain-shell `du`s on an empty folder finish in under 1 s total | guards against a regression back to the login shell |
+| M9 | timeout kills the whole process group (R8) | `sh -c "sleep 31.7; echo x"` with a 1 s timeout returns within ~2 s, not `ok`, with no output — and no `sleep 31.7` process survives (`pgrep -f`) |
+| M10 | normal completion is unaffected | a quick command still returns its stdout/stderr and exit status through the new spawner; output larger than a pipe buffer (200 KB) is read fully |
 | M8 | tool fallback PATH (R6) | every catalog command is prefixed with `export PATH=…` that keeps the user's `$PATH` first and appends the known tool prefixes (`/opt/homebrew/bin`, `/opt/homebrew/sbin`, `/usr/local/bin`, `/usr/local/share/dotnet`, `~/.dotnet/tools`, `~/.cargo/bin`, `~/.bun/bin`, `~/.pub-cache/bin`, `~/.local/bin`); a test `pathPrefix` still comes before `$PATH`; measurement commands (`du`, `find`) get no such prefix |
 | M6 | `Shell.adminScript(for:)` (R5/R27) | wraps the command in `do shell script "…" with administrator privileges`, escaping backslashes and double quotes; a path with `'` and `"` survives the round trip through `Shell.q` + AppleScript quoting |
 | M7 | `Shell.runAsAdmin` structure (R5) | the privileged command runs in a helper subprocess — Reclaimer's own executable launched with `--admin <command>` — never through `NSAppleScript` on the app's main thread. Pinned by the `runAsAdmin(_:helper:spawn:)` seam: the spawner receives the helper path and `[--admin, command]`; a helper exit of 128/"cancelled" surfaces as a failed result. M7b: `AdminHelper.main` returns 64 for anything but `--admin <command>` |
@@ -219,4 +221,4 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | FakeShellTests | F1–F11 | passing |
 | Web logic (node) | J1–J15 | passing |
 | DiagnosticsTests | L1–L7 | passing |
-| ShellModeTests | M1–M8 | passing |
+| ShellModeTests | M1–M10 | passing |

@@ -35,29 +35,66 @@ enum Shell {
     }
 
     /// Launches an executable directly (no shell), drains both pipes, enforces the timeout.
+    /// posix_spawn rather than Foundation.Process so the command starts in its own process group:
+    /// on timeout the whole group is signalled, not just the shell, so no `du`/`rm` lives on as an
+    /// orphan (R8). Foundation's Process can't set the group, and its children share the app's.
     static func spawn(_ executable: String, _ arguments: [String], timeout: TimeInterval, environment: [String: String]? = nil) -> ShellResult {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: executable)
-        p.arguments = arguments
-        if let environment { p.environment = environment }
-        let out = Pipe(), err = Pipe()
-        p.standardOutput = out; p.standardError = err
-        do { try p.run() } catch {
-            return ShellResult(status: -1, stdout: "", stderr: "launch failed: \(error.localizedDescription)")
+        var outFds: [Int32] = [-1, -1], errFds: [Int32] = [-1, -1]
+        guard pipe(&outFds) == 0, pipe(&errFds) == 0 else { return ShellResult(status: -1, stdout: "", stderr: "launch failed: pipe") }
+
+        var actions: posix_spawn_file_actions_t?
+        posix_spawn_file_actions_init(&actions)
+        defer { posix_spawn_file_actions_destroy(&actions) }
+        posix_spawn_file_actions_adddup2(&actions, outFds[1], STDOUT_FILENO)
+        posix_spawn_file_actions_adddup2(&actions, errFds[1], STDERR_FILENO)
+        for fd in outFds + errFds { posix_spawn_file_actions_addclose(&actions, fd) }
+        posix_spawn_file_actions_addopen(&actions, STDIN_FILENO, "/dev/null", O_RDONLY, 0)
+
+        var attrs: posix_spawnattr_t?
+        posix_spawnattr_init(&attrs)
+        defer { posix_spawnattr_destroy(&attrs) }
+        // Reset the signal mask and dispositions: a child inherits the parent's, and a GUI app (or
+        // the test runner) may have SIGTERM blocked — then the timeout's SIGTERM would never land.
+        var noSignals = sigset_t(); sigemptyset(&noSignals)
+        var allSignals = sigset_t(); sigfillset(&allSignals)
+        posix_spawnattr_setsigmask(&attrs, &noSignals)
+        posix_spawnattr_setsigdefault(&attrs, &allSignals)
+        posix_spawnattr_setflags(&attrs, Int16(POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF))
+        posix_spawnattr_setpgroup(&attrs, 0)   // 0: a new group whose id is the child's pid
+
+        let argv = ([executable] + arguments).map { strdup($0) } + [nil]
+        defer { argv.forEach { free($0) } }
+        let envPairs = (environment ?? ProcessInfo.processInfo.environment).map { "\($0.key)=\($0.value)" }
+        let envp = envPairs.map { strdup($0) } + [nil]
+        defer { envp.forEach { free($0) } }
+
+        var pid: pid_t = 0
+        let rc = posix_spawn(&pid, executable, &actions, &attrs, argv, envp)
+        close(outFds[1]); close(errFds[1])
+        guard rc == 0 else {
+            close(outFds[0]); close(errFds[0])
+            return ShellResult(status: -1, stdout: "", stderr: "launch failed: \(String(cString: strerror(rc)))")
         }
-        // Drain both pipes concurrently so a chatty command can't fill one and deadlock. Real
-        // threads, not GCD: many callers blocking in `group.wait` (three scan workers, or a
-        // parallel test run) can starve the global queue and leave the readers never scheduled.
+
+        // Drain both pipes on dedicated threads (GCD's global queue can be starved by concurrent
+        // callers blocked in group.wait) so a chatty command can't fill one and deadlock.
         var outData = Data(), errData = Data()
         let group = DispatchGroup()
-        group.enter(); Thread { outData = out.fileHandleForReading.readDataToEndOfFile(); group.leave() }.start()
-        group.enter(); Thread { errData = err.fileHandleForReading.readDataToEndOfFile(); group.leave() }.start()
-        let deadline = DispatchTime.now() + timeout
-        if group.wait(timeout: deadline) == .timedOut { p.terminate() }
-        p.waitUntilExit()
-        return ShellResult(status: p.terminationStatus,
+        group.enter(); Thread { outData = FileHandle(fileDescriptor: outFds[0], closeOnDealloc: true).readDataToEndOfFile(); group.leave() }.start()
+        group.enter(); Thread { errData = FileHandle(fileDescriptor: errFds[0], closeOnDealloc: true).readDataToEndOfFile(); group.leave() }.start()
+
+        var timedOut = false
+        if group.wait(timeout: .now() + timeout) == .timedOut {
+            timedOut = true
+            killpg(pid, SIGTERM)
+            if group.wait(timeout: .now() + 2) == .timedOut { killpg(pid, SIGKILL); group.wait() }
+        }
+        var status: Int32 = 0
+        while waitpid(pid, &status, 0) == -1 && errno == EINTR {}
+        let code: Int32 = timedOut ? -1 : (status & 0x7f) == 0 ? (status >> 8) & 0xff : -(status & 0x7f)
+        return ShellResult(status: code,
                            stdout: String(decoding: outData, as: UTF8.self),
-                           stderr: String(decoding: errData, as: UTF8.self))
+                           stderr: timedOut ? "timed out after \(Int(timeout)) s" : String(decoding: errData, as: UTF8.self))
     }
 
     /// `do shell script "<command>" with administrator privileges`, with the command escaped for

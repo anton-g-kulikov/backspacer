@@ -127,6 +127,25 @@ import Testing
         #expect(!du.contains("PATH"), "measurement runs in the plain shell with its fixed PATH")
     }
 
+    @Test("M9 — a timeout kills the command's whole process group")
+    func timeoutKillsGroup() {
+        let start = Date()
+        let r = Shell.run("sleep 31.7; echo x", timeout: 1, login: false)
+        #expect(Date().timeIntervalSince(start) < 3)
+        #expect(!r.ok)
+        #expect(!r.stdout.contains("x"))
+        let check = Shell.run("pgrep -f '^sleep 31\\.7$' || true", timeout: 5, login: false)
+        #expect(check.stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, Comment(rawValue: "orphans: \(check.stdout)"))
+    }
+
+    @Test("M10 — normal commands are unaffected by the group spawner")
+    func normalCompletion() {
+        let r = Shell.run("echo out; echo err 1>&2; exit 3", timeout: 5, login: false)
+        #expect(r.status == 3 && r.stdout == "out\n" && r.stderr == "err\n")
+        let big = Shell.run("head -c 200000 /dev/zero | tr '\\0' 'a'", timeout: 10, login: false)
+        #expect(big.ok && big.stdout.utf8.count == 200_000)
+    }
+
     @Test("M5 — ten plain dus are fast")
     func fast() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-fast-\(UUID().uuidString)")
