@@ -126,3 +126,24 @@ test('J13 scanOrder puts the slow ones first', () => {
   assert.deepEqual(L.scanOrder(entries, {}).map(e => e.id), ['a', 'b', 'c', 'd'], 'no hints: catalog order');
   assert.equal(L.SCAN_WORKERS, 4);
 });
+
+// A <dialog> stand-in with the spec's behaviour: close(value) sets returnValue, Escape closes without.
+function fakeDialog() {
+  const listeners = [];
+  return {
+    returnValue: '', open: false,
+    showModal() { this.open = true; },
+    addEventListener(type, fn) { if (type === 'close') listeners.push(fn); },
+    close(value) { if (value !== undefined) this.returnValue = value; this.open = false; listeners.splice(0).forEach(fn => fn()); },
+  };
+}
+
+test('J14 confirmDialog: Escape after a real Delete does not confirm (R1)', async () => {
+  const dlg = fakeDialog();
+  const first = L.confirmDialog(dlg); assert.equal(dlg.open, true); dlg.close('ok');
+  assert.equal(await first, true);
+  const second = L.confirmDialog(dlg); dlg.close();          // Escape: no value
+  assert.equal(await second, false);
+  const third = L.confirmDialog(dlg); dlg.close('cancel');
+  assert.equal(await third, false);
+});

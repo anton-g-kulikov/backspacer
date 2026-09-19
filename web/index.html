@@ -808,9 +808,7 @@ async function confirmAndDeleteItem(id, path) {
   $('#dlgText').textContent = `“${name}” — about ${fmt(it.bytes)} — ` + (trash ? 'will be moved to the Trash.' + TRASH_NOTE : "will be removed. This can't be undone.") + (e.sudo ? ' macOS will ask for your password.' : '');
   $('#dlgOk').textContent = trash ? 'Move to Trash' : 'Delete';
   $('#dlgList').innerHTML = `<li>${esc(it.key ? it.label : path)}</li>`;
-  const dlg = $('#dlg'); dlg.showModal();
-  const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
-  if (choice !== 'ok') return;
+  if (!await confirmDialog($('#dlg'))) return;
   log(`${trash ? 'moving to Trash' : 'deleting'} ${name}…`);
   try {
     const r = await bridge.call('delete', { id, item: path });
@@ -834,9 +832,7 @@ async function confirmAndDelete(ids) {
     : `About ${fmt(bytes)} will be removed. This can't be undone.`) + (needsAdmin ? ' macOS will ask for your password for admin items.' : '');
   $('#dlgOk').textContent = toRm ? 'Delete' : 'Move to Trash';
   $('#dlgList').innerHTML = ids.map(id => `<li>${esc(entry(id).label)} — ${fmt(state.size.get(id))}</li>`).join('');
-  const dlg = $('#dlg'); dlg.showModal();
-  const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
-  if (choice !== 'ok') return;
+  if (!await confirmDialog($('#dlg'))) return;
   for (const id of ids) {
     const e = entry(id); const row = document.querySelector(`.row[data-id="${id}"]`);
     log(`${trashes(e) ? 'moving to Trash' : 'deleting'} ${e.label}…`);

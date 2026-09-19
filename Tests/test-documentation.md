@@ -156,6 +156,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J8 | `itemName` | `display` wins, then `label`, then the last two path components |
 | J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
 | J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
+| J14 | `confirmDialog` (R1) | resolves `true` only when the dialog closed with `returnValue === "ok"`; a close without a value (Escape) after a previous "ok" resolves `false` — the stale value is reset before every open |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
@@ -203,6 +204,6 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F10 | passing |
-| Web logic (node) | J1–J13 | passing |
+| Web logic (node) | J1–J14 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M5 | passing |

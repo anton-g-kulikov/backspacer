@@ -80,6 +80,19 @@ const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let 
 /** Frame `tick` (≈ every 250 ms): the verb changes every 8 ticks, the dots every tick. */
 const scanFrame = (tick, words = SCAN_WORDS) => words[Math.floor(tick / 8) % words.length] + '.'.repeat(tick % 4);
 
+/**
+ * Opens a <dialog> and resolves true only if it closed with returnValue "ok". The stale value
+ * is reset first: Escape closes a dialog without touching returnValue, so without the reset a
+ * previous "ok" would confirm the next delete (R1).
+ */
+function confirmDialog(dlg) {
+  dlg.returnValue = '';
+  return new Promise(resolve => {
+    dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true });
+    dlg.showModal();
+  });
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, SCAN_WORDS, shuffled, scanFrame, rowSizeText, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }
