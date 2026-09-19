@@ -28,15 +28,18 @@ enum Shell {
     /// commands (`login: true`) go through a login zsh so PATH matches the user's Terminal
     /// (xcrun, brew, dotnet, npm all resolve).
     static func run(_ command: String, timeout: TimeInterval = 600, login: Bool = true) -> ShellResult {
+        login
+            ? spawn("/bin/zsh", ["-lc", command], timeout: timeout)
+            : spawn("/bin/sh", ["-c", command], timeout: timeout,
+                    environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "HOME": FileManager.default.homeDirectoryForCurrentUser.path, "LANG": "en_US.UTF-8"])
+    }
+
+    /// Launches an executable directly (no shell), drains both pipes, enforces the timeout.
+    static func spawn(_ executable: String, _ arguments: [String], timeout: TimeInterval, environment: [String: String]? = nil) -> ShellResult {
         let p = Process()
-        if login {
-            p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-            p.arguments = ["-lc", command]
-        } else {
-            p.executableURL = URL(fileURLWithPath: "/bin/sh")
-            p.arguments = ["-c", command]
-            p.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "HOME": FileManager.default.homeDirectoryForCurrentUser.path, "LANG": "en_US.UTF-8"]
-        }
+        p.executableURL = URL(fileURLWithPath: executable)
+        p.arguments = arguments
+        if let environment { p.environment = environment }
         let out = Pipe(), err = Pipe()
         p.standardOutput = out; p.standardError = err
         do { try p.run() } catch {
@@ -57,30 +60,53 @@ enum Shell {
                            stderr: String(decoding: errData, as: UTF8.self))
     }
 
-    /// Runs a command as root via the system authorization dialog. Uses
-    /// AppleScript's `do shell script … with administrator privileges`, which
-    /// works under the hardened runtime and never sees the password.
-    static func runAsAdmin(_ command: String) -> ShellResult {
-        // NSAppleScript isn't thread-safe; hop to the main thread (the caller is on a background queue).
-        if !Thread.isMainThread {
-            var result = ShellResult(status: -1, stdout: "", stderr: "")
-            DispatchQueue.main.sync { result = runAsAdmin(command) }
-            return result
-        }
+    /// `do shell script "<command>" with administrator privileges`, with the command escaped for
+    /// an AppleScript string literal.
+    static func adminScript(for command: String) -> String {
         let escaped = command
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
-        let source = "do shell script \"\(escaped)\" with administrator privileges"
-        var errorInfo: NSDictionary?
-        let script = NSAppleScript(source: source)
-        let result = script?.executeAndReturnError(&errorInfo)
-        if let errorInfo {
-            let msg = (errorInfo[NSAppleScript.errorMessage] as? String) ?? "authorization failed"
-            let code = (errorInfo[NSAppleScript.errorNumber] as? Int) ?? -1
-            // -128 = user cancelled the password dialog
-            return ShellResult(status: Int32(code), stdout: "", stderr: code == -128 ? "cancelled" : msg)
+        return "do shell script \"\(escaped)\" with administrator privileges"
+    }
+
+    /// The flag that turns this executable into the admin helper (see `AdminHelper`).
+    static let adminFlag = "--admin"
+
+    /// Runs a command as root via the system authorization dialog without freezing the app (R5):
+    /// Reclaimer's own executable is launched again as a subprocess in helper mode, and *that*
+    /// process runs `do shell script … with administrator privileges` on its main thread. One
+    /// prompt, attributed to Reclaimer (same signed binary), while the app's main thread stays
+    /// free. The app never sees the password.
+    static func runAsAdmin(_ command: String) -> ShellResult {
+        runAsAdmin(command, helper: Bundle.main.executablePath ?? CommandLine.arguments[0], spawn: { spawn($0, $1, timeout: $2) })
+    }
+
+    static func runAsAdmin(_ command: String, helper: String,
+                           spawn: (String, [String], TimeInterval) -> ShellResult) -> ShellResult {
+        let r = spawn(helper, [adminFlag, command], 1800)
+        // The helper maps a cancelled dialog to exit 128 and writes "cancelled".
+        return r
+    }
+
+    /// What the executable does when launched with `--admin <command>`: runs the command with
+    /// administrator privileges via NSAppleScript on this (helper) process's main thread and
+    /// exits with the command's status — 128 with "cancelled" on stderr if the dialog was
+    /// dismissed. Used only by `runAsAdmin`; never reached in normal app launches.
+    enum AdminHelper {
+        static func main(_ arguments: [String]) -> Int32 {
+            guard arguments.count >= 2, arguments[0] == Shell.adminFlag else { return 64 }
+            let command = arguments[1]
+            var errorInfo: NSDictionary?
+            let result = NSAppleScript(source: Shell.adminScript(for: command))?.executeAndReturnError(&errorInfo)
+            if let errorInfo {
+                let code = (errorInfo[NSAppleScript.errorNumber] as? Int) ?? 1
+                let msg = code == -128 ? "cancelled" : ((errorInfo[NSAppleScript.errorMessage] as? String) ?? "authorization failed")
+                FileHandle.standardError.write(Data((msg + "\n").utf8))
+                return code == -128 ? 128 : 1
+            }
+            if let out = result?.stringValue, !out.isEmpty { FileHandle.standardOutput.write(Data((out + "\n").utf8)) }
+            return 0
         }
-        return ShellResult(status: 0, stdout: result?.stringValue ?? "", stderr: "")
     }
 
     /// Single-quotes a path for safe interpolation into a shell command.

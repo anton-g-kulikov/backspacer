@@ -15,10 +15,6 @@ file, then moved to Done.
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
-7. **R5 · Admin deletes freeze the UI.** `runAsAdmin` blocks the main thread
-   in `NSAppleScript` for the whole `rm -rf` (a multi-GB delete is a
-   beachball). Fix: authorise on the main thread only, run the work off it,
-   or show an explicit progress state.
 8. **R6 · Login shell mismatch.** `zsh -lc` reads `.zprofile`, not `.zshrc`;
    fish/bash users get `brew: command not found`. Fix: `$SHELL -lc`, or
    resolve tools from known prefixes (`/opt/homebrew/bin`, `/usr/local/bin`)
@@ -105,6 +101,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R5: admin commands run in a helper copy of the app (`--admin`), the main thread never blocks (M6, M7, M7b; ADR-18).
 - 2026-09-20 — R4: screenshots entry uses `find`, never an unmatched glob (B4, B5).
 - 2026-09-20 — R9: `remove()` lstat-refuses symlinks for whole entries, children and `glob.then` targets (I14).
 - 2026-09-20 — R7: `sudo` + command forbidden by schema (V2), catalog (C11) and bridge (F11); `runCatalogCommand` can't run as admin.

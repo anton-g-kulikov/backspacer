@@ -68,6 +68,39 @@ import Testing
         #expect(lines[0].hasSuffix("big") && lines[1].hasSuffix("small"))
     }
 
+    @Test("M6 — the AppleScript wrapper escapes the command")
+    func adminScript() {
+        let cmd = "rm -rf " + Shell.q("/Users/t/It's \"here\"/x") + " && echo \\done"
+        let src = Shell.adminScript(for: cmd)
+        #expect(src.hasPrefix("do shell script \""))
+        #expect(src.hasSuffix("\" with administrator privileges"))
+        // inside the AppleScript string every " and \ of the command is escaped
+        let inner = String(src.dropFirst("do shell script \"".count).dropLast("\" with administrator privileges".count))
+        #expect(inner == cmd.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\""))
+    }
+
+    @Test("M7 — admin work runs in a helper subprocess, not NSAppleScript on the app's main thread")
+    func adminOffMainThread() {
+        var spawned: [(String, [String])] = []
+        let r = Shell.runAsAdmin("rm -rf '/x'", helper: "/Applications/Reclaimer.app/Contents/MacOS/Reclaimer",
+                                 spawn: { exe, args, _ in spawned.append((exe, args)); return ShellResult(status: 0, stdout: "", stderr: "") })
+        #expect(r.ok)
+        #expect(spawned.count == 1)
+        #expect(spawned.first?.0 == "/Applications/Reclaimer.app/Contents/MacOS/Reclaimer", "the app's own signed binary, so the prompt names Reclaimer")
+        #expect(spawned.first?.1 == [Shell.adminFlag, "rm -rf '/x'"])
+
+        let cancelled = Shell.runAsAdmin("rm -rf '/x'", helper: "/x/Reclaimer",
+                                         spawn: { _, _, _ in ShellResult(status: 128, stdout: "", stderr: "cancelled\n") })
+        #expect(!cancelled.ok && cancelled.stderr.contains("cancelled"))
+    }
+
+    @Test("M7b — the helper refuses anything but its flag")
+    func helperGuards() {
+        #expect(Shell.AdminHelper.main([]) == 64)
+        #expect(Shell.AdminHelper.main(["--other", "x"]) == 64)
+        #expect(Shell.AdminHelper.main([Shell.adminFlag]) == 64)
+    }
+
     @Test("M5 — ten plain dus are fast")
     func fast() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-fast-\(UUID().uuidString)")

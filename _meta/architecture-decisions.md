@@ -119,6 +119,17 @@ that somehow got in can't run. That required moving the inline scripts to
 `boot.js` / `app.js`. Host-injected code (the `--titlebar` user script,
 `window.__setTheme`) is exempt from CSP by WebKit's design.
 
+## ADR-18 — Admin work runs in a helper copy of the app
+`NSAppleScript` must run on the main thread, so a multi-GB admin `rm -rf`
+was a beachball. Alternatives: `osascript` as a subprocess (prompt says
+"osascript wants…" — a trust hit for a deletion tool) or authorising
+in-process first and running out-of-process (the admin credential is
+per-process — `shared: false` in the authorization db — so that prompts
+twice). Chosen: re-launch Reclaimer's own signed executable with `--admin
+<command>`; that process runs the AppleScript on its main thread and exits
+with the status. One prompt, "Allow administrator access for Reclaimer?",
+the app stays responsive, no helper tool to install or trust (ADR-4 holds).
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.
