@@ -67,8 +67,12 @@ so focus isn't lost. The disk meter is `role="img"` with a label listing
 each segment. Details, the Log/About tabs and the theme buttons carry
 `aria-expanded` / `aria-pressed`; the dialog is labelled by its title and
 described by its text; every theme has a `:focus-visible` ring; paths are
-selectable for copying. Static checks A1–A6; the browser's accessibility
-tree is the live check.
+selectable for copying. Contrast: `--muted` ≥ 4.5:1 and `--faint` ≥ 3.3:1
+(Glass light) / ≥ 4.5:1 (Glass dark, Terminal) against their panels, with a
+`prefers-contrast: more` bump; `prefers-reduced-motion` stops every
+animation and transition and replaces the scan-verb ticker with a static
+"Scanning…". Static checks A1–A8 (A7 computes the ratios from the tokens);
+the browser's accessibility tree is the live check.
 
 ## Project folders
 

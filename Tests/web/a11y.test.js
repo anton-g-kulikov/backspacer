@@ -50,3 +50,37 @@ test('A6 disclosure and toggle states, dialog labelling, focus, badges, headings
   assert.match(html, /\.row \.path \{[^}]*user-select: text/);
   assert.match(html, /\.sr-only \{/);
 });
+
+// ── contrast, computed from the tokens (WCAG relative luminance) ────────────────
+const lum = ([r, g, b]) => { const ch = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b); };
+const ratio = (a, b) => { const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x); return (l1 + 0.05) / (l2 + 0.05); };
+const blend = (fg, alpha, bg) => fg.map((c, i) => c * alpha + bg[i] * (1 - alpha));
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const token = (block, name) => {
+  const m = block.match(new RegExp(`${name}: (rgba\\(([^)]+)\\)|#[0-9a-f]{6})`));
+  assert.ok(m, name);
+  if (m[1].startsWith('#')) return { rgb: hex(m[1]), a: 1 };
+  const [r, g, b, a] = m[2].split(',').map(Number); return { rgb: [r, g, b], a: a ?? 1 };
+};
+const contrast = (block, name, bg) => { const t = token(block, name); return ratio(blend(t.rgb, t.a, bg), bg); };
+
+test('A7 muted and faint text meet contrast floors in every theme', () => {
+  const glass = html.slice(html.indexOf('<style id="css-glass">'), html.indexOf('<style id="css-terminal">'));
+  const light = glass.slice(0, glass.indexOf('@media (prefers-color-scheme: dark)'));
+  const dark = glass.slice(glass.indexOf('@media (prefers-color-scheme: dark)'));
+  const terminal = html.slice(html.indexOf('<style id="css-terminal">'));
+  // panel backgrounds: the glass card over the light/dark mesh, the terminal panel
+  const glassLightBg = [238, 241, 246], glassDarkBg = [42, 44, 51], terminalBg = hex('#0e1114');
+  assert.ok(contrast(light, '--muted', glassLightBg) >= 4.5, 'glass light muted');
+  assert.ok(contrast(light, '--faint', glassLightBg) >= 3.3, 'glass light faint');
+  assert.ok(contrast(dark, '--muted', glassDarkBg) >= 4.5, 'glass dark muted');
+  assert.ok(contrast(dark, '--faint', glassDarkBg) >= 4.5, 'glass dark faint');
+  assert.ok(contrast(terminal, '--muted', terminalBg) >= 4.5, 'terminal muted');
+  assert.ok(contrast(terminal, '--faint', terminalBg) >= 4.5, 'terminal faint');
+  assert.equal((html.match(/@media \(prefers-contrast: more\)/g) || []).length, 2, 'a high-contrast block per theme');
+});
+
+test('A8 reduced motion is honoured', () => {
+  assert.equal((html.match(/@media \(prefers-reduced-motion: reduce\)/g) || []).length, 2);
+  assert.match(app, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)/);
+});

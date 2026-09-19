@@ -291,8 +291,10 @@ function setThreshold(i, save) {
 /* ── events ─────────────────────────── */
 let scanTimer = null, scanTick = 0;
 function startScanWords() {
+  clearInterval(scanTimer); scanTick = 0;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { $('#host').textContent = 'Scanning…'; return; }
   const words = shuffled(SCAN_WORDS);   // a different order every scan
-  clearInterval(scanTimer); scanTick = 0; $('#host').textContent = scanFrame(0, words);
+  $('#host').textContent = scanFrame(0, words);
   scanTimer = setInterval(() => { $('#host').textContent = scanFrame(++scanTick, words); }, 250);
 }
 function stopScanWords() { clearInterval(scanTimer); scanTimer = null; $('#host').textContent = ''; }

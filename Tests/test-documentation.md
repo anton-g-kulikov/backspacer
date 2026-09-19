@@ -208,6 +208,8 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A3 | slider (R12) | `#thr` has `aria-label`; `setThreshold` sets `aria-valuetext` to the formatted size |
 | A4 | live region (R13) | a visually-hidden `aria-live="polite"` element exists; `announce()` is called on scan start/end and after deletes; `#log` has `role="log"`; the Scan button is never `disabled` while scanning (it uses `aria-busy` and ignores clicks) |
 | A5 | meter (R16) | `#diskBar` has `role="img"` and `updateMeter` writes an `aria-label` summarising the segments |
+| A7 | contrast (R14) | computed from the CSS tokens against each theme's panel background: `--muted` ≥ 4.5:1 in Glass light, Glass dark and Terminal; `--faint` ≥ 3.3:1 (Glass light) and ≥ 4.5:1 (Glass dark, Terminal); a `@media (prefers-contrast: more)` block raises both |
+| A8 | reduced motion (R15) | both themes have a `@media (prefers-reduced-motion: reduce)` block that stops the blink animations and transitions; `startScanWords` shows a static "Scanning…" when the media query matches |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ## Manual verification (release checklist covers these)
@@ -233,6 +235,6 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F11 | passing |
 | Web logic (node) | J1–J15 | passing |
-| Web accessibility (node) | A1–A6 | passing |
+| Web accessibility (node) | A1–A8 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |
