@@ -286,7 +286,7 @@
   .group-lbl { padding: 8px 12px 2px; font-size: 11px; color: var(--faint); }
   .group-lbl::before { content: "── "; }
   .group-lbl::after { content: " ──"; }
-  .row { display: grid; grid-template-columns: 26px minmax(0,1fr) 84px 262px; gap: 0 10px; align-items: center; padding: 5px 12px; border-top: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 26px minmax(0,1fr) 84px 242px; gap: 0 10px; align-items: center; padding: 5px 12px; border-top: 1px solid var(--line); }
   .row:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
   .row.done { opacity: .4; text-decoration: line-through; }
   input[type=checkbox] { appearance: none; margin: 0; width: 24px; height: 16px; cursor: pointer; color: var(--muted); }
@@ -303,8 +303,9 @@
   .size.pending { color: var(--faint); }
   .size.pending::after { content: ""; animation: blink .8s steps(1) infinite; }
   .size.zero { color: var(--faint); }
-  .actions { display: grid; grid-template-columns: 86px 78px 78px; gap: 10px; }
+  .actions { display: grid; grid-template-columns: 80px 72px 72px; gap: 4px; }
   .actions .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
+  .actions .btn.danger, .actions > :last-child { margin-left: 10px; }   /* details+reveal grouped, delete set apart */
   .info-out { grid-column: 2 / -1; margin: 4px 0 6px; padding: 4px 10px; background: var(--panel); border-left: 2px solid var(--line-strong); max-height: 260px; overflow: auto; color: var(--muted); }
   .info-out[hidden] { display: none; }
   .info-out pre { margin: 4px 0; font: inherit; font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
