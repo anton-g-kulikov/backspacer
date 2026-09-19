@@ -601,7 +601,7 @@ async function init() {
   if (q) window.__setTheme(q);
   else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
-  bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = `${r.version} (${r.build})`; }).catch(() => {});
+  bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   state.catalog = await bridge.call('catalog');
   buildNesting();
   render();
