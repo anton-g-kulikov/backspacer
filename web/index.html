@@ -181,14 +181,15 @@
   .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
 
   /* ── dialog ─────────────────────────── */
-  dialog { border: 1px solid var(--glass-border); border-radius: 24px; padding: 0; color: var(--fg); max-width: 440px; width: calc(100% - 40px);
+  dialog { border: 1px solid var(--glass-border); border-radius: 24px; padding: 0; color: var(--fg); max-width: min(760px, calc(100vw - 80px)); width: max-content; min-width: 420px;
     background: var(--glass-strong); -webkit-backdrop-filter: blur(40px) saturate(180%); backdrop-filter: blur(40px) saturate(180%);
     box-shadow: 0 30px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6); }
   dialog::backdrop { background: rgba(0,0,0,.22); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
   dialog .body { padding: 22px 22px 14px; }
   dialog h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
   dialog p { margin: 0 0 8px; color: var(--muted); }
-  dialog ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); max-height: 180px; overflow: auto; }
+  dialog ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); max-height: 220px; overflow-y: auto; overflow-x: hidden; }
+  dialog li { overflow-wrap: anywhere; }
   dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 22px 18px; }
 
 </style>
@@ -350,13 +351,14 @@
   .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
 
   /* ── dialog ─────────────────────────── */
-  dialog { border: 1px solid var(--danger); padding: 0; background: var(--panel); color: var(--fg); box-shadow: 0 0 0 1px var(--bg), 0 0 40px color-mix(in srgb, var(--danger) 30%, transparent); max-width: 460px; width: calc(100% - 40px); font: inherit; }
+  dialog { border: 1px solid var(--danger); padding: 0; background: var(--panel); color: var(--fg); box-shadow: 0 0 0 1px var(--bg), 0 0 40px color-mix(in srgb, var(--danger) 30%, transparent); max-width: min(760px, calc(100vw - 80px)); width: max-content; min-width: 420px; font: inherit; }
   dialog::backdrop { background: rgba(0,0,0,.65); }
   dialog .body { padding: 16px 18px 12px; }
   dialog h3 { margin: 0 0 8px; font-size: 13px; color: var(--danger); }
   dialog h3::before { content: "?! "; }
   dialog p { margin: 0 0 8px; color: var(--muted); }
-  dialog ul { margin: 6px 0 0; padding-left: 0; list-style: none; color: var(--muted); max-height: 180px; overflow: auto; }
+  dialog ul { margin: 6px 0 0; padding-left: 0; list-style: none; color: var(--muted); max-height: 220px; overflow-y: auto; overflow-x: hidden; }
+  dialog li { overflow-wrap: anywhere; }
   dialog li::before { content: "- "; color: var(--faint); }
   dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 18px 14px; }
 
@@ -799,11 +801,11 @@ async function confirmAndDeleteItem(id, path) {
   if (!it || !itemDeletable(e)) return;
   const name = itemName(it);
   const trash = trashes(e) && !it.key;
-  $('#dlgTitle').textContent = trash ? `Move “${name}” to the Trash?` : `Delete “${name}”?`;
-  $('#dlgText').textContent = (trash ? `About ${fmt(it.bytes)} from ${e.label} will be moved to the Trash.` + TRASH_NOTE
-    : `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.`) + (e.sudo ? ' macOS will ask for your password.' : '');
+  // The entry comes first: "~/Projects/enumerator" here is VS Code's storage *for* that project, not the project.
+  $('#dlgTitle').textContent = trash ? `Move from ${e.label} to the Trash?` : `Delete from ${e.label}?`;
+  $('#dlgText').textContent = `“${name}” — about ${fmt(it.bytes)} — ` + (trash ? 'will be moved to the Trash.' + TRASH_NOTE : "will be removed. This can't be undone.") + (e.sudo ? ' macOS will ask for your password.' : '');
   $('#dlgOk').textContent = trash ? 'Move to Trash' : 'Delete';
-  $('#dlgList').innerHTML = `<li>${esc(it.label || path)}</li>`;
+  $('#dlgList').innerHTML = `<li>${esc(it.key ? it.label : path)}</li>`;
   const dlg = $('#dlg'); dlg.showModal();
   const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
   if (choice !== 'ok') return;
