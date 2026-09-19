@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Homebrew orphaned dependencies: Info now lists the formulae with their total Cellar size, or says "No orphaned dependencies." The check runs only when Info is pressed, never during a scan.
 - Time Machine local snapshots moved from Safe to delete to Managed by macOS (read-only, Info kept). macOS purges them itself and the free-space figure already counts them, so thinning gained nothing visible. The note gives the manual `tmutil` command for the rare case a tool needs non-purgeable space.
 
 ## 0.2.0 — 2026-09-19

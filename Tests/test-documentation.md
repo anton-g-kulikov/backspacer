@@ -53,6 +53,14 @@ says what the tests prove, not how the system works.
 | Q2 | path containing `'` | quote closed, escaped, reopened (`'a'\''b'`) |
 | Q3 | path with spaces, `$`, backticks, `;` | inert inside single quotes (no other escaping) |
 
+### CatalogCommandTests — catalog shell commands, run for real through `Shell.run`
+Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebrew. Nothing touches the real system.
+| # | Case | Expect |
+|---|---|---|
+| B1 | `cache-brew-orphans.infoCmd` with a dry run listing `libfoo` and `user/tap/libbar` (2 MB + 1 MB in the Cellar) | output lists both names and ends with `Total: 3 MB` |
+| B2 | same with an empty dry run | output is exactly `No orphaned dependencies.` |
+| B3 | the entry has no `sizeCmd` — the check runs only from Info, never during a scan | pass |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -68,3 +76,4 @@ says what the tests prove, not how the system works.
 | CatalogTests | C1–C8 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
+| CatalogCommandTests | B1–B3 | passing |

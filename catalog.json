@@ -52,9 +52,9 @@
       "deleteCmd": "brew cleanup --prune=all -s" },
     { "id": "cache-brew-orphans", "group": "Caches", "bucket": "safe",
       "label": "Homebrew orphaned dependencies",
-      "infoCmd": "brew autoremove -n",
+      "infoCmd": "C=\"$(dirname \"$(dirname \"$(command -v brew)\")\")/Cellar\"; O=$(brew autoremove -n 2>/dev/null); N=$(printf \"%s\\n\" \"$O\" | grep -v \"^==>\" | grep .); if [ -z \"$N\" ]; then echo \"No orphaned dependencies.\"; else printf \"%s\\n\\n\" \"$O\"; printf \"%s\\n\" \"$N\" | while read -r f; do du -sk \"$C/${f##*/}\" 2>/dev/null; done | awk '{s+=$1} END {printf \"Total: %.0f MB\", s/1024}'; fi",
       "deleteCmd": "brew autoremove",
-      "note": "Formulae nothing depends on anymore. The info shows what would go." },
+      "note": "Formulae nothing depends on anymore. Info lists what would go and how much it takes (checked only when you ask — brew is slow)." },
 
     { "id": "vscode-cache", "group": "VS Code", "bucket": "safe",
       "label": "VS Code caches",

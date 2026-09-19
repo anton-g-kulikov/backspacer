@@ -29,6 +29,7 @@ _(none)_
 
 ## Done
 
+- 2026-09-19 — Homebrew orphans Info: list + total, on demand only (catalog; tests B1–B3 run the real command against a fake brew).
 - 2026-09-19 — Time Machine snapshots → Managed by macOS (catalog only; test C8 pins it).
 - 2026-09-19 — Test target (`Tests/ReclaimerTests`, 21 tests) and `_meta/` docs bootstrapped.
 - 2026-09-19 — 0.2.0 released: themes, threshold slider, coloured meter, About panel, de-duplicated totals.
