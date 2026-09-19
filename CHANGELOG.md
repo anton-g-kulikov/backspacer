@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- The Web Inspector is off in release builds (`defaults write com.antonkulikov.reclaimer WebInspector -bool YES` turns it on).
 - `~/Library/Logs` is listed per app in Details; deleting it no longer removes crash reports or Reclaimer's own diagnostics log.
 - Fixed: a command that hits its time limit is now stopped together with everything it started; before, the shell was stopped but a long `du` or `rm` could keep running in the background.
 - Fixed: Homebrew, .NET and other tool-based entries work even when your shell profile doesn't put those tools on the login PATH (`.zshrc`-only setups, bash, fish).

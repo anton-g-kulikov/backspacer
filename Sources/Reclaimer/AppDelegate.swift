@@ -34,7 +34,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         webView.underPageBackgroundColor = .windowBackgroundColor
-        if #available(macOS 13.3, *) { webView.isInspectable = true } // right-click → Inspect Element
+        // Right-click → Inspect Element: on for debug builds, or `defaults write com.antonkulikov.reclaimer
+        // WebInspector -bool YES` for a release build when a user is helping debug the page (R20).
+        #if DEBUG
+        let inspectable = true
+        #else
+        let inspectable = UserDefaults.standard.bool(forKey: "WebInspector")
+        #endif
+        if #available(macOS 13.3, *) { webView.isInspectable = inspectable }
         bridge.webView = webView
         webView.navigationDelegate = self
 

@@ -100,7 +100,9 @@ scripts/build-app.sh             # → build/Reclaimer.app, ad-hoc signed
 open build/Reclaimer.app
 ```
 
-Right-click → *Inspect Element* works inside the app (WKWebView inspector).
+Right-click → *Inspect Element* works inside debug builds (WKWebView
+inspector); for a release build turn it on with
+`defaults write com.antonkulikov.reclaimer WebInspector -bool YES`.
 `swift build` alone gives you the bare binary for compile checks; `swift test`
 runs the Swift suites and `node --test 'Tests/web/*.test.js'` the page-logic
 ones (what they cover: `Tests/test-documentation.md`).
