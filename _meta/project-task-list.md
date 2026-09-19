@@ -14,12 +14,6 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
 ### Critical — the deletion gate has holes
-2. **R2 · Attribute injection from folder names.** `esc()` escapes only
-   `& < >`; paths go into double-quoted attributes (rows, chips, items). A
-   cloned repo with a folder named `x" onmouseover="…` runs script inside
-   the page, which can call `delete` on any entry with no dialog. Fix: escape
-   `"` and `'` (fix J2), build item/row attributes from the escaped form,
-   add a CSP `<meta>`. Test: J2 quotes; a J-test rendering a hostile name.
 3. **R3 · `isSafeToDelete` allows real user data.** Depth ≥ 2 under home and
    every dot-folder pass: Photos Library, `~/Documents/*`, `~/Desktop/*`,
    `~/Library/Mail`, `~/Library/Keychains`, `~/Library/Mobile Documents`,
@@ -131,6 +125,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R2: `esc` escapes quotes; CSP `script-src 'self'` with inline scripts moved to boot.js/app.js (J2, J15; ADR-17; verified in browser and app).
 - 2026-09-20 — R1: Escape could confirm a delete; `confirmDialog` resets `returnValue` and both flows use it (J14, verified against the real dialog).
 - 2026-09-20 — 0.6.1 released.
 - 2026-09-20 — Scan speed round two: 4 workers, 2-way `du` for multi-path entries, heavy-first order from remembered durations; 27 s → 16 s wall, ≤ 8 `du` processes (tests F9, F10, L7, J13).

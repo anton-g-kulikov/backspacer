@@ -147,7 +147,8 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | # | Case | Expect |
 |---|---|---|
 | J1 | `fmt` | `null` → `—`; 512 000 → `512 KB`; 5 000 000 → `5 MB`; 1.5e9 → `1.5 GB`; 2e9 → `2 GB` (no `.0`) |
-| J2 | `esc` | `&`, `<`, `>` escaped; nothing else touched |
+| J2 | `esc` | `&`, `<`, `>`, `"`, `'` escaped (R2: values go into double- and single-quoted attributes); nothing else touched |
+| J15 | hostile names (R2) | `esc('x" onmouseover="alert(1)')` contains no `"`; round-trips through an attribute unchanged; `index.html` carries a CSP `<meta>` with `script-src 'self'` and no inline `<script>` blocks (inline handlers are inline script) |
 | J3 | `deletable` / `itemDeletable` / `trashes` | the D1 matrix, mirrored: `decide`+path → trashes; `safe`, `regen` → not; `decide`+`sudo`, +`deleteCmd`, +`itemsCmd` → not; `manual` never deletable; `deleteItemCmd` makes items deletable even when the entry isn't |
 | J4 | `buildNesting` on the shipped catalog | `cache-user`'s direct children are exactly the four caches inside `~/Library/Caches`; each of them has `cache-user` as parent; a grandchild is not a direct child of its grandparent |
 | J5 | `ownSize` / `hasSelectedParent` | own = measured − direct children, never negative; a selected ancestor at any depth counts |
@@ -204,6 +205,6 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F10 | passing |
-| Web logic (node) | J1–J14 | passing |
+| Web logic (node) | J1–J15 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M5 | passing |

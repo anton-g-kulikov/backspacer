@@ -16,7 +16,8 @@ test('J1 fmt', () => {
 });
 
 test('J2 esc', () => {
-  assert.equal(L.esc('a & <b> "c"'), 'a &amp; &lt;b&gt; "c"');
+  assert.equal(L.esc(`a & <b> "c" 'd'`), 'a &amp; &lt;b&gt; &quot;c&quot; &#39;d&#39;');
+  assert.equal(L.esc('plain/path with spaces'), 'plain/path with spaces');
 });
 
 test('J3 deletable / itemDeletable / trashes mirror Bridge.disposal', () => {
@@ -146,4 +147,15 @@ test('J14 confirmDialog: Escape after a real Delete does not confirm (R1)', asyn
   assert.equal(await second, false);
   const third = L.confirmDialog(dlg); dlg.close('cancel');
   assert.equal(await third, false);
+});
+
+test('J15 hostile folder names cannot break out of an attribute (R2)', () => {
+  const hostile = 'x" onmouseover="alert(1)';
+  const escaped = L.esc(hostile);
+  assert.ok(!escaped.includes('"'));
+  // what the browser gives back from data-path="…" is the original string, nothing more
+  const html = fs.readFileSync(path.join(__dirname, '../../web/index.html'), 'utf8');
+  assert.match(html, /<meta http-equiv="Content-Security-Policy" content="[^"]*script-src 'self'[^"]*">/);
+  assert.ok(!/<script>/.test(html) && !/<script[^>]*>[^<]*\S[^<]*<\/script>/.test(html), 'no inline script blocks');
+  assert.ok(!/ on[a-z]+=/.test(html), 'no inline event handlers in the markup');
 });

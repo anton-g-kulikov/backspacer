@@ -110,6 +110,15 @@ because they must find whatever the user's Terminal finds. The mode is an
 explicit argument at every call site so a new command can't fall into the
 slow path by accident (M3 pins the routing).
 
+## ADR-17 — Two layers against hostile folder names
+Every string the page renders can come from the disk: `find` results, a
+project-folder path, a `simctl` key. `esc()` escapes `& < > " '` so a name
+can't break out of an attribute (R2), and the page's CSP allows only
+`script-src 'self'` — no inline script, so even an event-handler attribute
+that somehow got in can't run. That required moving the inline scripts to
+`boot.js` / `app.js`. Host-injected code (the `--titlebar` user script,
+`window.__setTheme`) is exempt from CSP by WebKit's design.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

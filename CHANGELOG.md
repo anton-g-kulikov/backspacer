@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Hardened: a folder whose name contains quotes or HTML can no longer affect the page (names are fully escaped, and the page forbids inline script via a Content-Security-Policy).
 - Fixed: pressing Escape on a confirmation dialog right after a previous Delete could confirm instead of cancel. Every dialog now starts from a clean slate and only an explicit Delete / Move to Trash confirms.
 
 ## 0.6.1 — 2026-09-20

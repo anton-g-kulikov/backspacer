@@ -10,7 +10,8 @@ const DELETABLE_BUCKETS = ['safe', 'regen', 'decide'];
 const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
 
 const fmt = b => b == null ? '—' : b < 1e6 ? `${(b / 1e3).toFixed(0)} KB` : b < 1e9 ? `${(b / 1e6).toFixed(0)} MB` : `${+(b / 1e9).toFixed(1)} GB`;
-const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+/** For text *and* attribute values: folder names come from `find` and can contain anything. */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /** Whole-entry delete: a deletable bucket, not manual, and something to remove. */
 const deletable = e => DELETABLE_BUCKETS.includes(e.bucket) && !e.manual && !!(e.path || e.paths || e.glob || e.deleteCmd);

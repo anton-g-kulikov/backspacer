@@ -9,7 +9,9 @@ behind the design in `architecture-decisions.md`.
 | Piece | Role |
 |---|---|
 | `catalog.json` | The knowledge: what to measure, which bucket it belongs to, how to delete it, what to warn about. `catalog.schema.json` (JSON Schema 2020-12) describes it — field docs, the bucket enum, and the cross-field rules (`children` ⇒ single `path`, `itemsCmd` ⇔ `deleteItemCmd` with `{key}`, every entry has something to measure or show). Editors validate on the `$schema` line; `SchemaTests` validate in `swift test`. |
-| `web/index.html` | The UI: markup, two theme stylesheets, and the JS that binds page state to the DOM and the bridge. Runs standalone in a browser with a mock bridge. |
+| `web/index.html` | The UI: markup and the two theme stylesheets. Carries a Content-Security-Policy (`script-src 'self'`, no inline script), so nothing that reaches the DOM as text can execute. Runs standalone in a browser with a mock bridge. |
+| `web/boot.js` | Picks the cached theme before first paint. |
+| `web/app.js` | Binds page state to the DOM and the bridge: rendering, scanning, the confirm flows, project folders, About. |
 | `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
 | `Sources/Reclaimer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `Diagnostics.swift` | The shareable log file (see *Diagnostics*). |
@@ -169,7 +171,7 @@ are not part of CI — they need the local keychain (see `release-checklist.md`)
 
 ```
 catalog.json              knowledge; catalog.schema.json describes it
-web/index.html            UI (DOM + state glue); web/logic.js pure logic, tested under Node
+web/index.html            UI markup + CSP; boot.js, app.js (DOM + state glue); logic.js pure logic, tested under Node
 Sources/Reclaimer/        app
 Tests/ReclaimerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
 .github/                  CI workflow, issue/PR templates, CODEOWNERS
