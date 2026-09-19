@@ -43,6 +43,18 @@ behind the design in `architecture-decisions.md`.
 - The disk meter is a stacked bar over the volume size: everything-else, then
   locked → keep → decide → regen → safe, so reclaimable space sits next to free.
 
+## Project folders
+
+Catalog globs that look for build output use `"root": "$PROJECTS"` instead of
+a fixed folder. The bridge expands it to the user's project folders: the
+stored `ui.projectRoots` list, or — when nothing is stored — whichever of
+`~/Projects`, `~/Developer`, `~/code`, `~/src`, `~/dev`, `~/work`, `~/repos`,
+`~/git`, `~/Documents/GitHub`, `~/Sites` exist. The island under the FDA
+notice shows the list; **Add folder…** opens `NSOpenPanel` on the main thread
+(the path comes from macOS, not the page), `×` removes one, and either change
+rescans only the `$PROJECTS` entries. A root must be a directory inside home,
+not home itself and not under `~/Library`. Tests R1–R6.
+
 ## Granularity
 
 Entries whose source is many paths are *granular*: `glob` matches, a `paths`

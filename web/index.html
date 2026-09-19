@@ -100,6 +100,10 @@
   .notice p { margin: 0; color: var(--muted); }
   .notice b { color: var(--fg); }
   .notice[hidden] { display: none; }
+  .notice .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 10px; border-radius: 999px; background: var(--track); font-family: var(--mono); font-size: 11.5px; }
+  .chip button { border: 0; background: none; padding: 0 2px; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; }
+  .chip button:hover { color: var(--danger); }
   section.bucket {
     border-radius: 20px; margin-bottom: 16px; overflow: hidden;
     background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
@@ -263,6 +267,14 @@
   .notice p { margin: 0; } .notice p::before { content: "! "; }
   .notice b { font-weight: 700; }
   .notice[hidden] { display: none; }
+  .notice.roots { border-color: var(--line-strong); color: var(--muted); }
+  .notice.roots b { color: var(--fg); }
+  .notice.roots p::before { content: ""; }
+  .notice .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; color: var(--fg); }
+  .chip::before { content: "["; color: var(--faint); } .chip::after { content: "]"; color: var(--faint); }
+  .chip button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--muted); font: inherit; }
+  .chip button:hover { color: var(--danger); }
   section.bucket { border: 1px solid var(--line); margin-bottom: 14px; }
   .bucket-head { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel); }
   .bucket-head .dot { width: 8px; height: 8px; }
@@ -380,6 +392,13 @@
     <p><b>Full Disk Access is off.</b> Some folders under ~/Library can't be measured or emptied without it. Grant it once in System Settings, then rescan.</p>
     <button class="btn small" id="fdaBtn">Open System Settings…</button>
   </div>
+  <div class="notice roots" id="rootsNotice" hidden>
+    <div>
+      <p id="rootsText"></p>
+      <div class="chips" id="rootsChips"></div>
+    </div>
+    <button class="btn small" id="rootsAdd">Add folder…</button>
+  </div>
   <div id="buckets"></div>
 </main>
 
@@ -455,7 +474,7 @@ const bridge = native
   : mockBridge();
 
 function mockBridge() {
-  const sizes = new Map(); let catalog;
+  const sizes = new Map(); let catalog; const roots = ['~/Projects'];
   const rnd = (a, b) => Math.round(a + Math.random() * (b - a));
   return {
     async call(op, args = {}) {
@@ -470,7 +489,7 @@ function mockBridge() {
           if (!s) {
             s = { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
             if (e.glob || e.paths || e.children) {   // granular: invent 2–6 items that add up
-              const n = rnd(2, 6), base = e.glob ? `${e.glob.root}/proj-` : e.paths ? '' : `${e.path}/`;
+              const n = rnd(2, 6), base = e.glob ? `${e.glob.root === '$PROJECTS' ? roots[0] || '~/Projects' : e.glob.root}/proj-` : e.paths ? '' : `${e.path}/`;
               s.items = Array.from({ length: n }, (_, i) => ({ path: e.paths ? e.paths[i % e.paths.length] + (i >= e.paths.length ? '-' + i : '') : `${base}${i + 1}/${e.glob ? e.glob.name : 'item-' + (i + 1)}`, bytes: 0 }));
               let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === n - 1 ? left : Math.round(left * Math.random() * .6); left -= it.bytes; });
             }
@@ -489,6 +508,9 @@ function mockBridge() {
         }
         case 'reveal': case 'openFDA': return { ok: true };
         case 'appInfo': return { version: 'dev', build: 'browser' };
+        case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
+        case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
+        case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'prefGet': return { value: localStorage.getItem('pref.' + args.key) };
         case 'prefSet': localStorage.setItem('pref.' + args.key, args.value); return { ok: true };
         default: throw new Error('unknown op ' + op);
@@ -499,7 +521,7 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null };
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null, roots: [] };
 const granular = e => !!(e.glob || e.paths || e.children);
 const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob);
 // Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
@@ -544,6 +566,31 @@ function applyTheme(t) {
 window.__setTheme = t => { applyTheme(t); bridge.call('prefSet', { key: 'theme', value: t }).catch(() => {}); };
 $('#theme').onclick = e => { const t = e.target.dataset.theme; if (t) window.__setTheme(t); };
 
+/* ── project folders ────────────────── */
+const projectEntries = () => state.catalog.entries.filter(e => e.glob?.root === '$PROJECTS');
+function renderRoots(roots) {
+  state.roots = roots;
+  const n = $('#rootsNotice'); n.hidden = false;
+  $('#rootsText').innerHTML = roots.length
+    ? '<b>Project folders.</b> Build output like node_modules and Pods is searched here.'
+    : '<b>No project folders yet.</b> Build output like node_modules and Pods is only searched inside folders you add.';
+  $('#rootsChips').innerHTML = roots.map(r => `<span class="chip">${esc(r.display)}<button data-removeroot="${esc(r.path)}" title="Stop searching here">×</button></span>`).join('');
+  // the grey path line under each project entry names the roots
+  for (const e of projectEntries()) {
+    const el = document.querySelector(`.row[data-id="${e.id}"] .path`);
+    if (el) { const txt = `${roots.map(r => r.display).join(' · ') || 'project folders'}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}`; el.textContent = txt; el.title = txt; }
+  }
+}
+async function changeRoots(op, args) {
+  try {
+    const before = state.roots.map(r => r.path).join('\n');
+    const r = await bridge.call(op, args); renderRoots(r.roots);
+    if (state.roots.map(r => r.path).join('\n') !== before) { log('project folders: ' + (state.roots.map(r => r.display).join(', ') || 'none')); scan(projectEntries()); }
+  } catch (err) { log(err.message, 'err'); }
+}
+$('#rootsAdd').onclick = () => changeRoots('addProjectRoot');
+$('#rootsChips').onclick = e => { const b = e.target.closest('[data-removeroot]'); if (b) changeRoots('removeProjectRoot', { path: b.dataset.removeroot }); };
+
 async function init() {
   applyTheme(document.documentElement.dataset.theme);
   const q = new URLSearchParams(location.search).get('theme');
@@ -556,6 +603,7 @@ async function init() {
   render();
   refreshDisk();
   bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
+  bridge.call('projectRoots').then(r => renderRoots(r.roots)).catch(() => {});
   scan();
 }
 
@@ -579,7 +627,8 @@ function render() {
       if (e.group !== group) { group = e.group; sec.insertAdjacentHTML('beforeend', `<div class="group-lbl">${esc(group)}</div>`); }
       const canDel = deletable(e);
       const badges = [e.sudo ? '<span class="badge admin">admin</span>' : '', e.manual ? '<span class="badge manual">manual</span>' : ''].join('');
-      const pathTxt = e.path || (e.paths ? e.paths.join('  ·  ') : e.glob ? `${e.glob.root}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}` : '');
+      const globRoot = e.glob && (e.glob.root === '$PROJECTS' ? (state.roots.map(r => r.display).join(' · ') || 'project folders') : e.glob.root);
+      const pathTxt = e.path || (e.paths ? e.paths.join('  ·  ') : e.glob ? `${globRoot}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}` : '');
       sec.insertAdjacentHTML('beforeend', `
         <div class="row" data-id="${e.id}">
           ${canDel ? `<input type="checkbox" data-sel="${e.id}">` : '<span></span>'}
@@ -629,12 +678,12 @@ function updateMeter() {
   bar.classList.toggle('crit', d.used / d.size >= .95);
 }
 
-async function scan() {
+async function scan(only) {
   if (state.scanning) return; state.scanning = true;
   $('#scan').disabled = true; updateScanBtn(); $('#host').textContent = 'measuring';
-  state.size.clear();
-  document.querySelectorAll('[data-size]').forEach(el => { el.textContent = '…'; el.className = 'size pending'; });
-  const queue = [...state.catalog.entries]; const workers = Array.from({ length: 3 }, worker);
+  const entries = only || state.catalog.entries;
+  for (const e of entries) { state.size.delete(e.id); state.items.delete(e.id); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '…'; el.className = 'size pending'; }
+  const queue = [...entries]; const workers = Array.from({ length: 3 }, worker);
   async function worker() {
     while (queue.length) {
       const e = queue.shift();
@@ -688,7 +737,7 @@ function setThreshold(i, save) {
 
 /* ── events ─────────────────────────── */
 function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
-$('#scan').onclick = scan;
+$('#scan').onclick = () => scan();
 $('#thr').oninput = e => setThreshold(e.target.value, true);
 // Footer panels: Log (left) and About (right); one open at a time.
 document.querySelector('.tabs').onclick = e => {

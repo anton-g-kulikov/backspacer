@@ -75,6 +75,17 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | I7 | `info` on a single-path entry without `infoCmd` | breakdown: one line per child, largest first, human sizes |
 | I8 | `Bridge.parseDu` | parses `KB<TAB>path` lines; ignores the trailing `total` line |
 
+### ProjectRootTests — configurable project folders (`$PROJECTS`)
+Fixture: temp home with `Projects/a/node_modules`, `Developer/b/node_modules`, `Library/Caches/x/node_modules`, `Documents/mycode` (not a candidate name), a file `notes.txt`; an isolated `UserDefaults` suite.
+| # | Case | Expect |
+|---|---|---|
+| R1 | no stored preference | roots = the common names that exist (`~/Projects`, `~/Developer`), in candidate order; `~/code` etc. absent |
+| R2 | `isValidProjectRoot` | accepts an existing directory under home (not a candidate); rejects home itself, `~/Library`, anything under `~/Library`, a path outside home, a file, a missing path |
+| R3 | `addProjectRoot(path:)` | persists; adding the same folder twice keeps one; adding an invalid one throws and leaves the list unchanged |
+| R4 | `removeProjectRoot` | removes a listed root; a path not in the list throws |
+| R5 | glob with `"root": "$PROJECTS"` | matches under every root (`Projects/a/…`, `Developer/b/…`); never under `~/Library` |
+| R6 | `projectRoots` op reply | `{roots: [{path, display}]}` with `display` using `~` |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -92,3 +103,4 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
 | ItemTests | I1–I8 | passing |
+| ProjectRootTests | R1–R6 | passing |

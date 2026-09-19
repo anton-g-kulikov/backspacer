@@ -60,6 +60,15 @@ readers could go unscheduled when several callers were already blocked in
 workers have the same shape), so the command "hung" until its timeout with
 an empty result. Dedicated `Thread`s can't be starved that way.
 
+## ADR-12 — Project folders are configured, with detected defaults
+`~/Projects` was hardcoded; on other Macs the six build-output entries
+silently measured nothing. Globs now use `$PROJECTS`, expanded to a stored
+list that defaults to common folder names that exist. Folders are added
+through the system picker so ADR-2 holds (the page never supplies a path
+as an instruction), and `~`/`~/Library` are refused so a glob can't reach
+app data through this door. Auto-discovering git repositories across the
+whole home folder was rejected as slow and surprising.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

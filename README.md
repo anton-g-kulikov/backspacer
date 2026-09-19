@@ -99,7 +99,10 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
 }
 ```
 
-`glob` finds many paths: `{ "root": "~/Projects", "name": "node_modules", "maxdepth": 4, "type": "d" }`.
+`glob` finds many paths: `{ "root": "$PROJECTS", "name": "node_modules", "maxdepth": 4, "type": "d" }`.
+`$PROJECTS` stands for the user's project folders — detected from common names
+(`~/Projects`, `~/Developer`, `~/code`, …) or chosen with **Add folder…** in
+the app; any other `root` is a fixed path.
 Entries with `glob`, `paths` or `children` list each match in the Details panel
 with its size and its own Delete. Entries with a plain `path` and no `infoCmd`
 show a size breakdown of what's inside.

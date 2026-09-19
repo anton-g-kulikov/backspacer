@@ -32,6 +32,9 @@ replies `window.__reclaimerReply(id, ok, payload)`. Transport is
 | `appInfo` | — | `{version, build}` | `CFBundleShortVersionString`, `CFBundleVersion` |
 | `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize` |
 | `prefSet` | `{key, value}` | `{ok}` | value ≤ 32 chars |
+| `projectRoots` | — | `{roots: [{path, display}]}` | folders `$PROJECTS` globs search; `display` abbreviates home as `~` |
+| `addProjectRoot` | — | `{roots}` | opens the macOS folder picker; the chosen folder must be inside home and not under `~/Library`; de-duplicated; persisted (`ui.projectRoots`) |
+| `removeProjectRoot` | `{path}` | `{roots}` | `path` must be a listed root (selector, like `delete.item`) |
 
 ## Host → page calls
 

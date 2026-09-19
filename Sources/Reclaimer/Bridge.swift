@@ -15,16 +15,20 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private let queue = DispatchQueue(label: "reclaimer.bridge", qos: .userInitiated, attributes: .concurrent)
     private let home: String
     private let tildeHome: String
+    private let defaults: UserDefaults
     private let fm = FileManager.default
 
-    /// `home` (the safety gate's notion of the home folder) and `tildeHome` (what a leading `~`
-    /// in the catalog expands to) are injectable so tests can run against a throwaway directory.
+    /// `home` (the safety gate's notion of the home folder), `tildeHome` (what a leading `~` in
+    /// the catalog expands to) and `defaults` are injectable so tests run against a throwaway
+    /// directory and an isolated preferences suite.
     init(catalog: Catalog,
          home: String = FileManager.default.homeDirectoryForCurrentUser.path,
-         tildeHome: String = FileManager.default.homeDirectoryForCurrentUser.path) {
+         tildeHome: String = FileManager.default.homeDirectoryForCurrentUser.path,
+         defaults: UserDefaults = .standard) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
+        self.defaults = defaults
     }
 
     private func expand(_ p: String) -> String {
@@ -78,8 +82,11 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         case "reveal":    return try reveal(entry(args))
         case "appInfo":   return ["version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "dev",
                                   "build": Bundle.main.infoDictionary?["CFBundleVersion"] ?? "local"]
-        case "prefGet":   return ["value": UserDefaults.standard.string(forKey: try prefKey(args)).map { $0 as Any } ?? NSNull()]
-        case "prefSet":   UserDefaults.standard.set(try prefValue(args), forKey: try prefKey(args)); return ["ok": true]
+        case "prefGet":   return ["value": defaults.string(forKey: try prefKey(args)).map { $0 as Any } ?? NSNull()]
+        case "prefSet":   defaults.set(try prefValue(args), forKey: try prefKey(args)); return ["ok": true]
+        case "projectRoots":      return rootsReply()
+        case "addProjectRoot":    if let p = chooseFolder() { try addProjectRoot(path: p) }; return rootsReply()
+        case "removeProjectRoot": try removeProjectRoot(path: args["path"] as? String ?? ""); return rootsReply()
         default:          throw BridgeError.unknownOp(op)
         }
     }
@@ -105,6 +112,63 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     func prefValue(_ args: [String: Any]) throws -> String {
         guard let v = args["value"] as? String, v.count <= 32 else { throw BridgeError.failed("Bad preference value") }
         return v
+    }
+
+    // MARK: Project folders — where `"root": "$PROJECTS"` globs look.
+
+    private static let rootsKey = "ui.projectRoots"
+    /// Tried in this order when the user hasn't chosen anything.
+    static let candidateRoots = ["~/Projects", "~/Developer", "~/code", "~/src", "~/dev", "~/work",
+                                 "~/repos", "~/git", "~/Documents/GitHub", "~/Sites"]
+
+    func projectRoots() -> [String] {
+        if let stored = defaults.stringArray(forKey: Self.rootsKey) { return stored.filter(isValidProjectRoot) }
+        return Self.candidateRoots.map(expand).filter(isValidProjectRoot)
+    }
+
+    /// A directory inside home, but not home itself and nothing under ~/Library — a glob rooted
+    /// there would reach app data the catalog never meant to expose.
+    func isValidProjectRoot(_ path: String) -> Bool {
+        let p = (path as NSString).standardizingPath
+        guard p.hasPrefix(home + "/"), p != home + "/Library", !p.hasPrefix(home + "/Library/") else { return false }
+        var isDir: ObjCBool = false
+        return fm.fileExists(atPath: p, isDirectory: &isDir) && isDir.boolValue
+    }
+
+    func addProjectRoot(path: String) throws {
+        let p = (path as NSString).standardizingPath
+        guard isValidProjectRoot(p) else { throw BridgeError.failed("Choose a folder inside your home folder (not ~/Library).") }
+        var roots = projectRoots()
+        if !roots.contains(p) { roots.append(p) }
+        defaults.set(roots, forKey: Self.rootsKey)
+    }
+
+    func removeProjectRoot(path: String) throws {
+        let p = (path as NSString).standardizingPath
+        var roots = projectRoots()
+        guard let i = roots.firstIndex(of: p) else { throw BridgeError.failed("Not a project folder: \(path)") }
+        roots.remove(at: i)
+        defaults.set(roots, forKey: Self.rootsKey)
+    }
+
+    private func rootsReply() -> [String: Any] {
+        ["roots": projectRoots().map { ["path": $0, "display": $0.hasPrefix(tildeHome + "/") ? "~" + $0.dropFirst(tildeHome.count) : $0] }]
+    }
+
+    /// The system folder picker, on the main thread. The chosen path comes from the user via
+    /// macOS, never from the page.
+    private func chooseFolder() -> String? {
+        var chosen: String?
+        let pick = {
+            let panel = NSOpenPanel()
+            panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
+            panel.directoryURL = URL(fileURLWithPath: self.home)
+            panel.message = "Choose a folder that holds your projects. Build output inside it (node_modules, Pods, …) becomes reclaimable."
+            panel.prompt = "Add"
+            if panel.runModal() == .OK { chosen = panel.url?.path }
+        }
+        if Thread.isMainThread { pick() } else { DispatchQueue.main.sync(execute: pick) }
+        return chosen
     }
 
     // MARK: Ops
@@ -245,18 +309,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     }
 
     private func globMatches(_ g: Catalog.Glob) -> [String] {
-        let root = expand(g.root)
-        var tests: [String] = []
-        if let n = g.name { tests.append("-name \(Shell.q(n))") }
-        if let ns = g.names { tests += ns.map { "-name \(Shell.q($0))" } }
-        if let pp = g.pathPatterns { tests += pp.map { "-path \(Shell.q(root + "/" + $0))" } }
-        guard !tests.isEmpty else { return [] }
-
-        var cmd = "find \(Shell.q(root)) -maxdepth \(g.maxdepth ?? 4)"
-        if let t = g.type { cmd += " -type \(t)" }
-        cmd += " \\( " + tests.joined(separator: " -o ") + " \\) -prune -print0 2>/dev/null"
-
-        var paths = Shell.run(cmd, timeout: 300).stdout.split(separator: "\0").map(String.init)
+        let roots = g.root == "$PROJECTS" ? projectRoots() : [expand(g.root)]
+        var paths = roots.flatMap { globMatches(g, root: $0) }
 
         if let sibling = g.requireSibling {
             let suffix = sibling.hasPrefix("*") ? String(sibling.dropFirst()) : sibling
@@ -270,6 +324,19 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             paths = paths.map { $0 + "/" + then }.filter { fm.fileExists(atPath: $0) }
         }
         return paths
+    }
+
+    private func globMatches(_ g: Catalog.Glob, root: String) -> [String] {
+        var tests: [String] = []
+        if let n = g.name { tests.append("-name \(Shell.q(n))") }
+        if let ns = g.names { tests += ns.map { "-name \(Shell.q($0))" } }
+        if let pp = g.pathPatterns { tests += pp.map { "-path \(Shell.q(root + "/" + $0))" } }
+        guard !tests.isEmpty else { return [] }
+
+        var cmd = "find \(Shell.q(root)) -maxdepth \(g.maxdepth ?? 4)"
+        if let t = g.type { cmd += " -type \(t)" }
+        cmd += " \\( " + tests.joined(separator: " -o ") + " \\) -prune -print0 2>/dev/null"
+        return Shell.run(cmd, timeout: 300).stdout.split(separator: "\0").map(String.init)
     }
 
     /// Last line of defence. Even though paths come from the catalog, refuse
