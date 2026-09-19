@@ -22,3 +22,5 @@ jobs:
         run: swift build -c release --arch arm64 --arch x86_64 2>&1 | tail -5
       - name: Catalog is valid JSON
         run: python3 -c "import json; json.load(open('catalog.json'))"
+      - name: Web logic tests (node)
+        run: node --test 'Tests/web/*.test.js'

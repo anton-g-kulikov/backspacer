@@ -14,8 +14,9 @@ fails even when the values are equal — bind the expected value to a typed `let
   `catalog.json` so a bad catalog edit fails CI, not a user's home folder.
 - Nothing here runs `rm`, `du` or AppleScript. Disk-touching paths are covered by
   manual verification (below) until a fake shell is introduced.
-- The web UI (`web/index.html`) has no automated tests yet — see
-  `_meta/project-task-list.md`.
+- The web UI's pure logic lives in `web/logic.js` and is tested under Node
+  (`Tests/web`); `index.html` keeps only DOM and state glue, checked manually
+  in the browser (`?theme=` + the mock bridge) and in the app.
 
 ## Test cases
 
@@ -135,6 +136,20 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | F7 | `sizeCmd` prints non-numeric output | bytes `null` |
 | F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
 
+### Web logic — `Tests/web/logic.test.js` (Node's `node:test`, run with `node --test Tests/web`)
+Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM and state glue. Runs against the real `catalog.json`.
+| # | Case | Expect |
+|---|---|---|
+| J1 | `fmt` | `null` → `—`; 512 000 → `512 KB`; 5 000 000 → `5 MB`; 1.5e9 → `1.5 GB`; 2e9 → `2 GB` (no `.0`) |
+| J2 | `esc` | `&`, `<`, `>` escaped; nothing else touched |
+| J3 | `deletable` / `itemDeletable` / `trashes` | the D1 matrix, mirrored: `decide`+path → trashes; `safe`, `regen` → not; `decide`+`sudo`, +`deleteCmd`, +`itemsCmd` → not; `manual` never deletable; `deleteItemCmd` makes items deletable even when the entry isn't |
+| J4 | `buildNesting` on the shipped catalog | `cache-user`'s direct children are exactly the four caches inside `~/Library/Caches`; each of them has `cache-user` as parent; a grandchild is not a direct child of its grandparent |
+| J5 | `ownSize` / `hasSelectedParent` | own = measured − direct children, never negative; a selected ancestor at any depth counts |
+| J6 | `isVisible` | unknown size is visible; below the threshold hidden; equal to it visible |
+| J7 | `meterSegments` | order `other, locked, keep, decide, regen, safe`; `other` = used − buckets, floored at 0; titles from the catalog |
+| J8 | `itemName` | `display` wins, then `label`, then the last two path components |
+| J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -157,3 +172,4 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F8 | passing |
+| Web logic (node) | J1–J9 | passing |

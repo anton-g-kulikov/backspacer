@@ -97,7 +97,8 @@ open build/Reclaimer.app
 
 Right-click → *Inspect Element* works inside the app (WKWebView inspector).
 `swift build` alone gives you the bare binary for compile checks; `swift test`
-runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
+runs the Swift suites and `node --test 'Tests/web/*.test.js'` the page-logic
+ones (what they cover: `Tests/test-documentation.md`).
 
 **Adding an entry** is a JSON edit, validated by `catalog.schema.json` (your
 editor picks it up from the `$schema` line; `swift test` checks it too). The fields:

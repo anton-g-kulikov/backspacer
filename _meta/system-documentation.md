@@ -9,7 +9,8 @@ behind the design in `architecture-decisions.md`.
 | Piece | Role |
 |---|---|
 | `catalog.json` | The knowledge: what to measure, which bucket it belongs to, how to delete it, what to warn about. `catalog.schema.json` (JSON Schema 2020-12) describes it — field docs, the bucket enum, and the cross-field rules (`children` ⇒ single `path`, `itemsCmd` ⇔ `deleteItemCmd` with `{key}`, every entry has something to measure or show). Editors validate on the `$schema` line; `SchemaTests` validate in `swift test`. |
-| `web/index.html` | The whole UI: markup, two theme stylesheets, and the JS that renders buckets, scans, filters, and asks the host to delete. Runs standalone in a browser with a mock bridge. |
+| `web/index.html` | The UI: markup, two theme stylesheets, and the JS that binds page state to the DOM and the bridge. Runs standalone in a browser with a mock bridge. |
+| `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
 | `Sources/Reclaimer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
@@ -136,16 +137,16 @@ a DMG, submits and staples that. See `release-checklist.md` for the sequence.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs `swift test` and a universal release build on a
-macOS 15 runner with Xcode 16 for every push to `main`, every tag and every
-pull request, and checks that `catalog.json` parses. Signing and notarization
+`.github/workflows/ci.yml` runs `swift test`, a universal release build and the
+Node web-logic tests on a macOS 15 runner with Xcode 16 for every push to
+`main`, every tag and every pull request, and checks that `catalog.json` parses. Signing and notarization
 are not part of CI — they need the local keychain (see `release-checklist.md`).
 
 ## Repository layout
 
 ```
 catalog.json              knowledge; catalog.schema.json describes it
-web/index.html            UI (single file)
+web/index.html            UI (DOM + state glue); web/logic.js pure logic, tested under Node
 Sources/Reclaimer/        app
 Tests/ReclaimerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
 .github/workflows/ci.yml  swift test + universal release build on push/PR

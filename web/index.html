@@ -447,6 +447,7 @@
   </form>
 </dialog>
 
+<script src="logic.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    Bridge — talks to the Swift host. Falls back to a mock in a browser.
@@ -520,42 +521,19 @@ function mockBridge() {
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null, roots: [] };
-const granular = e => !!(e.glob || e.paths || e.children || e.itemsCmd);
-const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob || e.itemsCmd);
-// Items can be removed one at a time: by path (rm) or by the entry's deleteItemCmd.
-const itemDeletable = e => ['safe', 'regen', 'decide'].includes(e.bucket) && !e.manual && (!!e.deleteItemCmd || (deletable(e) && !e.deleteCmd && !e.itemsCmd));
-const itemId = it => it.key ?? it.path;
-// Mirrors Bridge.disposal: Your-call folders go to the Trash; caches, admin paths and
-// command-driven entries are removed for good.
-const trashes = e => e.bucket === 'decide' && !e.sudo && !e.deleteCmd && !e.itemsCmd;
+// fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible,
+// buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
 const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
-// Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
-const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
+// Rows measured below the current stop are hidden, deselected and left out of totals.
 const minBytes = () => THR[state.thr];
-const visible = id => { const b = state.size.get(id); return b == null || b >= minBytes(); };
+const visible = id => isVisible(state.size.get(id), minBytes());
 
-// Some entries live inside others (pip cache inside ~/Library/Caches). Totals use each
-// entry's *own* size — measured minus its direct nested children — so nothing counts twice.
-const NEST = { children: new Map(), parent: new Map() };
-function buildNesting() {
-  const P = e => e.path ? [e.path] : (e.paths || []);
-  const inside = (a, b) => a === b || a.startsWith(b.replace(/\/$/, '') + '/');
-  const within = (c, p) => P(c).length && P(p).length && P(c).every(cp => P(p).some(pp => inside(cp, pp)));
-  const E = state.catalog.entries;
-  for (const p of E) {
-    const kids = E.filter(c => c !== p && within(c, p) && !E.some(q => q !== p && q !== c && within(c, q) && within(q, p)));
-    NEST.children.set(p.id, kids.map(k => k.id));
-    for (const k of kids) NEST.parent.set(k.id, p.id);
-  }
-}
-const ownSize = id => Math.max(0, (state.size.get(id) || 0) - (NEST.children.get(id) || []).reduce((a, c) => a + (state.size.get(c) || 0), 0));
-const selectedParent = id => { for (let p = NEST.parent.get(id); p; p = NEST.parent.get(p)) if (state.selected.has(p)) return true; return false; };
-const ORDER = ['safe', 'regen', 'decide', 'keep', 'locked'];
-const fmt = b => b == null ? '—' : b < 1e6 ? `${(b / 1e3).toFixed(0)} KB` : b < 1e9 ? `${(b / 1e6).toFixed(0)} MB` : `${+(b / 1e9).toFixed(1)} GB`;
-const deletable = e => ['safe', 'regen', 'decide'].includes(e.bucket) && !e.manual && (e.path || e.paths || e.glob || e.deleteCmd);
+// Totals use each entry's *own* size (measured minus nested children) so nothing counts twice.
+let NEST = { children: new Map(), parent: new Map() };
+const own = id => ownSize(id, state.size, NEST);
+const selectedParent = id => hasSelectedParent(id, state.selected, NEST);
 const log = (msg, cls = '') => { const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight; };
-const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 /* ── theme ──────────────────────────── */
 // Two <style> sheets, one enabled at a time. Chosen from the app's View menu
@@ -610,7 +588,7 @@ async function init() {
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   state.catalog = await bridge.call('catalog');
-  buildNesting();
+  NEST = buildNesting(state.catalog.entries);
   render(); syncGutter();
   refreshDisk();
   bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
@@ -674,18 +652,14 @@ async function refreshDisk() {
 // used. Counts every measured entry, regardless of the size threshold.
 function updateMeter() {
   const d = state.disk; if (!d || !state.catalog) return;
-  const bar = $('#diskBar'); let acc = 0;
+  const bar = $('#diskBar');
   const seg = (b, bytes, title) => {
     let el = bar.querySelector(`[data-seg="${b}"]`);
     if (!el) { el = document.createElement('i'); el.dataset.seg = b; el.style.setProperty('--c', `var(--${b})`); bar.appendChild(el); }
     el.style.width = (bytes / d.size * 100) + '%'; el.title = `${title} — ${fmt(bytes)}`;
   };
-  // Left to right: everything else, then the buckets from least to most deletable,
-  // so the reclaimable green sits next to the free space.
-  const bytes = Object.fromEntries(ORDER.map(b => [b, state.catalog.entries.filter(e => e.bucket === b).reduce((a, e) => a + ownSize(e.id), 0)]));
-  acc = ORDER.reduce((a, b) => a + bytes[b], 0);
-  seg('other', Math.max(0, d.used - acc), 'Everything else');
-  for (const b of [...ORDER].reverse()) seg(b, bytes[b], state.catalog.buckets[b].title);
+  const bytes = Object.fromEntries(ORDER.map(b => [b, state.catalog.entries.filter(e => e.bucket === b).reduce((a, e) => a + own(e.id), 0)]));
+  for (const s of meterSegments(d, bytes, state.catalog.buckets)) seg(s.seg, s.bytes, s.title);
   bar.classList.toggle('crit', d.used / d.size >= .95);
 }
 
@@ -713,7 +687,7 @@ async function scan(only) {
   log('scan complete');
 }
 
-const bucketTotal = b => state.catalog.entries.filter(e => e.bucket === b && visible(e.id)).reduce((a, e) => a + ownSize(e.id), 0);
+const bucketTotal = b => state.catalog.entries.filter(e => e.bucket === b && visible(e.id)).reduce((a, e) => a + own(e.id), 0);
 function updateTotals() {
   applyThreshold(); updateMeter();
   for (const b of ORDER) { const el = document.querySelector(`[data-total="${b}"]`); if (el) el.textContent = fmt(bucketTotal(b)); }
@@ -789,10 +763,8 @@ function entry(id) { return state.catalog.entries.find(e => e.id === id); }
 function renderItems(id) {
   const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];
   if (!items.length) { out.innerHTML = '<pre>Nothing found.</pre>'; return; }
-  // The host names items (display: relative to the project folder, a child's label or name);
-  // command items carry their own label. Largest first.
-  items.sort((a, b) => (b.bytes || 0) - (a.bytes || 0));
-  const show = it => it.display ?? it.label ?? it.path.split('/').slice(-2).join('/');
+  items.sort((a, b) => (b.bytes || 0) - (a.bytes || 0));   // largest first; the host names them
+  const show = itemName;
   const canDel = itemDeletable(e);
   out.innerHTML = items.map(it => `
     <div class="item">
@@ -805,7 +777,7 @@ function renderItems(id) {
 async function confirmAndDeleteItem(id, path) {
   const e = entry(id), it = (state.items.get(id) || []).find(x => itemId(x) === path);
   if (!it || !itemDeletable(e)) return;
-  const name = it.display || it.label || path.split('/').slice(-2).join('/');
+  const name = itemName(it);
   const trash = trashes(e) && !it.key;
   $('#dlgTitle').textContent = trash ? `Move “${name}” to the Trash?` : `Delete “${name}”?`;
   $('#dlgText').textContent = (trash ? `About ${fmt(it.bytes)} from ${e.label} will be moved to the Trash.` + TRASH_NOTE

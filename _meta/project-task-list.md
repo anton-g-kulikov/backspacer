@@ -13,11 +13,6 @@ _(none)_
   together — a two-path item; decide whether `children` grows a sibling rule
   or AVDs use `itemsCmd`.
 
-- **JS test harness for `web/index.html`.** Move the pure functions
-  (`fmt`, threshold/visibility, nesting/own-size, meter segmentation,
-  `deletable`) into `web/logic.js` so `node` can test them; page keeps
-  loading them via `<script src>`. Document cases in
-  `Tests/test-documentation.md` first.
 
 ## Roadmap (from the 0.1.0 README)
 
@@ -29,6 +24,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — `web/logic.js` + Node tests J1–J9 in CI; the 3-2-1 plan (CI, fake shell, JS harness) is complete.
 
 - 2026-09-20 — `CommandRunner` seam + `FakeShell`; FakeShellTests F1–F8 (failures, admin routing, exact command text). ADR-15.
 
