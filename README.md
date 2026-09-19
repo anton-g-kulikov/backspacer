@@ -77,8 +77,8 @@ open build/Reclaimer.app
 ```
 
 Right-click → *Inspect Element* works inside the app (WKWebView inspector).
-`swift build` alone gives you the bare binary in `.build/release/` for compile
-checks.
+`swift build` alone gives you the bare binary for compile checks; `swift test`
+runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
 
 **Adding an entry** is a JSON edit. The fields:
 
@@ -158,12 +158,9 @@ scripts/build-app.sh      package → .app
 scripts/notarize.sh       sign → notarize → staple → dmg
 scripts/entitlements.plist
 scripts/mac-storage-review.sh   the original read-only terminal audit
+Tests/                    Swift Testing suites + test-documentation.md
+_meta/                    how it works, bridge API, decisions, task list, release checklist
+CHANGELOG.md
 ```
 
-## Roadmap
-
-- "Explain" panel per entry with the full reasoning from the catalog notes.
-- Simulator runtime deletion from the UI (`xcrun simctl runtime delete <id>`),
-  once the info output is parsed into a picker.
-- Per-project view for `~/Projects` with last-touched dates.
-- Optional launch-at-login menu-bar mode that warns below a free-space threshold.
+Internals: `_meta/system-documentation.md`. Roadmap and status: `_meta/project-task-list.md`.

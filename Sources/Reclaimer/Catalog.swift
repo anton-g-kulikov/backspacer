@@ -48,6 +48,10 @@ struct Catalog: Decodable {
         guard let url = Resources.url("catalog.json") else {
             throw NSError(domain: "Reclaimer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No resource URL"])
         }
+        return try load(from: url)
+    }
+
+    static func load(from url: URL) throws -> Catalog {
         let data = try Data(contentsOf: url)
         var cat = try JSONDecoder().decode(Catalog.self, from: data)
         cat.rawJSON = String(decoding: data, as: UTF8.self)

@@ -13,10 +13,14 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     weak var webView: WKWebView?
     private let catalog: Catalog
     private let queue = DispatchQueue(label: "reclaimer.bridge", qos: .userInitiated, attributes: .concurrent)
-    private let home = FileManager.default.homeDirectoryForCurrentUser.path
+    private let home: String
     private let fm = FileManager.default
 
-    init(catalog: Catalog) { self.catalog = catalog }
+    /// `home` is injectable so the safety gate can be tested against a fixed path.
+    init(catalog: Catalog, home: String = FileManager.default.homeDirectoryForCurrentUser.path) {
+        self.catalog = catalog
+        self.home = home
+    }
 
     // MARK: WKScriptMessageHandler
 
@@ -82,14 +86,14 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     private static let prefKeys: Set<String> = ["theme", "minSize"]
 
-    private func prefKey(_ args: [String: Any]) throws -> String {
+    func prefKey(_ args: [String: Any]) throws -> String {
         guard let k = args["key"] as? String, Self.prefKeys.contains(k) else {
             throw BridgeError.failed("Unknown preference: \(args["key"] ?? "?")")
         }
         return "ui." + k
     }
 
-    private func prefValue(_ args: [String: Any]) throws -> String {
+    func prefValue(_ args: [String: Any]) throws -> String {
         guard let v = args["value"] as? String, v.count <= 32 else { throw BridgeError.failed("Bad preference value") }
         return v
     }
@@ -204,7 +208,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     /// Last line of defence. Even though paths come from the catalog, refuse
     /// anything that could take a user's data with it.
-    private func isSafeToDelete(_ path: String) -> Bool {
+    func isSafeToDelete(_ path: String) -> Bool {
         let p = (path as NSString).standardizingPath
         guard p.hasPrefix("/"), !p.contains("/../"), p != "/" else { return false }
 
