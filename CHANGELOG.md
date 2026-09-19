@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Diagnostics log at `~/Library/Logs/Reclaimer/Reclaimer.log` (About → Reveal log): scans, deletes and the commands run, failures, page errors, WebKit content-process restarts. Attach it to a bug report.
+- If WebKit's content process dies, the page reloads instead of going blank.
 - Internal: the page's pure logic moved to `web/logic.js` and is tested under Node; the bridge's shell is injectable and tested against a scripted fake.
 - `catalog.schema.json`: the catalog is described by a JSON Schema — editors validate as you type, and the test suite validates the shipped catalog and checks the schema rejects the mistakes that matter.
 - Source published under the PolyForm Noncommercial License 1.0.0 (free for noncommercial use; the name and icon stay reserved); CI on every push.

@@ -19,6 +19,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private let pathPrefix: String?
     private let trasher: (URL) throws -> Void
     private let shell: CommandRunner
+    private let diagnostics: Diagnostics
     private let fm = FileManager.default
 
     enum Disposal { case permanent, trash }
@@ -32,7 +33,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
          defaults: UserDefaults = .standard,
          pathPrefix: String? = nil,
          trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
-         shell: CommandRunner = SystemShell()) {
+         shell: CommandRunner = SystemShell(),
+         diagnostics: Diagnostics = .standard) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
@@ -40,6 +42,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         self.pathPrefix = pathPrefix
         self.trasher = trasher
         self.shell = shell
+        self.diagnostics = diagnostics
     }
 
     func catalogEntry(_ id: String) -> Catalog.Entry? { catalog.entry(id) }
@@ -56,10 +59,11 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private func remove(_ paths: [String], for e: Catalog.Entry) throws -> Bool {
         switch disposal(of: e) {
         case .trash:
-            for p in paths { try trasher(URL(fileURLWithPath: p)) }
+            for p in paths { diagnostics.log(.info, "trash: " + p); try trasher(URL(fileURLWithPath: p)) }
             return true
         case .permanent:
             let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
+            diagnostics.log(.info, (e.needsAdmin ? "admin: " : "run: ") + cmd)
             let r = e.needsAdmin ? shell.runAsAdmin(cmd) : shell.run(cmd, timeout: 1800)
             guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
             return false
@@ -70,7 +74,9 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     /// `pathPrefix` lets tests put fake tools (brew, xcrun) first on PATH.
     private func runCatalogCommand(_ cmd: String, timeout: TimeInterval, admin: Bool = false) -> ShellResult {
         let full = pathPrefix.map { "export PATH=\(Shell.q($0)):$PATH; " + cmd } ?? cmd
-        return admin ? shell.runAsAdmin(full) : shell.run(full, timeout: timeout)
+        let r = admin ? shell.runAsAdmin(full) : shell.run(full, timeout: timeout)
+        if !r.ok { diagnostics.log(.warn, "command failed (\(r.status)): \(cmd.prefix(200)) — \(r.stderr.prefix(300))") }
+        return r
     }
 
     private func expand(_ p: String) -> String {
@@ -112,7 +118,25 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     // MARK: Dispatch
 
+    /// Ops too frequent or too dull to log.
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath"]
+
     func handle(op: String, args: [String: Any]) throws -> Any {
+        let started = Date()
+        let subject = (args["id"] as? String).map { $0 + ((args["item"] as? String).map { " · " + $0 } ?? "") } ?? ""
+        do {
+            let r = try dispatch(op: op, args: args)
+            if !Self.quietOps.contains(op) {
+                diagnostics.log(.info, "\(op) \(subject) ok (\(Int(Date().timeIntervalSince(started) * 1000)) ms)".replacingOccurrences(of: "  ", with: " "))
+            }
+            return r
+        } catch {
+            diagnostics.log(.error, "\(op) \(subject): \(error.localizedDescription)".replacingOccurrences(of: "  ", with: " "))
+            throw error
+        }
+    }
+
+    private func dispatch(op: String, args: [String: Any]) throws -> Any {
         switch op {
         case "catalog":   return RawJSON(value: catalog.rawJSON)
         case "disk":      return try disk()
@@ -129,6 +153,16 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         case "projectRoots":      return rootsReply()
         case "addProjectRoot":    if let p = chooseFolder() { try addProjectRoot(path: p) }; return rootsReply()
         case "removeProjectRoot": try removeProjectRoot(path: args["path"] as? String ?? ""); return rootsReply()
+        case "log":
+            let level = Diagnostics.Level(rawValue: args["level"] as? String ?? "") ?? .info
+            diagnostics.log(level, "page: " + String((args["message"] as? String ?? "").prefix(2000)))
+            return ["ok": true]
+        case "logPath":  return ["path": diagnostics.file.path]
+        case "revealLog":
+            diagnostics.log(.info, "revealing the log file")
+            let url = diagnostics.file
+            DispatchQueue.main.async { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            return ["path": url.path]
         default:          throw BridgeError.unknownOp(op)
         }
     }

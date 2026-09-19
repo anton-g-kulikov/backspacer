@@ -8,6 +8,35 @@ _(none)_
 
 ## Queued
 
+- **Scan speed.** The diagnostics log shows ~800 ms per `du`, even on empty
+  folders: `Shell.run` uses `zsh -lc`, which sources the user's profile every
+  time. Run measurement commands (`du`, `find`, `rm`) through `/bin/sh -c`
+  with a fixed PATH and keep the login shell only for catalog commands that
+  need the user's tools (`brew`, `xcrun`, `dotnet`). A 63-entry scan was 38 s
+  wall / 101 s shell on 2026-09-20.
+- **"Crashed but returned" report** (2026-09-20, after emptying the Trash and
+  rescanning): no crash report existed; likely a WebKit content-process
+  termination, now logged and auto-reloaded. Wait for the next occurrence
+  with the log.
+
+- **App data revamp** (grounded 2026-09-20 on this Mac). Findings: the
+  Electron cache pattern (`<app>/Cache`, `Code Cache`, `GPUCache`, `DawnCache`
+  under `~/Library/Application Support`) is small except Claude (300 MB); the
+  big app folders are Code/User (workspaceStorage, covered), Notion/Partitions
+  2.2 GB, Steam/Steam.AppBundle 1.2 GB, Figma/DesktopProfile 0.9 GB,
+  Google/GoogleUpdater 0.8 GB, Code/WebStorage 0.9 GB + chatDictationModels
+  0.8 GB, zoom.us/CefPlugin+asr 0.4 GB, Slack/Service Worker 0.4 GB; in
+  `~/Library/Caches`: com.openai.codex 1.3 GB, github-copilot-sdk + copilot
+  0.6 GB, notion updaters 0.5 GB, electron 0.2 GB. Plan: one glob entry for
+  Electron caches (per-app items, `regen`), re-bucket app *caches* from
+  `decide` to `regen` (Slack, Notion local cache, Telegram media) so they are
+  removed rather than trashed, keep real data in `decide`, add entries for
+  iOS device backups (`MobileSync/Backup`, `children`), Ollama models
+  (`~/.ollama`), JetBrains caches, browser caches (Chrome/Firefox/Arc/Brave),
+  Spotify cache, Zoom, Teams, Discord, Adobe caches — each verified against a
+  real install or documented location. Show an "in Trash" state on rows that
+  were moved rather than a size of 0.
+
 
 - **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
   together — a two-path item; decide whether `children` grows a sibling rule
@@ -24,6 +53,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — Diagnostics log + Reveal log in About; web-process termination handled (tests L1–L6).
 
 - 2026-09-20 — `web/logic.js` + Node tests J1–J9 in CI; the 3-2-1 plan (CI, fake shell, JS harness) is complete.
 

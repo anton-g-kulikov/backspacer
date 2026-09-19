@@ -12,6 +12,7 @@ behind the design in `architecture-decisions.md`.
 | `web/index.html` | The UI: markup, two theme stylesheets, and the JS that binds page state to the DOM and the bridge. Runs standalone in a browser with a mock bridge. |
 | `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
 | `Sources/Reclaimer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
+| `Diagnostics.swift` | The shareable log file (see *Diagnostics*). |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
 | `Catalog.swift` | Typed mirror of `catalog.json`; `Resources` locates bundled files. |
@@ -134,6 +135,21 @@ set), assembles `build/Reclaimer.app` with a generated `Info.plist`, normalises
 file modes, and signs (hardened runtime + timestamp with a Developer ID,
 ad-hoc otherwise). `scripts/notarize.sh` submits the app, staples, wraps it in
 a DMG, submits and staples that. See `release-checklist.md` for the sequence.
+
+## Diagnostics
+
+`~/Library/Logs/Reclaimer/Reclaimer.log` (`Diagnostics.swift`) is the file a
+user attaches to a bug report. Plain text, one line per event, `[info]`,
+`[warn]` or `[error]`, rotated once past 1 MB (one `.previous.log` kept).
+Written by the host only; nothing is ever sent anywhere. Recorded:
+launch (version, build, macOS, arch) and quit; every bridge op except
+housekeeping (`catalog`, `disk`, `fdaStatus`, prefs, `projectRoots`,
+`appInfo`, `log`) with its subject, outcome and duration; every `rm`/`trash`
+and every catalog command that fails (status + stderr); WebKit content-process
+terminations (the page is reloaded); the page's own log lines and uncaught
+JS errors, tagged `page:`. About → **Reveal log** selects the file in Finder.
+Because catalog paths and per-item names appear in it, the log reveals folder
+and project names — the About text says so.
 
 ## Continuous integration
 

@@ -174,6 +174,7 @@
   .about h4 { margin: 4px 0 2px; font-size: 13px; color: var(--fg); }
   .about p { margin: 0 0 6px; }
   .about a { color: var(--accent); text-decoration: none; }
+  .about .diag code { font-family: var(--mono); font-size: 11px; color: var(--faint); margin: 0 6px 0 2px; }
   .about .lic { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--track); font-size: 11.5px; line-height: 1.5; }
   .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
   .about .lic b:first-child { margin-top: 0; }
@@ -342,6 +343,7 @@
   .about p { margin: 0 0 6px; }
   .about a { color: var(--accent); text-decoration: none; }
   .about a::before { content: "<"; color: var(--faint); } .about a::after { content: ">"; color: var(--faint); }
+  .about .diag code { color: var(--faint); margin: 0 6px 0 2px; }
   .about .lic { margin-top: 8px; padding: 8px 10px; border-left: 2px solid var(--line-strong); background: var(--bg); line-height: 1.5; }
   .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
   .about .lic b:first-child { margin-top: 0; }
@@ -424,6 +426,8 @@
        macOS's own password dialog.</p>
     <p>Version <span id="aboutVersion"></span> · © 2026 Anton Kulikov · Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
        · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
+    <p class="diag">Something odd? Reclaimer keeps a log of what it did — attach it to your report.
+       <code id="logPath"></code> <button class="btn small" id="revealLog">Reveal log</button></p>
     <div class="lic">
       <b>License</b>
       Reclaimer is free for noncommercial use under the
@@ -507,6 +511,8 @@ function mockBridge() {
         }
         case 'reveal': case 'openFDA': return { ok: true };
         case 'appInfo': return { version: 'dev', build: 'browser' };
+        case 'log': return { ok: true };
+        case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Reclaimer/Reclaimer.log' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
@@ -533,7 +539,12 @@ const visible = id => isVisible(state.size.get(id), minBytes());
 let NEST = { children: new Map(), parent: new Map() };
 const own = id => ownSize(id, state.size, NEST);
 const selectedParent = id => hasSelectedParent(id, state.selected, NEST);
-const log = (msg, cls = '') => { const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight; };
+const log = (msg, cls = '') => {
+  const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight;
+  bridge.call('log', { level: cls === 'err' ? 'error' : 'info', message: msg }).catch(() => {});   // also to the diagnostics file
+};
+window.addEventListener('error', e => bridge.call('log', { level: 'error', message: `${e.message} (${e.filename}:${e.lineno})` }).catch(() => {}));
+window.addEventListener('unhandledrejection', e => bridge.call('log', { level: 'error', message: 'unhandled: ' + (e.reason?.message || e.reason) }).catch(() => {}));
 
 /* ── theme ──────────────────────────── */
 // Two <style> sheets, one enabled at a time. Chosen from the app's View menu
@@ -587,6 +598,8 @@ async function init() {
   else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
+  bridge.call('logPath').then(r => { $('#logPath').textContent = r.path.replace(/^\/Users\/[^/]+/, '~'); }).catch(() => {});
+  $('#revealLog').onclick = () => bridge.call('revealLog').catch(err => log(err.message, 'err'));
   state.catalog = await bridge.call('catalog');
   NEST = buildNesting(state.catalog.entries);
   render(); syncGutter();

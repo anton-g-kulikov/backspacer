@@ -7,6 +7,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
     private var bridge: Bridge!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let os = ProcessInfo.processInfo.operatingSystemVersionString
+        Diagnostics.standard.log(.info, "launch: Reclaimer \(info["CFBundleShortVersionString"] ?? "dev") (\(info["CFBundleVersion"] ?? "local")), macOS \(os), \(Self.arch)")
         buildMenu()
         #if DEBUG
         // Unbundled runs (Xcode ⌘R, swift run) have no Info.plist, so the Dock shows a generic icon.
@@ -60,6 +63,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationWillTerminate(_ notification: Notification) { Diagnostics.standard.log(.info, "quit") }
+
+    private static var arch: String {
+        #if arch(arm64)
+        return "arm64"
+        #else
+        return "x86_64"
+        #endif
+    }
+
+    /// WebKit's content process died (memory pressure, a WebKit bug). The window stays; the page
+    /// would otherwise be blank. Log it and reload so the user sees the list again.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        Diagnostics.standard.log(.error, "web content process terminated — reloading the page")
+        webView.reload()
+    }
 
     /// Height of a standard titled window's title bar, measured rather than assumed.
     private static var titlebarHeight: CGFloat {

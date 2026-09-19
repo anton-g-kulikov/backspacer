@@ -152,6 +152,14 @@ has Full Disk Access. Reclaimer detects this and shows a banner with a button
 that opens the right System Settings pane. Grant it, then Rescan. Without it,
 those entries under-report or show `?`.
 
+## Something went wrong?
+
+Reclaimer keeps a plain-text log of what it did in
+`~/Library/Logs/Reclaimer/Reclaimer.log` — every scan and delete, the exact
+commands it ran, failures, and page errors. About → **Reveal log** opens it in
+Finder. Attach it to an [issue](https://github.com/anton-g-kulikov/reclaimer/issues)
+or an email; note it names the folders and projects it measured.
+
 ## License
 
 Free for noncommercial use under the

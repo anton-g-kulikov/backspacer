@@ -35,6 +35,9 @@ replies `window.__reclaimerReply(id, ok, payload)`. Transport is
 | `projectRoots` | — | `{roots: [{path, display}]}` | folders `$PROJECTS` globs search; `display` abbreviates home as `~` |
 | `addProjectRoot` | — | `{roots}` | opens the macOS folder picker; the chosen folder must be inside home and not under `~/Library`; de-duplicated; persisted (`ui.projectRoots`) |
 | `removeProjectRoot` | `{path}` | `{roots}` | `path` must be a listed root (selector, like `delete.item`) |
+| `log` | `{level, message}` | `{ok}` | appends a `page:` line to the diagnostics file; unknown level → `info`; message capped at 2000 chars |
+| `logPath` | — | `{path}` | where the diagnostics file lives |
+| `revealLog` | — | `{path}` | selects the diagnostics file in Finder |
 
 ## Host → page calls
 

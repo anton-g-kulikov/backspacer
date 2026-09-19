@@ -150,6 +150,16 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J8 | `itemName` | `display` wins, then `label`, then the last two path components |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
 
+### DiagnosticsTests — the log file users can share
+| # | Case | Expect |
+|---|---|---|
+| L1 | `Diagnostics.log(level, message)` | appends `YYYY-MM-DD HH:MM:SS [level] message`; creates the folder and file on first use |
+| L2 | rotation | when the file exceeds the limit, it is renamed to `.previous.log` and a fresh file starts; only one previous copy is kept |
+| L3 | messages are one line | embedded newlines are collapsed to `⏎` |
+| L4 | bridge ops are logged | a successful op logs `op id ok (ms)`; a failing op logs the error; `catalog`/`disk`/`fdaStatus`/`prefGet` chatter is not logged |
+| L5 | the page's `log` op | `{level, message}` from the page lands in the file with a `page` tag; an unknown level becomes `info` |
+| L6 | `revealLog` op | replies with the log path (Finder reveal is a side effect not asserted) |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -173,3 +183,4 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F8 | passing |
 | Web logic (node) | J1–J9 | passing |
+| DiagnosticsTests | L1–L6 | passing |
