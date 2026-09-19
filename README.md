@@ -90,6 +90,7 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
   "label": "Xcode DerivedData",
   "path": "~/Library/Developer/Xcode/DerivedData",   // or "paths": [...], or "glob": {...}
   "children": true,                  // list the path's subfolders as separately deletable items
+  "childLabel": { "file": "workspace.json", "keys": ["folder"] },  // name each subfolder from a JSON file inside it
   "note": "Rebuilt on next build.",  // optional, shown under the label
   "sudo": false,                     // needs admin to measure/delete
   "manual": false,                   // measure + explain, never delete

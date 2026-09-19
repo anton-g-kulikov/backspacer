@@ -33,6 +33,8 @@ _(none)_
 
 ## Done
 
+- 2026-09-19 — Item display names, size ordering, `childLabel` (VS Code workspaces by project); tests I9–I11.
+
 - 2026-09-19 — Command granularity: `itemsCmd`/`deleteItemCmd`; simulators per device, runtimes per runtime (tests T1–T7).
 
 - 2026-09-19 — 0.3.1 released (cosmetics).

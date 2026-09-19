@@ -62,10 +62,11 @@
                 "~/Library/Application Support/Code/CachedData",
                 "~/Library/Application Support/Code/CachedExtensionVSIXs",
                 "~/Library/Application Support/Code/logs"] },
-    { "id": "vscode-workspace", "group": "VS Code", "bucket": "safe",
+    { "id": "vscode-workspace", "group": "VS Code", "bucket": "safe", "children": true,
+      "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] },
       "label": "VS Code workspace storage",
       "path": "~/Library/Application Support/Code/User/workspaceStorage",
-      "note": "Per-folder UI state and extension scratch data. You lose 'reopen my tabs' and any extension chat history stored per workspace — never source or settings." },
+      "note": "Per-folder UI state and extension scratch data. You lose 'reopen my tabs' and any extension chat history stored per workspace — never source or settings. Details lists them by project." },
 
     { "id": "xcode-derived", "group": "Xcode & simulators", "bucket": "safe", "children": true,
       "label": "Xcode DerivedData",

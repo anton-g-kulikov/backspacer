@@ -795,15 +795,10 @@ function entry(id) { return state.catalog.entries.find(e => e.id === id); }
 function renderItems(id) {
   const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];
   if (!items.length) { out.innerHTML = '<pre>Nothing found.</pre>'; return; }
-  // Path items show relative to what they have in common (the glob root or the parent
-  // folder); command items (simulators, runtimes) carry their own label.
-  let show = it => it.label;
-  if (items[0].path) {
-    let prefix = items[0].path;
-    for (const it of items) while (!it.path.startsWith(prefix)) prefix = prefix.slice(0, -1);
-    prefix = prefix.slice(0, prefix.lastIndexOf('/') + 1);
-    show = it => it.path.slice(prefix.length) || it.path.split('/').slice(-2).join('/');
-  }
+  // The host names items (display: relative to the project folder, a child's label or name);
+  // command items carry their own label. Largest first.
+  items.sort((a, b) => (b.bytes || 0) - (a.bytes || 0));
+  const show = it => it.display ?? it.label ?? it.path.split('/').slice(-2).join('/');
   const canDel = itemDeletable(e);
   out.innerHTML = items.map(it => `
     <div class="item">
@@ -816,7 +811,7 @@ function renderItems(id) {
 async function confirmAndDeleteItem(id, path) {
   const e = entry(id), it = (state.items.get(id) || []).find(x => itemId(x) === path);
   if (!it || !itemDeletable(e)) return;
-  const name = it.label || path.split('/').slice(-2).join('/');
+  const name = it.display || it.label || path.split('/').slice(-2).join('/');
   $('#dlgTitle').textContent = `Delete “${name}”?`;
   $('#dlgText').textContent = `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.` + (e.sudo ? ' macOS will ask for your password.' : '');
   $('#dlgList').innerHTML = `<li>${esc(it.label || path)}</li>`;

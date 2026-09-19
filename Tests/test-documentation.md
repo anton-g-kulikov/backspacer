@@ -63,7 +63,7 @@ Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebr
 | B3 | the entry has no `sizeCmd` — the check runs only from Details, never during a scan | pass |
 
 ### ItemTests — per-item granularity (`Bridge.size` / `delete` / `info` via `handle`)
-Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 MB), `Projects/b/node_modules` (2 MB), a nested `Projects/a/node_modules/x/node_modules` (must be pruned), and `Library/Developer/Xcode/iOS DeviceSupport/{17.0,18.0}`. A catalog built from JSON in the test.
+Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 MB + 1 MB nested), `Projects/b/node_modules` (3 MB), a nested `Projects/a/node_modules/x/node_modules` (must be pruned), and `Library/Developer/Xcode/iOS DeviceSupport/{17.0,18.0}`. A catalog built from JSON in the test.
 | # | Case | Expect |
 |---|---|---|
 | I1 | `size` on a glob entry | `items` = the two matches with per-path bytes; nested one absent; `bytes` = total |
@@ -74,6 +74,9 @@ Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 M
 | I6 | `delete {id, item}` on an entry with `deleteCmd` | throws (custom commands aren't per-item) |
 | I7 | `info` on a single-path entry without `infoCmd` | breakdown: one line per child, largest first, human sizes |
 | I8 | `Bridge.parseDu` | parses `KB<TAB>path` lines; ignores the trailing `total` line |
+| I9 | item `display` | glob matches are shown relative to the project folder they were found in (`a/node_modules`, not `build`); `children` items show the folder name |
+| I10 | item order | largest first, for path and command items alike |
+| I11 | `childLabel: {file, keys}` | a child's label is read from `<child>/<file>` JSON, first present key, `file://` stripped and home shown as `~`; a child without the file, or with none of the keys, falls back to its folder name |
 
 ### ProjectRootTests — configurable project folders (`$PROJECTS`)
 Fixture: temp home with `Projects/a/node_modules`, `Developer/b/node_modules`, `Library/Caches/x/node_modules`, `Documents/mycode` (not a candidate name), a file `notes.txt`; an isolated `UserDefaults` suite.
@@ -114,6 +117,6 @@ Fixture: a fake `xcrun` first on `PATH` that answers `simctl list devices -j` an
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
-| ItemTests | I1–I8 | passing |
+| ItemTests | I1–I11 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T7 | passing |

@@ -210,7 +210,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         if let cmd = e.itemsCmd {
             // Command-listed items (simulators, runtimes). Total is du of the path when there is
             // one, otherwise the sum of the items.
-            let items = Self.parseItems(runCatalogCommand(cmd, timeout: 300).stdout)
+            let items = Self.parseItems(runCatalogCommand(cmd, timeout: 300).stdout).sorted { $0.kb > $1.kb }
             let reply: [String: Any] = ["items": items.map { ["key": $0.key, "label": $0.label, "bytes": $0.kb * 1024] }, "paths": resolvePaths(e)]
             let paths = resolvePaths(e)
             if paths.isEmpty {
@@ -235,9 +235,40 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             let lines = e.children == true
                 ? Shell.run("du -skx " + resolveItems(e).map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600).stdout
                 : r.stdout
-            reply["items"] = Self.parseDu(lines).map { ["path": $0.path, "bytes": $0.kb * 1024] }
+            reply["items"] = Self.parseDu(lines)
+                .sorted { $0.kb > $1.kb }
+                .map { ["path": $0.path, "bytes": $0.kb * 1024, "display": display(of: $0.path, in: e)] }
         }
         return reply
+    }
+
+    /// How an item is named in the Details list: a glob match relative to the project folder it
+    /// was found in, a child by its label file or its name, a listed path with home as `~`.
+    private func display(of path: String, in e: Catalog.Entry) -> String {
+        if let g = e.glob {
+            let roots = g.root == "$PROJECTS" ? projectRoots() : [expand(g.root)]
+            if let root = roots.first(where: { path.hasPrefix($0 + "/") }) { return String(path.dropFirst(root.count + 1)) }
+        }
+        if e.children == true {
+            if let lbl = e.childLabel, let label = childLabel(of: path, lbl) { return label }
+            return (path as NSString).lastPathComponent
+        }
+        return abbreviate(path)
+    }
+
+    private func childLabel(of child: String, _ lbl: Catalog.ChildLabel) -> String? {
+        guard let data = fm.contents(atPath: child + "/" + lbl.file),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        for key in lbl.keys {
+            guard let raw = json[key] as? String else { continue }
+            let path = raw.hasPrefix("file://") ? (URL(string: raw)?.path ?? raw) : raw
+            return abbreviate(path)
+        }
+        return nil
+    }
+
+    private func abbreviate(_ path: String) -> String {
+        path.hasPrefix(tildeHome + "/") ? "~" + path.dropFirst(tildeHome.count) : path
     }
 
     /// `itemsCmd` output → (key, label, KB) per line; anything not three tab-separated fields is skipped.

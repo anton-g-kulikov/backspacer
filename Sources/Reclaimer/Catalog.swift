@@ -15,6 +15,12 @@ struct Catalog: Decodable {
         var requireSibling: String?  // only keep matches whose parent contains a file matching this glob (e.g. "*.csproj")
     }
 
+    /// For `children: true`: name each child after a value in a JSON file it contains.
+    struct ChildLabel: Decodable {
+        var file: String        // e.g. "workspace.json"
+        var keys: [String]      // first present key wins, e.g. ["folder", "workspace"]
+    }
+
     struct Entry: Decodable {
         var id: String
         var group: String
@@ -24,6 +30,7 @@ struct Catalog: Decodable {
         var paths: [String]?
         var glob: Glob?
         var children: Bool?          // list the path's immediate subfolders as individually deletable items
+        var childLabel: ChildLabel?  // with children: label each subfolder from a JSON file inside it
         var sudo: Bool?
         var manual: Bool?
         var note: String?

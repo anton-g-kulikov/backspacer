@@ -60,7 +60,10 @@ not home itself and not under `~/Library`. Tests R1–R6.
 Entries whose source is many paths are *granular*: `glob` matches, a `paths`
 list, or a single `path` with `children: true` (its immediate subfolders).
 `size` measures each item (`du -sk` per path; `Bridge.parseDu`) and returns
-`items` alongside the total; the Details panel lists them with sizes and — when
+`items` alongside the total, largest first, each with a host-computed
+`display` (a glob match relative to its project folder; a child by the value
+a `childLabel` file names — VS Code's `workspace.json` → the project path —
+or by its folder name); the Details panel lists them with sizes and — when
 the entry is deletable by path — a Delete per item. Entries with a `deleteCmd`
 (brew, simctl) are never per-item. Single-path entries without an `infoCmd`
 get a read-only breakdown of their contents from Details instead.

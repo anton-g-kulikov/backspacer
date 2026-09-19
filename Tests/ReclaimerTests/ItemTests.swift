@@ -19,11 +19,17 @@ import Testing
         func blob(_ rel: String, mb: Int) throws { try Self.blob(home, rel, mb: mb) }
         try blob("Projects/a/node_modules/x.bin", mb: 1)
         try blob("Projects/a/node_modules/x/node_modules/deep.bin", mb: 1)   // pruned: inside a match
-        try blob("Projects/b/node_modules/y.bin", mb: 2)
+        try blob("Projects/b/node_modules/y.bin", mb: 3)   // a totals 2 MB with its nested folder
         try blob("Library/Developer/Xcode/iOS DeviceSupport/17.0/s.bin", mb: 1)
         try blob("Library/Developer/Xcode/iOS DeviceSupport/18.0/s.bin", mb: 2)
         try blob("Library/Caches/big/b.bin", mb: 3)
         try blob("Library/Caches/small/s.bin", mb: 1)
+        try blob("Library/Application Support/Code/User/workspaceStorage/aaa1/state.vscdb", mb: 2)
+        try blob("Library/Application Support/Code/User/workspaceStorage/bbb2/state.vscdb", mb: 1)
+        try blob("Library/Application Support/Code/User/workspaceStorage/ccc3/state.vscdb", mb: 1)
+        let ws = home.appendingPathComponent("Library/Application Support/Code/User/workspaceStorage")
+        try #"{"folder": "file://\#(home.path)/Projects/my%20app"}"#.write(to: ws.appendingPathComponent("aaa1/workspace.json"), atomically: true, encoding: .utf8)
+        try #"{"workspace": "file:///Volumes/Work/team.code-workspace"}"#.write(to: ws.appendingPathComponent("bbb2/workspace.json"), atomically: true, encoding: .utf8)
         let json = """
         { "version": 1, "buckets": {}, "entries": [
           { "id": "g", "group": "t", "bucket": "regen", "label": "node_modules",
@@ -31,7 +37,10 @@ import Testing
           { "id": "c", "group": "t", "bucket": "decide", "label": "DeviceSupport",
             "path": "~/Library/Developer/Xcode/iOS DeviceSupport", "children": true },
           { "id": "p", "group": "t", "bucket": "safe", "label": "Caches", "path": "~/Library/Caches" },
-          { "id": "k", "group": "t", "bucket": "safe", "label": "custom", "path": "~/Library/Caches", "deleteCmd": "true" }
+          { "id": "k", "group": "t", "bucket": "safe", "label": "custom", "path": "~/Library/Caches", "deleteCmd": "true" },
+          { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
+            "path": "~/Library/Application Support/Code/User/workspaceStorage",
+            "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] } }
         ] }
         """
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8))
@@ -59,7 +68,7 @@ import Testing
     func childrenItems() throws {
         defer { cleanup() }
         let r = try bridge.handle(op: "size", args: ["id": "c"])
-        #expect(paths(r) == ["Library/Developer/Xcode/iOS DeviceSupport/17.0", "Library/Developer/Xcode/iOS DeviceSupport/18.0"])
+        #expect(paths(r).sorted() == ["Library/Developer/Xcode/iOS DeviceSupport/17.0", "Library/Developer/Xcode/iOS DeviceSupport/18.0"])
     }
 
     @Test("I3 — a plain path entry has no items")
@@ -106,6 +115,29 @@ import Testing
         #expect(lines[0].hasSuffix("big"))
         #expect(lines[1].hasSuffix("small"))
         #expect(lines[0].contains("MB"))
+    }
+
+    @Test("I9 — display names: relative to the project folder, or the child's name")
+    func displayNames() throws {
+        defer { cleanup() }
+        let g = items(try bridge.handle(op: "size", args: ["id": "g"])).compactMap { $0["display"] as? String }
+        #expect(g.sorted() == ["a/node_modules", "b/node_modules"])
+        let c = items(try bridge.handle(op: "size", args: ["id": "c"])).compactMap { $0["display"] as? String }
+        #expect(c.sorted() == ["17.0", "18.0"])
+    }
+
+    @Test("I10 — largest first")
+    func sortedBySize() throws {
+        defer { cleanup() }
+        #expect(paths(try bridge.handle(op: "size", args: ["id": "g"])) == ["Projects/b/node_modules", "Projects/a/node_modules"])
+        #expect(paths(try bridge.handle(op: "size", args: ["id": "c"])) == ["Library/Developer/Xcode/iOS DeviceSupport/18.0", "Library/Developer/Xcode/iOS DeviceSupport/17.0"])
+    }
+
+    @Test("I11 — childLabel reads the label from a JSON file inside each child")
+    func childLabels() throws {
+        defer { cleanup() }
+        let w = items(try bridge.handle(op: "size", args: ["id": "w"])).compactMap { $0["display"] as? String }
+        #expect(w == ["~/Projects/my app", "/Volumes/Work/team.code-workspace", "ccc3"], Comment(rawValue: w.joined(separator: " | ")))
     }
 
     @Test("I8 — parseDu")
