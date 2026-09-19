@@ -89,6 +89,7 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
   "bucket": "safe",                  // safe | regen | decide | keep | locked
   "label": "Xcode DerivedData",
   "path": "~/Library/Developer/Xcode/DerivedData",   // or "paths": [...], or "glob": {...}
+  "children": true,                  // list the path's subfolders as separately deletable items
   "note": "Rebuilt on next build.",  // optional, shown under the label
   "sudo": false,                     // needs admin to measure/delete
   "manual": false,                   // measure + explain, never delete
@@ -99,6 +100,9 @@ runs the suites in `Tests/` (what they cover: `Tests/test-documentation.md`).
 ```
 
 `glob` finds many paths: `{ "root": "~/Projects", "name": "node_modules", "maxdepth": 4, "type": "d" }`.
+Entries with `glob`, `paths` or `children` list each match in the Info panel
+with its size and its own Delete. Entries with a plain `path` and no `infoCmd`
+show a size breakdown of what's inside.
 Extras: `names` (several), `pathPatterns` (`find -path`), `then` (append a
 sub-path to each match), `requireSibling` (`"*.csproj"` — only keep matches
 whose parent contains such a file).

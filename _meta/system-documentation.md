@@ -14,7 +14,7 @@ behind the design in `architecture-decisions.md`.
 | `AppDelegate.swift` | Window, `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
 | `Catalog.swift` | Typed mirror of `catalog.json`; `Resources` locates bundled files. |
-| `Shell.swift` | Runs commands through a login `zsh` (so `xcrun`, `brew`, `dotnet` resolve), with concurrent pipe draining and a timeout; admin commands go through AppleScript's `with administrator privileges`. |
+| `Shell.swift` | Runs commands through a login `zsh` (so `xcrun`, `brew`, `dotnet` resolve), draining stdout/stderr on dedicated threads (GCD's global queue can be starved by concurrent callers and leave the readers unscheduled) with a timeout; admin commands go through AppleScript's `with administrator privileges`. |
 
 ## Startup
 
@@ -42,6 +42,20 @@ behind the design in `architecture-decisions.md`.
   (measured minus direct children) so nothing is counted twice.
 - The disk meter is a stacked bar over the volume size: everything-else, then
   locked → keep → decide → regen → safe, so reclaimable space sits next to free.
+
+## Granularity
+
+Entries whose source is many paths are *granular*: `glob` matches, a `paths`
+list, or a single `path` with `children: true` (its immediate subfolders).
+`size` measures each item (`du -sk` per path; `Bridge.parseDu`) and returns
+`items` alongside the total; the Info panel lists them with sizes and — when
+the entry is deletable by path — a Delete per item. Entries with a `deleteCmd`
+(brew, simctl) are never per-item. Single-path entries without an `infoCmd`
+get a read-only breakdown of their contents from Info instead.
+
+`delete {id, item}` re-resolves the entry and refuses any `item` not in that
+fresh set, then applies the normal safety gate, then `rm -rf` that one path.
+Tests I1–I8 run this against a temp directory used as `home`.
 
 ## Deletion
 

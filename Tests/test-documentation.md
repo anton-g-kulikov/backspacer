@@ -37,6 +37,7 @@ says what the tests prove, not how the system works.
 | C5 | entries in keep/locked are never deletable | pass |
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
+| C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
 | C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
 
 ### PrefTests — `Bridge.prefKey` / `prefValue`
@@ -61,6 +62,19 @@ Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebr
 | B2 | same with an empty dry run | output is exactly `No orphaned dependencies.` |
 | B3 | the entry has no `sizeCmd` — the check runs only from Info, never during a scan | pass |
 
+### ItemTests — per-item granularity (`Bridge.size` / `delete` / `info` via `handle`)
+Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 MB), `Projects/b/node_modules` (2 MB), a nested `Projects/a/node_modules/x/node_modules` (must be pruned), and `Library/Developer/Xcode/iOS DeviceSupport/{17.0,18.0}`. A catalog built from JSON in the test.
+| # | Case | Expect |
+|---|---|---|
+| I1 | `size` on a glob entry | `items` = the two matches with per-path bytes; nested one absent; `bytes` = total |
+| I2 | `size` on a `children: true` entry | `items` = the two subfolders |
+| I3 | `size` on a plain single-path entry | no `items` key |
+| I4 | `delete {id, item}` with an item that is not in the fresh resolve (sibling folder, or a path outside home) | throws; nothing removed |
+| I5 | `delete {id, item}` with a real match | only that match removed; the other stays; `freedBytes` > 0 |
+| I6 | `delete {id, item}` on an entry with `deleteCmd` | throws (custom commands aren't per-item) |
+| I7 | `info` on a single-path entry without `infoCmd` | breakdown: one line per child, largest first, human sizes |
+| I8 | `Bridge.parseDu` | parses `KB<TAB>path` lines; ignores the trailing `total` line |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -73,7 +87,8 @@ Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebr
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S7 | passing |
-| CatalogTests | C1–C8 | passing |
+| CatalogTests | C1–C9 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B3 | passing |
+| ItemTests | I1–I8 | passing |

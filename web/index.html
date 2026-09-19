@@ -129,8 +129,13 @@
   .size.pending, .size.zero { color: var(--faint); font-weight: 400; }
   .actions { display: grid; grid-template-columns: 52px 72px 78px; gap: 6px; }
   .actions .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
-  .info-out { grid-column: 2 / -1; margin: 6px 0 6px; padding: 10px 12px; background: var(--track); border-radius: 12px; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; max-height: 180px; overflow: auto; -webkit-user-select: text; user-select: text; }
+  .info-out { grid-column: 2 / -1; margin: 6px 0 6px; padding: 6px 12px; background: var(--track); border-radius: 12px; max-height: 260px; overflow: auto; }
   .info-out[hidden] { display: none; }
+  .info-out pre { margin: 4px 0; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 12px; align-items: center; padding: 5px 0; border-top: 1px solid var(--sep); }
+  .item:first-child { border-top: 0; }
+  .item .ipath { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px 18px; color: var(--faint); }
   .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
   .bucket-head { cursor: pointer; }
@@ -288,8 +293,13 @@
   .size.zero { color: var(--faint); }
   .actions { display: grid; grid-template-columns: 52px 72px 78px; gap: 6px; }
   .actions .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
-  .info-out { grid-column: 2 / -1; margin: 4px 0 6px; padding: 8px 10px; background: var(--panel); border-left: 2px solid var(--line-strong); font-size: 11px; white-space: pre-wrap; max-height: 180px; overflow: auto; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .info-out { grid-column: 2 / -1; margin: 4px 0 6px; padding: 4px 10px; background: var(--panel); border-left: 2px solid var(--line-strong); max-height: 260px; overflow: auto; color: var(--muted); }
   .info-out[hidden] { display: none; }
+  .info-out pre { margin: 4px 0; font: inherit; font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 10px; align-items: center; padding: 3px 0; border-top: 1px solid var(--line); }
+  .item:first-child { border-top: 0; }
+  .item .ipath { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); }
+  .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px; color: var(--faint); }
   .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
   .bucket-head { cursor: pointer; }
@@ -456,11 +466,27 @@ function mockBridge() {
         case 'fdaStatus': return { granted: false };
         case 'size': {
           const e = catalog.entries.find(x => x.id === args.id);
-          const s = sizes.get(args.id) ?? { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
-          sizes.set(args.id, s); return { bytes: s.bytes, paths: e.path ? [e.path] : e.paths || [] };
+          let s = sizes.get(args.id);
+          if (!s) {
+            s = { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
+            if (e.glob || e.paths || e.children) {   // granular: invent 2–6 items that add up
+              const n = rnd(2, 6), base = e.glob ? `${e.glob.root}/proj-` : e.paths ? '' : `${e.path}/`;
+              s.items = Array.from({ length: n }, (_, i) => ({ path: e.paths ? e.paths[i % e.paths.length] + (i >= e.paths.length ? '-' + i : '') : `${base}${i + 1}/${e.glob ? e.glob.name : 'item-' + (i + 1)}`, bytes: 0 }));
+              let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === n - 1 ? left : Math.round(left * Math.random() * .6); left -= it.bytes; });
+            }
+            sizes.set(args.id, s);
+          }
+          return { bytes: s.bytes, paths: e.path ? [e.path] : e.paths || [], ...(s.items ? { items: s.items } : {}) };
         }
         case 'info': return { text: `(mock) output of infoCmd for ${args.id}\nline 2\nline 3` };
-        case 'delete': { const s = sizes.get(args.id) || { bytes: 0 }; const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed }); return { ok: true, freedBytes: freed }; }
+        case 'delete': {
+          const s = sizes.get(args.id) || { bytes: 0 };
+          if (args.item) {
+            const it = s.items?.find(x => x.path === args.item); if (!it) throw new Error('Not one of the items: ' + args.item);
+            s.items = s.items.filter(x => x !== it); s.bytes -= it.bytes; s.freed = (s.freed || 0) + it.bytes; return { ok: true, freedBytes: it.bytes };
+          }
+          const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed: (s.freed || 0) + freed }); return { ok: true, freedBytes: freed };
+        }
         case 'reveal': case 'openFDA': return { ok: true };
         case 'appInfo': return { version: 'dev', build: 'browser' };
         case 'prefGet': return { value: localStorage.getItem('pref.' + args.key) };
@@ -473,7 +499,9 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null };
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null };
+const granular = e => !!(e.glob || e.paths || e.children);
+const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob);
 // Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
 const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
 const minBytes = () => THR[state.thr];
@@ -562,11 +590,11 @@ function render() {
           </div>
           <span class="size pending" data-size="${e.id}">…</span>
           <div class="actions">
-            ${e.infoCmd ? `<button class="btn small" data-info="${e.id}">Info</button>` : '<span></span>'}
+            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}">Info</button>` : '<span></span>'}
             ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}">Reveal</button>` : '<span></span>'}
             ${canDel ? `<button class="btn small danger" data-del="${e.id}">Delete</button>` : '<span></span>'}
           </div>
-          <pre class="info-out" data-infoout="${e.id}" hidden></pre>
+          <div class="info-out" data-infoout="${e.id}" hidden></div>
         </div>`);
     }
     root.appendChild(sec);
@@ -612,7 +640,7 @@ async function scan() {
       const e = queue.shift();
       try {
         const r = await bridge.call('size', { id: e.id });
-        state.size.set(e.id, r.bytes);
+        state.size.set(e.id, r.bytes); if (r.items) state.items.set(e.id, r.items);
         const el = document.querySelector(`[data-size="${e.id}"]`);
         el.textContent = fmt(r.bytes); el.className = 'size' + (r.bytes === 0 || r.bytes == null ? ' zero' : '');
       } catch (err) { state.size.set(e.id, null); log(`${e.label}: ${err.message}`, 'err'); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '?'; el.className = 'size zero'; }
@@ -681,17 +709,59 @@ document.addEventListener('click', async e => {
   if (head && !e.target.closest('.sel')) { head.parentElement.classList.toggle('collapsed'); return; }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.info) {
-    const out = document.querySelector(`[data-infoout="${t.dataset.info}"]`);
+    const id = t.dataset.info, out = document.querySelector(`[data-infoout="${id}"]`);
     if (!out.hidden) { out.hidden = true; return; }
-    out.hidden = false; out.textContent = '…';
-    try { out.textContent = (await bridge.call('info', { id: t.dataset.info })).text || '(no output)'; } catch (err) { out.textContent = err.message; }
+    out.hidden = false;
+    if (state.items.has(id)) { renderItems(id); return; }
+    out.innerHTML = '<pre>…</pre>';
+    try { out.querySelector('pre').textContent = (await bridge.call('info', { id })).text || '(no output)'; } catch (err) { out.querySelector('pre').textContent = err.message; }
   }
   if (t.dataset.reveal) bridge.call('reveal', { id: t.dataset.reveal }).catch(err => log(err.message, 'err'));
   if (t.dataset.del) confirmAndDelete([t.dataset.del]);
+  if (t.dataset.delitem) confirmAndDeleteItem(t.dataset.delitem, t.dataset.path);
 });
 $('#deleteSel').onclick = () => confirmAndDelete([...state.selected]);
 
 function entry(id) { return state.catalog.entries.find(e => e.id === id); }
+
+// Granular entries (glob / paths / children): the Info panel lists every item with its
+// size and, when the entry is deletable by path, its own Delete.
+function renderItems(id) {
+  const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];
+  if (!items.length) { out.innerHTML = '<pre>Nothing found.</pre>'; return; }
+  // Show paths relative to what they have in common (the glob root or the parent folder).
+  let prefix = items[0].path;
+  for (const it of items) while (!it.path.startsWith(prefix)) prefix = prefix.slice(0, -1);
+  prefix = prefix.slice(0, prefix.lastIndexOf('/') + 1);
+  const show = p => p.slice(prefix.length) || p.split('/').slice(-2).join('/');
+  const canDel = deletable(e) && !e.deleteCmd;
+  out.innerHTML = items.map(it => `
+    <div class="item">
+      <span class="ipath" title="${esc(it.path)}">${esc(show(it.path))}</span>
+      <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
+      ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(it.path)}">Delete</button>` : '<span></span>'}
+    </div>`).join('');
+}
+
+async function confirmAndDeleteItem(id, path) {
+  const e = entry(id), it = (state.items.get(id) || []).find(x => x.path === path);
+  if (!it || !deletable(e) || e.deleteCmd) return;
+  $('#dlgTitle').textContent = `Delete “${path.split('/').slice(-2).join('/')}”?`;
+  $('#dlgText').textContent = `About ${fmt(it.bytes)} will be removed from ${e.label}. This can't be undone.` + (e.sudo ? ' macOS will ask for your password.' : '');
+  $('#dlgList').innerHTML = `<li>${esc(path)}</li>`;
+  const dlg = $('#dlg'); dlg.showModal();
+  const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
+  if (choice !== 'ok') return;
+  log(`deleting ${path}…`);
+  try {
+    const r = await bridge.call('delete', { id, item: path });
+    log(`  freed ${fmt(r.freedBytes ?? it.bytes)} — ${path}`, 'ok');
+    state.items.set(id, (state.items.get(id) || []).filter(x => x.path !== path));
+    state.size.set(id, Math.max(0, (state.size.get(id) || 0) - it.bytes));
+    const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
+    renderItems(id); updateTotals(); refreshDisk();
+  } catch (err) { log(`  failed — ${path}: ${err.message}`, 'err'); }
+}
 
 async function confirmAndDelete(ids) {
   ids = ids.filter(id => deletable(entry(id)) && visible(id));

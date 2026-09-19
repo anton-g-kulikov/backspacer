@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Info everywhere: every path-based entry has an Info button. Multi-path entries (node_modules, Pods, build output in ~/Projects; VS Code caches) list each match with its size and its own Delete. New `children: true` entries do the same for subfolders: iOS DeviceSupport (no longer "manual"), Xcode archives, DerivedData, Android system images. Plain folders show a breakdown of what's inside.
+- Fixed: a command's output could be lost (reported empty after its timeout) when several ran at once — pipe readers are now on dedicated threads.
 - Homebrew orphaned dependencies: Info now lists the formulae with their total Cellar size, or says "No orphaned dependencies." The check runs only when Info is pressed, never during a scan.
 - Time Machine local snapshots moved from Safe to delete to Managed by macOS (read-only, Info kept). macOS purges them itself and the free-space figure already counts them, so thinning gained nothing visible. The note gives the manual `tmutil` command for the rare case a tool needs non-purgeable space.
 

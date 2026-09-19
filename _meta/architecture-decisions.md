@@ -45,6 +45,21 @@ the executable target and uses `@testable import`. The functions under test
 are `internal`; `Bridge` takes an injectable `home` and `Catalog` gains
 `load(from:)`. Revisit if the Swift side grows.
 
+## ADR-10 — Per-item delete takes a path, but only as a selector
+Granular entries (globs, path lists, `children: true`) let the user delete one
+match. The page sends `delete {id, item}` with the item's path. ADR-2 still
+holds: the host re-resolves the entry and accepts `item` only if it is in that
+fresh set, so the page cannot name anything the catalog doesn't currently
+resolve to; the safety gate then runs as for any delete. Entries with a
+`deleteCmd` are excluded — a command isn't per-path.
+
+## ADR-11 — Pipe readers on threads, not GCD
+`Shell.run` drains stdout/stderr concurrently. On the global queue those
+readers could go unscheduled when several callers were already blocked in
+`DispatchGroup.wait` (found by the parallel test run; the app's three scan
+workers have the same shape), so the command "hung" until its timeout with
+an empty result. Dedicated `Thread`s can't be starved that way.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

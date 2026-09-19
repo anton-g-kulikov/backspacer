@@ -23,6 +23,7 @@ struct Catalog: Decodable {
         var path: String?
         var paths: [String]?
         var glob: Glob?
+        var children: Bool?          // list the path's immediate subfolders as individually deletable items
         var sudo: Bool?
         var manual: Bool?
         var note: String?
@@ -32,6 +33,8 @@ struct Catalog: Decodable {
 
         var needsAdmin: Bool { sudo ?? false }
         var isManual: Bool { manual ?? false }
+        /// Resolves to several paths the user can act on one at a time.
+        var isGranular: Bool { glob != nil || paths != nil || children == true }
         var isDeletable: Bool {
             ["safe", "regen", "decide"].contains(bucket) && !isManual
                 && (path != nil || paths != nil || glob != nil || deleteCmd != nil)

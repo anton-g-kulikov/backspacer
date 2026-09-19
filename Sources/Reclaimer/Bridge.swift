@@ -14,12 +14,21 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     private let catalog: Catalog
     private let queue = DispatchQueue(label: "reclaimer.bridge", qos: .userInitiated, attributes: .concurrent)
     private let home: String
+    private let tildeHome: String
     private let fm = FileManager.default
 
-    /// `home` is injectable so the safety gate can be tested against a fixed path.
-    init(catalog: Catalog, home: String = FileManager.default.homeDirectoryForCurrentUser.path) {
+    /// `home` (the safety gate's notion of the home folder) and `tildeHome` (what a leading `~`
+    /// in the catalog expands to) are injectable so tests can run against a throwaway directory.
+    init(catalog: Catalog,
+         home: String = FileManager.default.homeDirectoryForCurrentUser.path,
+         tildeHome: String = FileManager.default.homeDirectoryForCurrentUser.path) {
         self.catalog = catalog
         self.home = home
+        self.tildeHome = tildeHome
+    }
+
+    private func expand(_ p: String) -> String {
+        p == "~" ? tildeHome : p.hasPrefix("~/") ? tildeHome + p.dropFirst() : p
     }
 
     // MARK: WKScriptMessageHandler
@@ -57,7 +66,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     // MARK: Dispatch
 
-    private func handle(op: String, args: [String: Any]) throws -> Any {
+    func handle(op: String, args: [String: Any]) throws -> Any {
         switch op {
         case "catalog":   return RawJSON(value: catalog.rawJSON)
         case "disk":      return try disk()
@@ -65,7 +74,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         case "openFDA":   openFullDiskAccessSettings(); return ["ok": true]
         case "size":      return try size(entry(args))
         case "info":      return try info(entry(args))
-        case "delete":    return try delete(entry(args))
+        case "delete":    return try delete(entry(args), item: args["item"] as? String)
         case "reveal":    return try reveal(entry(args))
         case "appInfo":   return ["version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "dev",
                                   "build": Bundle.main.infoDictionary?["CFBundleVersion"] ?? "local"]
@@ -130,19 +139,52 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             let bytes: Any = hasSource ? Int64(0) : NSNull()
             return ["bytes": bytes, "paths": [String]()]
         }
-        let r = Shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null | tail -1", timeout: 600)
-        let kb = parseKB(r.stdout) ?? 0
-        return ["bytes": kb * 1024, "paths": paths]
+        let r = Shell.run("du -skxc " + paths.map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600)
+        let total = Int64(r.stdout.split(separator: "\n").last.map { parseKB(String($0)) ?? 0 } ?? 0) * 1024
+        var reply: [String: Any] = ["bytes": total, "paths": paths]
+        if e.isGranular {
+            // Per-item sizes: for glob/paths the du above already has one line per path;
+            // children need their own pass.
+            let lines = e.children == true
+                ? Shell.run("du -skx " + resolveItems(e).map(Shell.q).joined(separator: " ") + " 2>/dev/null", timeout: 600).stdout
+                : r.stdout
+            reply["items"] = Self.parseDu(lines).map { ["path": $0.path, "bytes": $0.kb * 1024] }
+        }
+        return reply
+    }
+
+    /// `du -sk` output → (path, KB) per line; the `total` line from `-c` is dropped.
+    static func parseDu(_ out: String) -> [(path: String, kb: Int64)] {
+        out.split(separator: "\n").compactMap { line in
+            let parts = line.split(separator: "\t", maxSplits: 1)
+            guard parts.count == 2, let kb = Int64(parts[0]), parts[1] != "total" else { return nil }
+            return (String(parts[1]), kb)
+        }
+    }
+
+    private func fmt(_ bytes: Int64) -> String {
+        bytes < 1_000_000 ? "\(bytes / 1000) KB" : bytes < 1_000_000_000 ? "\(bytes / 1_000_000) MB" : String(format: "%.1f GB", Double(bytes) / 1e9)
     }
 
     private func info(_ e: Catalog.Entry) throws -> [String: Any] {
-        guard let cmd = e.infoCmd else { return ["text": ""] }
-        let r = Shell.run(cmd, timeout: 120)
-        return ["text": String(r.combined.prefix(20_000))]
+        if let cmd = e.infoCmd {
+            let r = Shell.run(cmd, timeout: 120)
+            return ["text": String(r.combined.prefix(20_000))]
+        }
+        // No command: show what's inside, largest first.
+        guard let p = resolvePaths(e).first else { return ["text": ""] }
+        // null_glob: zsh would otherwise abort the whole command when there are no dotfiles.
+        let r = Shell.run("setopt null_glob; du -skx \(Shell.q(p))/* \(Shell.q(p))/.[!.]* 2>/dev/null | sort -rn | head -40", timeout: 300)
+        let lines = Self.parseDu(r.stdout).map { item -> String in
+            let name = (item.path as NSString).lastPathComponent
+            return fmt(item.kb * 1024).padding(toLength: 9, withPad: " ", startingAt: 0) + "  " + name
+        }
+        return ["text": lines.joined(separator: "\n")]
     }
 
-    private func delete(_ e: Catalog.Entry) throws -> [String: Any] {
+    private func delete(_ e: Catalog.Entry, item: String? = nil) throws -> [String: Any] {
         guard e.isDeletable else { throw BridgeError.notDeletable(e.label) }
+        if let item { return try deleteItem(e, item) }
         let before = ((try? size(e))?["bytes"] as? Int64) ?? 0
 
         let command: String
@@ -160,6 +202,19 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         return ["ok": true, "freedBytes": before]
     }
 
+    /// One item of a granular entry. `item` is only a selector: it must be in the entry's
+    /// freshly resolved item set, so the web layer still can't name a path the catalog doesn't.
+    private func deleteItem(_ e: Catalog.Entry, _ item: String) throws -> [String: Any] {
+        guard e.deleteCmd == nil else { throw BridgeError.failed("\(e.label) is removed by a command, not per item.") }
+        guard resolveItems(e).contains(item) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(item)") }
+        guard isSafeToDelete(item) else { throw BridgeError.unsafePath(item) }
+        let before = (Self.parseDu(Shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600).stdout).first?.kb ?? 0) * 1024
+        let cmd = "rm -rf " + Shell.q(item)
+        let r = e.needsAdmin ? Shell.runAsAdmin(cmd) : Shell.run(cmd, timeout: 1800)
+        guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+        return ["ok": true, "freedBytes": before]
+    }
+
     private func reveal(_ e: Catalog.Entry) throws -> [String: Any] {
         guard let first = resolvePaths(e).first else { throw BridgeError.failed("Nothing there to show.") }
         let url = URL(fileURLWithPath: first)
@@ -171,15 +226,26 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     private func resolvePaths(_ e: Catalog.Entry) -> [String] {
         var out: [String] = []
-        if let p = e.path { out.append(p.expandingTilde) }
-        if let ps = e.paths { out += ps.map { $0.expandingTilde } }
+        if let p = e.path { out.append(expand(p)) }
+        if let ps = e.paths { out += ps.map(expand) }
         if let g = e.glob { out += globMatches(g) }
         // Root-only paths may not be stat-able as the user; keep them for admin entries.
         return e.needsAdmin ? out : out.filter { fm.fileExists(atPath: $0) }
     }
 
+    /// The individually actionable paths of a granular entry: glob matches, the listed
+    /// paths, or (children: true) each path's immediate subfolders.
+    private func resolveItems(_ e: Catalog.Entry) -> [String] {
+        let paths = resolvePaths(e)
+        guard e.children == true else { return paths }
+        return paths.flatMap { p -> [String] in
+            let names = (try? fm.contentsOfDirectory(atPath: p)) ?? []
+            return names.sorted().map { p + "/" + $0 }.filter { var d: ObjCBool = false; return fm.fileExists(atPath: $0, isDirectory: &d) && d.boolValue }
+        }
+    }
+
     private func globMatches(_ g: Catalog.Glob) -> [String] {
-        let root = g.root.expandingTilde
+        let root = expand(g.root)
         var tests: [String] = []
         if let n = g.name { tests.append("-name \(Shell.q(n))") }
         if let ns = g.names { tests += ns.map { "-name \(Shell.q($0))" } }

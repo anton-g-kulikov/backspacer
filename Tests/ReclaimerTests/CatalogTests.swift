@@ -56,6 +56,15 @@ import Testing
         #expect(e.infoCmd != nil)
     }
 
+    @Test("C9 — children: true entries have a single path and no custom delete")
+    func childrenEntries() {
+        let cs = catalog.entries.filter { $0.children == true }
+        #expect(!cs.isEmpty)
+        for e in cs {
+            #expect(e.path != nil && e.paths == nil && e.glob == nil && e.deleteCmd == nil, Comment(rawValue: e.id))
+        }
+    }
+
     @Test("C7 — only a leading tilde is expanded")
     func tilde() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path

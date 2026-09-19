@@ -8,6 +8,15 @@ _(none)_
 
 ## Queued
 
+- **Command granularity for simulators and runtimes.** `simctl list devices -j`
+  / `simctl runtime list -j` give per-item ids, names and sizes; add
+  `itemsCmd` (lines `key<TAB>label<TAB>KB`) + `deleteItemCmd` (`{key}`
+  placeholder, key validated against a fresh `itemsCmd` run, shell-quoted).
+  Entries: `xcode-simdevices`, `xcode-runtimes` (drop `manual`).
+- **AVD per-item delete** needs to remove `<name>.avd` and `<name>.ini`
+  together — a two-path item; decide whether `children` grows a sibling rule
+  or AVDs use `itemsCmd`.
+
 - **JS test harness for `web/index.html`.** Move the pure functions
   (`fmt`, threshold/visibility, nesting/own-size, meter segmentation,
   `deletable`) into `web/logic.js` so `node` can test them; page keeps
@@ -28,6 +37,8 @@ _(none)_
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-19 — Path granularity: items in Info with per-item Delete for glob/paths/children entries; Info breakdown for plain paths; Shell reader starvation fix (ADR-10, ADR-11; tests I1–I8, C9).
 
 - 2026-09-19 — Homebrew orphans Info: list + total, on demand only (catalog; tests B1–B3 run the real command against a fake brew).
 - 2026-09-19 — Time Machine snapshots → Managed by macOS (catalog only; test C8 pins it).

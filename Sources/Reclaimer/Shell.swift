@@ -20,11 +20,13 @@ enum Shell {
         do { try p.run() } catch {
             return ShellResult(status: -1, stdout: "", stderr: "launch failed: \(error.localizedDescription)")
         }
-        // Read concurrently so a chatty command can't fill the pipe and deadlock.
+        // Drain both pipes concurrently so a chatty command can't fill one and deadlock. Real
+        // threads, not GCD: many callers blocking in `group.wait` (three scan workers, or a
+        // parallel test run) can starve the global queue and leave the readers never scheduled.
         var outData = Data(), errData = Data()
         let group = DispatchGroup()
-        group.enter(); DispatchQueue.global().async { outData = out.fileHandleForReading.readDataToEndOfFile(); group.leave() }
-        group.enter(); DispatchQueue.global().async { errData = err.fileHandleForReading.readDataToEndOfFile(); group.leave() }
+        group.enter(); Thread { outData = out.fileHandleForReading.readDataToEndOfFile(); group.leave() }.start()
+        group.enter(); Thread { errData = err.fileHandleForReading.readDataToEndOfFile(); group.leave() }.start()
         let deadline = DispatchTime.now() + timeout
         if group.wait(timeout: deadline) == .timedOut { p.terminate() }
         p.waitUntilExit()
