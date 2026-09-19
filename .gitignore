@@ -10,3 +10,6 @@ build/
 .claude/metacoding-workflow/
 .agents/skills/metacoding-workflow/
 .backup/
+
+# local-only material
+_meta/marketing/
