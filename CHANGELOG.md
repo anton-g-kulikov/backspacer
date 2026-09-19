@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 — 2026-09-20
 - App data, revamped. One "App caches (Electron)" entry finds the web caches every Electron app keeps next to its data (Slack, Claude, VS Code, Notion, Figma, Discord, Postman…) with a Delete per app; `~/Library/Caches` and `~/.cache` list one item per app or tool. New entries: iPhone/iPad backups (per device, by name), Ollama models (per model), VS Code dictation models, SwiftUI preview data, Spotify cache, Bun / pub / Maven / conda caches, Parallels and UTM VMs (measured, deleted from their own apps). Slack's cache is no longer a "Your call" entry — it's a cache, so it's removed rather than moved to the Trash.
 - Rows moved to the Trash now say "in Trash" instead of showing 0 KB.
 - The confirmation dialog grows with its content (long paths wrap, no scrollbar) and, for a single item, names the entry first: "Delete from VS Code workspace storage?" rather than "Delete ~/Projects/enumerator?".

@@ -36,6 +36,7 @@ _(none)_
 
 ## Done
 
+- 2026-09-20 — 0.6.0 released.
 - 2026-09-20 — App data revamp: Electron-cache glob, per-app items for `~/Library/Caches` and `~/.cache`, iOS backups by device (plist `childLabel`), Ollama per model, dictation models, previews, Spotify, Bun/pub/Maven/conda, VMs; "in Trash" row state. Tests C10, I12, I13, T8, J12.
 
 - 2026-09-20 — 0.5.0 released.
