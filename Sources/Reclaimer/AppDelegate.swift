@@ -1,0 +1,121 @@
+import AppKit
+import WebKit
+
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavigationDelegate {
+    private var window: NSWindow!
+    private var webView: WKWebView!
+    private var bridge: Bridge!
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        buildMenu()
+        #if DEBUG
+        // Unbundled runs (Xcode ⌘R, swift run) have no Info.plist, so the Dock shows a generic icon.
+        if Bundle.main.infoDictionary?["CFBundleIconFile"] == nil,
+           let icon = Resources.url("assets/AppIcon.icns").flatMap({ NSImage(contentsOf: $0) }) {
+            NSApp.applicationIconImage = icon
+        }
+        #endif
+
+        let catalog: Catalog
+        do { catalog = try Catalog.load() } catch {
+            fatal("Couldn't load catalog.json from the app bundle.\n\(error)")
+            return
+        }
+        bridge = Bridge(catalog: catalog)
+
+        let config = WKWebViewConfiguration()
+        config.userContentController.add(bridge, name: Bridge.handlerName)
+        webView = WKWebView(frame: .zero, configuration: config)
+        webView.underPageBackgroundColor = .windowBackgroundColor
+        if #available(macOS 13.3, *) { webView.isInspectable = true } // right-click → Inspect Element
+        bridge.webView = webView
+        webView.navigationDelegate = self
+
+        window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 980, height: 820),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered, defer: false)
+        window.title = "Reclaimer"
+        window.tabbingMode = .disallowed   // keeps AppKit from adding "Show Tab Bar" to the View menu
+        window.minSize = NSSize(width: 760, height: 520)
+        window.contentView = webView
+        window.center()
+        window.setFrameAutosaveName("ReclaimerMain")
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        // Load the bundled UI. `allowingReadAccessTo` scopes file:// access to Resources/.
+        guard let res = Resources.root else { fatal("No Resources directory in bundle."); return }
+        let index = res.appendingPathComponent("web/index.html")
+        webView.loadFileURL(index, allowingReadAccessTo: res)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    private func fatal(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = "Reclaimer can't start"
+        alert.informativeText = message
+        alert.runModal()
+        NSApp.terminate(nil)
+    }
+
+    /// View ▸ Glass / Terminal. The page stores the choice through the bridge (UserDefaults "ui.theme").
+    @objc private func setTheme(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? String else { return }
+        webView.evaluateJavaScript("window.__setTheme(\(id.debugDescription))", completionHandler: nil)
+    }
+
+    /// Only the bundled page loads inside the window; mailto:/https: links (About panel) go to the system.
+    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let url = action.request.url, !url.isFileURL {
+            NSWorkspace.shared.open(url)
+            decisionHandler(.cancel)
+        } else {
+            decisionHandler(.allow)
+        }
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        let current = UserDefaults.standard.string(forKey: "ui.theme") ?? "glass"
+        menu.items.forEach { $0.state = ($0.representedObject as? String) == current ? .on : .off }
+    }
+
+    private func buildMenu() {
+        let main = NSMenu()
+
+        let appItem = NSMenuItem(); main.addItem(appItem)
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "About Reclaimer", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Hide Reclaimer", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Quit Reclaimer", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = appMenu
+
+        let editItem = NSMenuItem(); main.addItem(editItem)
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editItem.submenu = edit
+
+        let viewItem = NSMenuItem(); main.addItem(viewItem)
+        let view = NSMenu(title: "View")
+        view.delegate = self   // menuNeedsUpdate syncs the checkmark with the in-page switcher
+        for (title, id, key) in [("Glass", "glass", "1"), ("Terminal", "terminal", "2")] {
+            let item = NSMenuItem(title: title, action: #selector(setTheme(_:)), keyEquivalent: key)
+            item.representedObject = id
+            view.addItem(item)
+        }
+        viewItem.submenu = view
+
+        let windowItem = NSMenuItem(); main.addItem(windowItem)
+        let win = NSMenu(title: "Window")
+        win.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        win.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowItem.submenu = win
+        NSApp.windowsMenu = win
+
+        NSApp.mainMenu = main
+    }
+}

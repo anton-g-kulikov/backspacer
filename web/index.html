@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reclaimer</title>
+<style id="css-glass">
+  :root {
+    color-scheme: light dark;
+    --fg: #1d1d1f; --muted: rgba(60,60,67,.62); --faint: rgba(60,60,67,.34);
+    --sep: rgba(0,0,0,.06); --hover: rgba(255,255,255,.45);
+    --glass: rgba(255,255,255,.52); --glass-strong: rgba(255,255,255,.78); --glass-border: rgba(255,255,255,.7);
+    --glass-shadow: 0 10px 40px rgba(20,30,60,.12), 0 1px 2px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.85);
+    --track: rgba(0,0,0,.08);
+    --accent: #0a84ff; --accent-fg: #fff; --danger: #ff453a; --danger-fg: #fff;
+    --safe: #30d158; --regen: #ff9f0a; --decide: #bf5af2; --keep: #8e8e93; --locked: #636366; --other: rgba(60,60,67,.35);
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --rounded: ui-rounded, "SF Pro Rounded", -apple-system, sans-serif;
+    --bg-mesh:
+      radial-gradient(60% 50% at 8% 8%,  rgba(120,170,255,.55) 0%, transparent 70%),
+      radial-gradient(50% 45% at 92% 12%, rgba(255,160,200,.45) 0%, transparent 70%),
+      radial-gradient(55% 50% at 55% 100%, rgba(140,235,190,.45) 0%, transparent 70%),
+      radial-gradient(40% 40% at 90% 80%, rgba(255,205,120,.35) 0%, transparent 70%),
+      #e6ebf2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #f5f5f7; --muted: rgba(235,235,245,.62); --faint: rgba(235,235,245,.32);
+      --sep: rgba(255,255,255,.07); --hover: rgba(255,255,255,.05);
+      --glass: rgba(32,34,40,.55); --glass-strong: rgba(48,50,58,.7); --glass-border: rgba(255,255,255,.14);
+      --glass-shadow: 0 10px 40px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12);
+      --track: rgba(255,255,255,.1); --other: rgba(235,235,245,.35);
+      --bg-mesh:
+        radial-gradient(60% 50% at 8% 8%,  rgba(40,90,220,.45) 0%, transparent 70%),
+        radial-gradient(50% 45% at 92% 12%, rgba(170,60,140,.35) 0%, transparent 70%),
+        radial-gradient(55% 50% at 55% 100%, rgba(20,120,90,.4) 0%, transparent 70%),
+        #0f1116;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    color: var(--fg); background: var(--bg-mesh); background-attachment: fixed;
+    -webkit-user-select: none; user-select: none;
+    display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+  }
+  button { font: inherit; color: inherit; }
+  .glass { background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+
+  /* ── header ─────────────────────────── */
+  header {
+    margin: 14px 16px 0; padding: 12px 18px 12px; border-radius: 22px;
+    background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+    display: grid; grid-template-columns: 1fr auto; gap: 10px 24px; align-items: center; position: relative; z-index: 2;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.02em; }
+  .brand .sub { color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .disk { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+  .disk .lbl { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
+  .bar { height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
+  .bar > i { flex: none; width: 0; transition: width .5s cubic-bezier(.2,.8,.2,1);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 80%, #fff) 0%, var(--c) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset -1px 0 0 rgba(255,255,255,.35); }
+  .bar.crit > [data-seg=other] { --c: var(--danger); }
+  .controls { display: flex; align-items: center; gap: 16px; }
+  .btn {
+    border: 1px solid var(--glass-border); background: var(--glass-strong); border-radius: 999px; padding: 6px 15px;
+    cursor: pointer; line-height: 1.2; white-space: nowrap; font-weight: 500;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 1px 3px rgba(0,0,0,.06);
+    transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.04); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 3px 10px rgba(0,0,0,.09); }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 85%, #fff), var(--accent)); color: var(--accent-fg); border-color: transparent;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .btn.danger { background: linear-gradient(180deg, color-mix(in srgb, var(--danger) 85%, #fff), var(--danger)); color: var(--danger-fg); border-color: transparent;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 4px 14px color-mix(in srgb, var(--danger) 35%, transparent); }
+  .btn.small { padding: 3px 10px; font-size: 12px; }
+  .thr { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 500; }
+  .thr b { color: var(--fg); font-family: var(--rounded); font-weight: 600; font-variant-numeric: tabular-nums; min-width: 5.5em; text-align: right; }
+  .thr input { appearance: none; width: 130px; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+  .thr input::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--track); box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
+  .thr input::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; margin-top: -6px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 .5px rgba(0,0,0,.06); }
+  .seg { display: flex; padding: 3px; border-radius: 999px; background: var(--track); box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
+  .seg button { border: 0; background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; }
+  .seg button.on { background: var(--glass-strong); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.7); }
+
+  /* ── main ───────────────────────────── */
+  main { overflow-y: auto; padding: 16px 16px 20px; }
+  .notice {
+    border-radius: 18px; padding: 12px 16px; margin-bottom: 16px;
+    background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  .notice p { margin: 0; color: var(--muted); }
+  .notice b { color: var(--fg); }
+  .notice[hidden] { display: none; }
+  section.bucket {
+    border-radius: 20px; margin-bottom: 16px; overflow: hidden;
+    background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+  }
+  .bucket-head { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px 12px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--sep); }
+  .bucket-head .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 0%, transparent); }
+  .bucket-head h2 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .bucket-head h2 small { color: var(--muted); font-weight: 400; margin-left: 8px; font-size: 12.5px; }
+  .bucket-head .total { font-family: var(--rounded); font-weight: 600; font-size: 13px; padding: 2px 10px; border-radius: 999px; background: var(--track); font-variant-numeric: tabular-nums; }
+  .bucket-head .sel { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .group-lbl { padding: 10px 18px 4px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+  .row { display: grid; grid-template-columns: 22px minmax(0,1fr) 84px 214px; gap: 0 12px; align-items: center; padding: 8px 18px; border-top: 1px solid var(--sep); transition: background .12s; }
+  .row:hover { background: var(--hover); }
+  .row.done { opacity: .45; }
+  input[type=checkbox] { appearance: none; margin: 0; width: 18px; height: 18px; border-radius: 6px; border: 1px solid rgba(0,0,0,.2); background: rgba(255,255,255,.6); cursor: pointer; position: relative; transition: background .15s, border-color .15s; box-shadow: inset 0 1px 1px rgba(0,0,0,.05); }
+  @media (prefers-color-scheme: dark) { input[type=checkbox] { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.08); } }
+  input[type=checkbox]:checked { background: var(--accent); border-color: transparent; }
+  input[type=checkbox]:checked::after { content: ""; position: absolute; left: 5.5px; top: 2px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .row .name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .row .label { display: flex; align-items: center; gap: 7px; font-weight: 500; }
+  .row .note { color: var(--muted); font-size: 12px; }
+  .row .path { color: var(--faint); font-family: var(--mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--track); color: var(--muted); letter-spacing: .02em; }
+  .badge.admin { background: color-mix(in srgb, var(--regen) 18%, transparent); color: color-mix(in srgb, var(--regen) 80%, var(--fg)); }
+  .size { font-family: var(--rounded); font-weight: 500; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .size.pending, .size.zero { color: var(--faint); font-weight: 400; }
+  .actions { display: grid; grid-template-columns: 52px 72px 78px; gap: 6px; }
+  .actions .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
+  .info-out { grid-column: 2 / -1; margin: 6px 0 6px; padding: 10px 12px; background: var(--track); border-radius: 12px; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; max-height: 180px; overflow: auto; -webkit-user-select: text; user-select: text; }
+  .info-out[hidden] { display: none; }
+  .empty { padding: 12px 18px; color: var(--faint); }
+  .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
+  .bucket-head { cursor: pointer; }
+  .bucket-head h2::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
+  section.collapsed .bucket-head h2::before { content: "▸"; }
+  section.collapsed .bucket-head { border-bottom: 0; }
+  section.collapsed > :not(.bucket-head) { display: none; }
+
+  /* ── footer ─────────────────────────── */
+  footer {
+    margin: 0 16px 14px; border-radius: 22px; overflow: hidden;
+    background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+    display: grid; grid-template-rows: auto auto; position: relative; z-index: 2;
+  }
+  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px; }
+  .status .sum { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .status .sum b { color: var(--fg); font-weight: 600; }
+  .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
+  .tabs { border-top: 1px solid var(--sep); display: flex; justify-content: space-between; padding: 0 18px; }
+  .tabs button { border: 0; background: none; padding: 7px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; }
+  .tabs button::before { content: "▸ "; }
+  .tabs button.on::before { content: "▾ "; }
+  .tabs button:hover { color: var(--fg); }
+  .panel { margin: 0; padding: 4px 18px 12px; max-height: 200px; overflow: auto; font-size: 12px; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .panel[hidden] { display: none; }
+  #log { font-family: var(--mono); font-size: 11px; }
+  #log .err { color: var(--danger); }
+  #log .ok { color: var(--safe); }
+  .about h4 { margin: 4px 0 2px; font-size: 13px; color: var(--fg); }
+  .about p { margin: 0 0 6px; }
+  .about a { color: var(--accent); text-decoration: none; }
+  .about .lic { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--track); font-size: 11.5px; line-height: 1.5; }
+  .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
+  .about .lic b:first-child { margin-top: 0; }
+  .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
+
+  /* ── dialog ─────────────────────────── */
+  dialog { border: 1px solid var(--glass-border); border-radius: 24px; padding: 0; color: var(--fg); max-width: 440px; width: calc(100% - 40px);
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(40px) saturate(180%); backdrop-filter: blur(40px) saturate(180%);
+    box-shadow: 0 30px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6); }
+  dialog::backdrop { background: rgba(0,0,0,.22); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  dialog .body { padding: 22px 22px 14px; }
+  dialog h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+  dialog p { margin: 0 0 8px; color: var(--muted); }
+  dialog ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); max-height: 180px; overflow: auto; }
+  dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 22px 18px; }
+
+</style>
+<style id="css-terminal">
+  :root {
+    color-scheme: dark;
+    --bg: #0a0c0e; --panel: #0e1114; --line: #1c2226; --line-strong: #2c363c;
+    --fg: #d3dbe0; --muted: #7c8a94; --faint: #46535b;
+    --accent: #5cf08a; --accent-fg: #0a0c0e; --danger: #ff6b5b; --danger-fg: #0a0c0e;
+    --safe: #5cf08a; --regen: #ffb454; --decide: #c792ea; --keep: #7c8a94; --locked: #556670; --other: #3a464d;
+    --mono: "SF Mono", ui-monospace, Menlo, "JetBrains Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font: 12.5px/1.55 var(--mono); color: var(--fg); background: var(--bg);
+    -webkit-user-select: none; user-select: none;
+    display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+  }
+  /* CRT scanlines, barely there */
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+  button { font: inherit; color: inherit; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── header ─────────────────────────── */
+  header {
+    padding: 12px 18px 10px; border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand h1 { font-size: 13px; font-weight: 700; margin: 0; color: var(--accent); letter-spacing: .02em; }
+  .brand h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  .brand .sub { color: var(--muted); }
+  .brand .sub::before { content: "# "; color: var(--faint); }
+  .brand .sub::after { content: "▋"; color: var(--accent); margin-left: 2px; animation: blink 1.1s steps(1) infinite; }
+  .disk { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+  .disk .lbl { color: var(--muted); white-space: nowrap; }
+  .bar { height: 12px; border: 1px solid var(--line-strong); overflow: hidden; display: flex;
+    background: repeating-linear-gradient(90deg, var(--line) 0 5px, transparent 5px 7px); }
+  .bar > i { flex: none; width: 0; transition: width .4s ease;
+    background: repeating-linear-gradient(90deg, var(--c) 0 5px, transparent 5px 7px); }
+  .bar.crit > [data-seg=other] { --c: var(--danger); }
+  .controls { display: flex; align-items: center; gap: 16px; }
+  .btn {
+    border: 0; background: transparent; border-radius: 0; padding: 3px 4px;
+    cursor: pointer; line-height: 1.3; white-space: nowrap; color: var(--fg); text-transform: lowercase;
+  }
+  .btn::before { content: "["; color: var(--faint); margin-right: 5px; }
+  .btn::after  { content: "]"; color: var(--faint); margin-left: 5px; }
+  .btn:hover:not(:disabled) { color: var(--accent); }
+  .btn:hover:not(:disabled)::before, .btn:hover:not(:disabled)::after { color: var(--fg); }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn.primary { color: var(--accent); font-weight: 700; }
+  .btn.primary::before, .btn.primary::after { color: var(--accent); }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover:not(:disabled) { color: var(--danger); font-weight: 700; }
+  .btn.danger:hover:not(:disabled)::before, .btn.danger:hover:not(:disabled)::after { color: var(--danger); }
+  .btn.small { padding: 1px 2px; font-size: 11.5px; }
+  .thr { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .thr b { color: var(--accent); font-weight: 700; min-width: 5.5em; text-align: right; text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+  .thr input { appearance: none; width: 130px; height: 16px; margin: 0; background: transparent; cursor: pointer; }
+  .thr input::-webkit-slider-runnable-track { height: 8px; border: 1px solid var(--line-strong); background: repeating-linear-gradient(90deg, var(--line) 0 5px, transparent 5px 7px); }
+  .thr input::-webkit-slider-thumb { appearance: none; width: 10px; height: 14px; margin-top: -4px; background: var(--accent); }
+  .seg { display: flex; align-items: center; color: var(--faint); font-size: 11.5px; }
+  .seg::before { content: "[ "; white-space: pre; }
+  .seg::after  { content: " ]"; white-space: pre; }
+  .seg button { border: 0; background: transparent; padding: 1px 2px; font: inherit; color: var(--muted); cursor: pointer; text-transform: lowercase; }
+  .seg button + button { margin-left: 4px; padding-left: 6px; border-left: 1px solid var(--line-strong); }
+  .seg button:hover { color: var(--fg); }
+  .seg button.on { color: var(--accent); font-weight: 700; }
+
+  /* ── main ───────────────────────────── */
+  main { overflow-y: auto; padding: 14px 18px 24px; }
+  .notice {
+    border: 1px dashed var(--regen); padding: 8px 12px; margin-bottom: 14px; color: var(--regen);
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  .notice p { margin: 0; } .notice p::before { content: "! "; }
+  .notice b { font-weight: 700; }
+  .notice[hidden] { display: none; }
+  section.bucket { border: 1px solid var(--line); margin-bottom: 14px; }
+  .bucket-head { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .bucket-head .dot { width: 8px; height: 8px; }
+  .bucket-head h2 { font-size: 12px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: .08em; }
+  .bucket-head h2 small { color: var(--muted); font-weight: 400; margin-left: 10px; text-transform: none; letter-spacing: 0; }
+  .bucket-head h2 small::before { content: "// "; color: var(--faint); }
+  .bucket-head .total { color: var(--accent); }
+  .bucket-head .sel { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .group-lbl { padding: 8px 12px 2px; font-size: 11px; color: var(--faint); }
+  .group-lbl::before { content: "── "; }
+  .group-lbl::after { content: " ──"; }
+  .row { display: grid; grid-template-columns: 26px minmax(0,1fr) 84px 214px; gap: 0 10px; align-items: center; padding: 5px 12px; border-top: 1px solid var(--line); }
+  .row:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .row.done { opacity: .4; text-decoration: line-through; }
+  input[type=checkbox] { appearance: none; margin: 0; width: 24px; height: 16px; cursor: pointer; color: var(--muted); }
+  input[type=checkbox]::before { content: "[ ]"; }
+  input[type=checkbox]:checked { color: var(--accent); }
+  input[type=checkbox]:checked::before { content: "[x]"; }
+  .row .name { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+  .row .label { display: flex; align-items: center; gap: 8px; }
+  .row .note { color: var(--muted); font-size: 11.5px; }
+  .row .path { color: var(--faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 10px; padding: 0 4px; color: var(--muted); border: 1px solid var(--line-strong); text-transform: uppercase; letter-spacing: .06em; }
+  .badge.admin { border-color: var(--regen); color: var(--regen); }
+  .size { text-align: right; font-variant-numeric: tabular-nums; }
+  .size.pending { color: var(--faint); }
+  .size.pending::after { content: ""; animation: blink .8s steps(1) infinite; }
+  .size.zero { color: var(--faint); }
+  .actions { display: grid; grid-template-columns: 52px 72px 78px; gap: 6px; }
+  .actions .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
+  .info-out { grid-column: 2 / -1; margin: 4px 0 6px; padding: 8px 10px; background: var(--panel); border-left: 2px solid var(--line-strong); font-size: 11px; white-space: pre-wrap; max-height: 180px; overflow: auto; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .info-out[hidden] { display: none; }
+  .empty { padding: 12px; color: var(--faint); }
+  .row[hidden], .group-lbl[hidden], .empty[hidden] { display: none; }
+  .bucket-head { cursor: pointer; }
+  .bucket-head h2::before { content: "▾"; display: inline-block; width: 14px; color: var(--faint); font-size: 11px; }
+  section.collapsed .bucket-head h2::before { content: "▸"; }
+  section.collapsed .bucket-head { border-bottom: 0; }
+  section.collapsed > :not(.bucket-head) { display: none; }
+
+  /* ── footer ─────────────────────────── */
+  footer { border-top: 1px solid var(--line); display: grid; grid-template-rows: auto auto; background: var(--panel); }
+  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 18px; }
+  .status .sum { color: var(--muted); }
+  .status .sum::before { content: "> "; color: var(--accent); }
+  .status .sum b { color: var(--fg); font-weight: 700; }
+  .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
+  .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 18px; }
+  .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
+  .tabs button::before { content: "▸ "; }
+  .tabs button.on::before { content: "▾ "; }
+  .tabs button:hover { color: var(--fg); }
+  .panel { margin: 0; padding: 4px 18px 10px; max-height: 200px; overflow: auto; font: inherit; font-size: 11.5px; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .panel[hidden] { display: none; }
+  #log .err { color: var(--danger); }
+  #log .ok { color: var(--safe); }
+  .about h4 { margin: 4px 0 2px; font-size: 12px; color: var(--accent); }
+  .about h4::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  .about p { margin: 0 0 6px; }
+  .about a { color: var(--accent); text-decoration: none; }
+  .about a::before { content: "<"; color: var(--faint); } .about a::after { content: ">"; color: var(--faint); }
+  .about .lic { margin-top: 8px; padding: 8px 10px; border-left: 2px solid var(--line-strong); background: var(--bg); line-height: 1.5; }
+  .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
+  .about .lic b:first-child { margin-top: 0; }
+  .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
+
+  /* ── dialog ─────────────────────────── */
+  dialog { border: 1px solid var(--danger); padding: 0; background: var(--panel); color: var(--fg); box-shadow: 0 0 0 1px var(--bg), 0 0 40px color-mix(in srgb, var(--danger) 30%, transparent); max-width: 460px; width: calc(100% - 40px); font: inherit; }
+  dialog::backdrop { background: rgba(0,0,0,.65); }
+  dialog .body { padding: 16px 18px 12px; }
+  dialog h3 { margin: 0 0 8px; font-size: 13px; color: var(--danger); }
+  dialog h3::before { content: "?! "; }
+  dialog p { margin: 0 0 8px; color: var(--muted); }
+  dialog ul { margin: 6px 0 0; padding-left: 0; list-style: none; color: var(--muted); max-height: 180px; overflow: auto; }
+  dialog li::before { content: "- "; color: var(--faint); }
+  dialog .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 18px 14px; }
+
+</style>
+<script>
+  // Pick the cached theme before first paint; the host-stored value is applied in init().
+  (() => { let t = 'glass'; try { t = localStorage.getItem('theme') || t; } catch {}
+    if (t !== 'terminal') t = 'glass';
+    document.getElementById('css-terminal').disabled = t !== 'terminal';
+    document.getElementById('css-glass').disabled = t !== 'glass';
+    document.documentElement.dataset.theme = t; })();
+</script>
+</head>
+<body>
+
+<header>
+  <div class="brand"><h1>Reclaimer</h1><span class="sub" id="host">scanning your Mac</span></div>
+  <div class="controls">
+    <div class="seg" id="theme" title="Look. Remembered between launches.">
+      <button data-theme="glass">Glass</button><button data-theme="terminal">Terminal</button>
+    </div>
+    <label class="thr" title="Hide anything smaller than this. Hidden items can't be selected or deleted.">
+      <span>Show ≥</span><input type="range" id="thr" min="0" max="9" value="3"><b id="thrLbl">100 MB</b>
+    </label>
+    <button class="btn primary" id="scan">Scan</button>
+  </div>
+  <div class="disk">
+    <span class="lbl" id="diskUsed">—</span>
+    <div class="bar" id="diskBar"></div>
+    <span class="lbl" id="diskFree">—</span>
+  </div>
+</header>
+
+<main>
+  <div class="notice" id="fdaNotice" hidden>
+    <p><b>Full Disk Access is off.</b> Some folders under ~/Library can't be measured or emptied without it. Grant it once in System Settings, then rescan.</p>
+    <button class="btn small" id="fdaBtn">Open System Settings…</button>
+  </div>
+  <div id="buckets"></div>
+</main>
+
+<footer>
+  <div class="status">
+    <span class="sum" id="sum">Nothing selected</span>
+    <div class="buttons">
+      <button class="btn" id="clearSel">Clear</button>
+      <button class="btn danger" id="deleteSel" disabled>Delete selected</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button data-panel="log">Log</button>
+    <button data-panel="about">About</button>
+  </div>
+  <pre id="log" class="panel" hidden></pre>
+  <div id="about" class="panel about" hidden>
+    <h4>Reclaimer <span id="aboutVersion"></span></h4>
+    <p>© 2026 Anton Kulikov. Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
+       · <a href="https://buymeacoffee.com/antonkulikov">Buy me a coffee</a></p>
+    <div class="lic">
+      <b>Reclaimer End User License Agreement</b>
+      Copyright © 2026 Anton Kulikov. All rights reserved.
+      This software ("Reclaimer") is proprietary and confidential. This is not open-source software, and no license to the source code is granted by making it available for download.
+      <b>1. Grant of License</b>
+      Subject to your compliance with this Agreement, Anton Kulikov grants you a personal, non-exclusive, non-transferable, revocable license to install and use Reclaimer in executable form for your own internal or personal purposes.
+      <b>2. Restrictions</b>
+      You may not, and may not permit others to:
+      <ul>
+        <li>copy, distribute, sublicense, rent, lease, or sell Reclaimer or any part of it;</li>
+        <li>reverse-engineer, decompile, or disassemble Reclaimer, except to the extent applicable law expressly permits this despite the limitation;</li>
+        <li>modify, adapt, or create derivative works based on Reclaimer; or</li>
+        <li>remove or alter any proprietary notices or labels on Reclaimer.</li>
+      </ul>
+      <b>3. Ownership</b>
+      Reclaimer is licensed, not sold. Anton Kulikov retains all right, title, and interest in and to Reclaimer, including all intellectual property rights therein. No rights are granted to you other than as expressly set out in this Agreement.
+      <b>4. No Warranty</b>
+      Reclaimer is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement.
+      <b>5. Limitation of Liability</b>
+      In no event shall Anton Kulikov be liable for any claim, damages, or other liability arising from, out of, or in connection with Reclaimer or the use or other dealings in Reclaimer.
+      <b>6. Termination</b>
+      This license is effective until terminated. It will terminate automatically without notice if you fail to comply with any provision of this Agreement. Upon termination, you must cease all use of Reclaimer and destroy all copies in your possession.
+      <b>Contact</b>
+      For questions about this license, contact Anton Kulikov at <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>.
+    </div>
+  </div>
+</footer>
+
+<dialog id="dlg">
+  <form method="dialog">
+    <div class="body"><h3 id="dlgTitle"></h3><p id="dlgText"></p><ul id="dlgList"></ul></div>
+    <div class="foot"><button class="btn" value="cancel">Cancel</button><button class="btn danger" id="dlgOk" value="ok">Delete</button></div>
+  </form>
+</dialog>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   Bridge — talks to the Swift host. Falls back to a mock in a browser.
+   Protocol:  JS  → bridge.call(op, args)  → Swift
+              Swift → window.__reclaimerReply(id, ok, payload)
+   Ops: catalog, disk, fdaStatus, size{id}, info{id}, delete{id}, reveal{id}, openFDA
+   Safety: JS only ever sends catalog *ids*. Paths are resolved by Swift
+   from its own copy of catalog.json, so the web layer can't name a path.
+   ═══════════════════════════════════════════════════════════════════ */
+const native = window.webkit?.messageHandlers?.reclaimer;
+const pending = new Map(); let seq = 0;
+window.__reclaimerReply = (id, ok, payload) => {
+  const p = pending.get(id); if (!p) return; pending.delete(id);
+  ok ? p.res(payload) : p.rej(new Error(payload?.error || String(payload)));
+};
+const bridge = native
+  ? { call: (op, args = {}) => new Promise((res, rej) => { const id = ++seq; pending.set(id, { res, rej }); native.postMessage({ id, op, args }); }) }
+  : mockBridge();
+
+function mockBridge() {
+  const sizes = new Map(); let catalog;
+  const rnd = (a, b) => Math.round(a + Math.random() * (b - a));
+  return {
+    async call(op, args = {}) {
+      await new Promise(r => setTimeout(r, op === 'size' ? rnd(80, 400) : 60));
+      switch (op) {
+        case 'catalog': catalog ??= await (await fetch('../catalog.json')).json(); return catalog;
+        case 'disk': { const size = 245e9, freed = [...sizes.values()].reduce((a, b) => a + (b.freed || 0), 0); return { size, used: 193e9 - freed, free: 52e9 + freed }; }
+        case 'fdaStatus': return { granted: false };
+        case 'size': {
+          const e = catalog.entries.find(x => x.id === args.id);
+          const s = sizes.get(args.id) ?? { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
+          sizes.set(args.id, s); return { bytes: s.bytes, paths: e.path ? [e.path] : e.paths || [] };
+        }
+        case 'info': return { text: `(mock) output of infoCmd for ${args.id}\nline 2\nline 3` };
+        case 'delete': { const s = sizes.get(args.id) || { bytes: 0 }; const freed = s.bytes; sizes.set(args.id, { bytes: 0, freed }); return { ok: true, freedBytes: freed }; }
+        case 'reveal': case 'openFDA': return { ok: true };
+        case 'appInfo': return { version: 'dev', build: 'browser' };
+        case 'prefGet': return { value: localStorage.getItem('pref.' + args.key) };
+        case 'prefSet': localStorage.setItem('pref.' + args.key, args.value); return { ok: true };
+        default: throw new Error('unknown op ' + op);
+      }
+    }
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const state = { catalog: null, size: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null };
+// Size threshold stops. Rows measured below the current stop are hidden, deselected and left out of totals.
+const THR = [10e6, 20e6, 50e6, 100e6, 200e6, 500e6, 1e9, 2e9, 5e9, 10e9];
+const minBytes = () => THR[state.thr];
+const visible = id => { const b = state.size.get(id); return b == null || b >= minBytes(); };
+
+// Some entries live inside others (pip cache inside ~/Library/Caches). Totals use each
+// entry's *own* size — measured minus its direct nested children — so nothing counts twice.
+const NEST = { children: new Map(), parent: new Map() };
+function buildNesting() {
+  const P = e => e.path ? [e.path] : (e.paths || []);
+  const inside = (a, b) => a === b || a.startsWith(b.replace(/\/$/, '') + '/');
+  const within = (c, p) => P(c).length && P(p).length && P(c).every(cp => P(p).some(pp => inside(cp, pp)));
+  const E = state.catalog.entries;
+  for (const p of E) {
+    const kids = E.filter(c => c !== p && within(c, p) && !E.some(q => q !== p && q !== c && within(c, q) && within(q, p)));
+    NEST.children.set(p.id, kids.map(k => k.id));
+    for (const k of kids) NEST.parent.set(k.id, p.id);
+  }
+}
+const ownSize = id => Math.max(0, (state.size.get(id) || 0) - (NEST.children.get(id) || []).reduce((a, c) => a + (state.size.get(c) || 0), 0));
+const selectedParent = id => { for (let p = NEST.parent.get(id); p; p = NEST.parent.get(p)) if (state.selected.has(p)) return true; return false; };
+const ORDER = ['safe', 'regen', 'decide', 'keep', 'locked'];
+const fmt = b => b == null ? '—' : b < 1e6 ? `${(b / 1e3).toFixed(0)} KB` : b < 1e9 ? `${(b / 1e6).toFixed(0)} MB` : `${+(b / 1e9).toFixed(1)} GB`;
+const deletable = e => ['safe', 'regen', 'decide'].includes(e.bucket) && !e.manual && (e.path || e.paths || e.glob || e.deleteCmd);
+const log = (msg, cls = '') => { const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight; };
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+/* ── theme ──────────────────────────── */
+// Two <style> sheets, one enabled at a time. Chosen from the app's View menu
+// (window.__setTheme) or ?theme= in a browser; stored by the host (UserDefaults)
+// and cached in localStorage so the first paint is already right.
+const THEMES = ['glass', 'terminal'];
+function applyTheme(t) {
+  if (!THEMES.includes(t)) t = 'glass';
+  for (const x of THEMES) document.getElementById('css-' + x).disabled = x !== t;
+  document.documentElement.dataset.theme = t;
+  document.querySelectorAll('#theme button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+  try { localStorage.setItem('theme', t); } catch {}
+}
+window.__setTheme = t => { applyTheme(t); bridge.call('prefSet', { key: 'theme', value: t }).catch(() => {}); };
+$('#theme').onclick = e => { const t = e.target.dataset.theme; if (t) window.__setTheme(t); };
+
+async function init() {
+  applyTheme(document.documentElement.dataset.theme);
+  const q = new URLSearchParams(location.search).get('theme');
+  if (q) window.__setTheme(q);
+  else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
+  bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
+  bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = `${r.version} (${r.build})`; }).catch(() => {});
+  state.catalog = await bridge.call('catalog');
+  buildNesting();
+  render();
+  refreshDisk();
+  bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
+  scan();
+}
+
+function render() {
+  const root = $('#buckets'); root.innerHTML = '';
+  for (const b of ORDER) {
+    const entries = state.catalog.entries.filter(e => e.bucket === b);
+    if (!entries.length) continue;
+    const meta = state.catalog.buckets[b];
+    const sec = document.createElement('section'); sec.className = 'bucket' + (['keep', 'locked'].includes(b) ? ' collapsed' : ''); sec.dataset.bucket = b;
+    const anyDel = entries.some(deletable);
+    sec.innerHTML = `
+      <div class="bucket-head">
+        <span class="dot" style="background:var(--${b})"></span>
+        <h2>${meta.title}<small>${meta.blurb}</small></h2>
+        <span class="total" data-total="${b}">—</span>
+        ${anyDel ? `<label class="sel"><input type="checkbox" data-selall="${b}">all</label>` : '<span></span>'}
+      </div>`;
+    let group = null;
+    for (const e of entries) {
+      if (e.group !== group) { group = e.group; sec.insertAdjacentHTML('beforeend', `<div class="group-lbl">${esc(group)}</div>`); }
+      const canDel = deletable(e);
+      const badges = [e.sudo ? '<span class="badge admin">admin</span>' : '', e.manual ? '<span class="badge manual">manual</span>' : ''].join('');
+      const pathTxt = e.path || (e.paths ? e.paths.join('  ·  ') : e.glob ? `${e.glob.root}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}` : '');
+      sec.insertAdjacentHTML('beforeend', `
+        <div class="row" data-id="${e.id}">
+          ${canDel ? `<input type="checkbox" data-sel="${e.id}">` : '<span></span>'}
+          <div class="name">
+            <div class="label">${esc(e.label)}${badges}</div>
+            ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
+            ${pathTxt ? `<div class="path" title="${esc(pathTxt)}">${esc(pathTxt)}</div>` : ''}
+          </div>
+          <span class="size pending" data-size="${e.id}">…</span>
+          <div class="actions">
+            ${e.infoCmd ? `<button class="btn small" data-info="${e.id}">Info</button>` : '<span></span>'}
+            ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}">Reveal</button>` : '<span></span>'}
+            ${canDel ? `<button class="btn small danger" data-del="${e.id}">Delete</button>` : '<span></span>'}
+          </div>
+          <pre class="info-out" data-infoout="${e.id}" hidden></pre>
+        </div>`);
+    }
+    root.appendChild(sec);
+  }
+}
+
+async function refreshDisk() {
+  try {
+    const d = state.disk = await bridge.call('disk');
+    $('#diskUsed').textContent = `${fmt(d.used)} used of ${fmt(d.size)}`;
+    $('#diskFree').textContent = `${fmt(d.free)} free`;
+    updateMeter();
+  } catch (e) { log('disk: ' + e.message, 'err'); }
+}
+
+// Disk meter: one segment per bucket in its colour, then everything else that's
+// used. Counts every measured entry, regardless of the size threshold.
+function updateMeter() {
+  const d = state.disk; if (!d || !state.catalog) return;
+  const bar = $('#diskBar'); let acc = 0;
+  const seg = (b, bytes, title) => {
+    let el = bar.querySelector(`[data-seg="${b}"]`);
+    if (!el) { el = document.createElement('i'); el.dataset.seg = b; el.style.setProperty('--c', `var(--${b})`); bar.appendChild(el); }
+    el.style.width = (bytes / d.size * 100) + '%'; el.title = `${title} — ${fmt(bytes)}`;
+  };
+  // Left to right: everything else, then the buckets from least to most deletable,
+  // so the reclaimable green sits next to the free space.
+  const bytes = Object.fromEntries(ORDER.map(b => [b, state.catalog.entries.filter(e => e.bucket === b).reduce((a, e) => a + ownSize(e.id), 0)]));
+  acc = ORDER.reduce((a, b) => a + bytes[b], 0);
+  seg('other', Math.max(0, d.used - acc), 'Everything else');
+  for (const b of [...ORDER].reverse()) seg(b, bytes[b], state.catalog.buckets[b].title);
+  bar.classList.toggle('crit', d.used / d.size >= .95);
+}
+
+async function scan() {
+  if (state.scanning) return; state.scanning = true;
+  $('#scan').disabled = true; updateScanBtn(); $('#host').textContent = 'measuring';
+  state.size.clear();
+  document.querySelectorAll('[data-size]').forEach(el => { el.textContent = '…'; el.className = 'size pending'; });
+  const queue = [...state.catalog.entries]; const workers = Array.from({ length: 3 }, worker);
+  async function worker() {
+    while (queue.length) {
+      const e = queue.shift();
+      try {
+        const r = await bridge.call('size', { id: e.id });
+        state.size.set(e.id, r.bytes);
+        const el = document.querySelector(`[data-size="${e.id}"]`);
+        el.textContent = fmt(r.bytes); el.className = 'size' + (r.bytes === 0 || r.bytes == null ? ' zero' : '');
+      } catch (err) { state.size.set(e.id, null); log(`${e.label}: ${err.message}`, 'err'); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '?'; el.className = 'size zero'; }
+      updateTotals();
+    }
+  }
+  await Promise.all(workers);
+  state.scanning = false; state.scanned = true; $('#scan').disabled = false; updateScanBtn();
+  $('#host').textContent = '';   // no "reclaimable" total — how much to reclaim is the user's call
+  log('scan complete');
+}
+
+const bucketTotal = b => state.catalog.entries.filter(e => e.bucket === b && visible(e.id)).reduce((a, e) => a + ownSize(e.id), 0);
+function updateTotals() {
+  applyThreshold(); updateMeter();
+  for (const b of ORDER) { const el = document.querySelector(`[data-total="${b}"]`); if (el) el.textContent = fmt(bucketTotal(b)); }
+  const n = state.selected.size, bytes = [...state.selected].reduce((a, id) => a + (selectedParent(id) ? 0 : state.size.get(id) || 0), 0);
+  $('#sum').innerHTML = n ? `<b>${n}</b> selected · <b>${fmt(bytes)}</b>` : 'Nothing selected';
+  $('#deleteSel').disabled = !n;
+}
+
+function applyThreshold() {
+  for (const id of [...state.selected]) if (!visible(id)) { state.selected.delete(id); const cb = document.querySelector(`[data-sel="${id}"]`); if (cb) cb.checked = false; }
+  for (const sec of document.querySelectorAll('section.bucket')) {
+    let any = false, lbl = null, lblAny = false;
+    const flushLbl = () => { if (lbl) lbl.hidden = !lblAny; };
+    for (const el of sec.children) {
+      if (el.classList.contains('group-lbl')) { flushLbl(); lbl = el; lblAny = false; continue; }
+      if (!el.classList.contains('row')) continue;
+      const v = visible(el.dataset.id); el.hidden = !v; if (v) { any = true; lblAny = true; }
+    }
+    flushLbl();
+    let empty = sec.querySelector('.empty');
+    if (!any && !empty) { empty = document.createElement('div'); empty.className = 'empty'; sec.appendChild(empty); }
+    if (empty) { empty.hidden = any; empty.textContent = `Nothing ${fmt(minBytes())} or larger.`; }
+  }
+}
+
+function setThreshold(i, save) {
+  state.thr = Math.max(0, Math.min(THR.length - 1, i | 0));
+  $('#thr').value = state.thr; $('#thrLbl').textContent = fmt(minBytes());
+  if (state.catalog) updateTotals();
+  if (save) bridge.call('prefSet', { key: 'minSize', value: String(state.thr) }).catch(() => {});
+}
+
+/* ── events ─────────────────────────── */
+function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
+$('#scan').onclick = scan;
+$('#thr').oninput = e => setThreshold(e.target.value, true);
+// Footer panels: Log (left) and About (right); one open at a time.
+document.querySelector('.tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const open = !b.classList.contains('on');
+  document.querySelectorAll('.tabs button').forEach(x => { const on = open && x === b; x.classList.toggle('on', on); $('#' + x.dataset.panel).hidden = !on; });
+  if (open && b.dataset.panel === 'log') { const p = $('#log'); p.scrollTop = p.scrollHeight; }
+};
+$('#fdaBtn').onclick = () => bridge.call('openFDA');
+$('#clearSel').onclick = () => { state.selected.clear(); document.querySelectorAll('[data-sel],[data-selall]').forEach(c => c.checked = false); updateTotals(); };
+document.addEventListener('change', e => {
+  const id = e.target.dataset.sel, b = e.target.dataset.selall;
+  if (id) { e.target.checked ? state.selected.add(id) : state.selected.delete(id); updateTotals(); }
+  if (b) { document.querySelectorAll(`section[data-bucket="${b}"] .row:not([hidden]) [data-sel]`).forEach(c => { c.checked = e.target.checked; c.checked ? state.selected.add(c.dataset.sel) : state.selected.delete(c.dataset.sel); }); updateTotals(); }
+});
+document.addEventListener('click', async e => {
+  const head = e.target.closest('.bucket-head');
+  if (head && !e.target.closest('.sel')) { head.parentElement.classList.toggle('collapsed'); return; }
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.info) {
+    const out = document.querySelector(`[data-infoout="${t.dataset.info}"]`);
+    if (!out.hidden) { out.hidden = true; return; }
+    out.hidden = false; out.textContent = '…';
+    try { out.textContent = (await bridge.call('info', { id: t.dataset.info })).text || '(no output)'; } catch (err) { out.textContent = err.message; }
+  }
+  if (t.dataset.reveal) bridge.call('reveal', { id: t.dataset.reveal }).catch(err => log(err.message, 'err'));
+  if (t.dataset.del) confirmAndDelete([t.dataset.del]);
+});
+$('#deleteSel').onclick = () => confirmAndDelete([...state.selected]);
+
+function entry(id) { return state.catalog.entries.find(e => e.id === id); }
+
+async function confirmAndDelete(ids) {
+  ids = ids.filter(id => deletable(entry(id)) && visible(id));
+  if (!ids.length) return;
+  const bytes = ids.reduce((a, id) => a + (ids.some(p => p !== id && (NEST.parent.get(id) === p)) ? 0 : state.size.get(id) || 0), 0);
+  const needsAdmin = ids.some(id => entry(id).sudo);
+  $('#dlgTitle').textContent = ids.length === 1 ? `Delete “${entry(ids[0]).label}”?` : `Delete ${ids.length} items?`;
+  $('#dlgText').textContent = `About ${fmt(bytes)} will be removed. This can't be undone.` + (needsAdmin ? ' macOS will ask for your password for admin items.' : '');
+  $('#dlgList').innerHTML = ids.map(id => `<li>${esc(entry(id).label)} — ${fmt(state.size.get(id))}</li>`).join('');
+  const dlg = $('#dlg'); dlg.showModal();
+  const choice = await new Promise(r => dlg.addEventListener('close', () => r(dlg.returnValue), { once: true }));
+  if (choice !== 'ok') return;
+  for (const id of ids) {
+    const e = entry(id); const row = document.querySelector(`.row[data-id="${id}"]`);
+    log(`deleting ${e.label}…`);
+    try {
+      const r = await bridge.call('delete', { id });
+      log(`  freed ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
+      state.size.set(id, 0); row.classList.add('done');
+      const el = row.querySelector('[data-size]'); el.textContent = '0 KB'; el.className = 'size zero';
+      const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
+    } catch (err) { log(`  failed — ${e.label}: ${err.message}`, 'err'); }
+    updateTotals();
+  }
+  refreshDisk();
+}
+
+init().catch(err => { log('init: ' + err.message, 'err'); $('#host').textContent = 'failed to load catalog'; });
+</script>
+</body>
+</html>
