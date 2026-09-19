@@ -71,6 +71,8 @@ Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebr
 | B1 | `cache-brew-orphans.infoCmd` with a dry run listing `libfoo` and `user/tap/libbar` (2 MB + 1 MB in the Cellar) | output lists both names and ends with `Total: 3 MB` |
 | B2 | same with an empty dry run | output is exactly `No orphaned dependencies.` |
 | B3 | the entry has no `sizeCmd` — the check runs only from Details, never during a scan | pass |
+| B4 | `user-screenshots.sizeCmd` (R4) with a fake `HOME`: no `~/Screenshots`, no matching Desktop files | prints `0` (not an aborted command) |
+| B5 | same with `Screenshots/s.png` (1 MB) and `Desktop/a.mov` (2 MB), plus an unrelated 5 MB file | prints 3072 (KB) |
 
 ### ItemTests — per-item granularity (`Bridge.size` / `delete` / `info` via `handle`)
 Fixture: a temp directory used as `home`, holding `Projects/a/node_modules` (1 MB + 1 MB nested), `Projects/b/node_modules` (3 MB), a nested `Projects/a/node_modules/x/node_modules` (must be pruned), and `Library/Developer/Xcode/iOS DeviceSupport/{17.0,18.0}`. A catalog built from JSON in the test.
@@ -205,7 +207,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | CatalogTests | C1–C11 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
-| CatalogCommandTests | B1–B3 | passing |
+| CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I14 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | CommandItemTests | T1–T8 | passing |

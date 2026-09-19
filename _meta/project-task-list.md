@@ -15,9 +15,6 @@ file, then moved to Done.
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
-6. **R4 · `user-screenshots.sizeCmd` never runs for most users.** The login
-   zsh aborts on an unmatched glob (`~/Desktop/*.mov`) → `?`. Fix: `find`
-   or `/bin/sh`. Test: fake home with no matches measures 0, not `?`.
 7. **R5 · Admin deletes freeze the UI.** `runAsAdmin` blocks the main thread
    in `NSAppleScript` for the whole `rm -rf` (a multi-GB delete is a
    beachball). Fix: authorise on the main thread only, run the work off it,
@@ -108,6 +105,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R4: screenshots entry uses `find`, never an unmatched glob (B4, B5).
 - 2026-09-20 — R9: `remove()` lstat-refuses symlinks for whole entries, children and `glob.then` targets (I14).
 - 2026-09-20 — R7: `sudo` + command forbidden by schema (V2), catalog (C11) and bridge (F11); `runCatalogCommand` can't run as admin.
 - 2026-09-20 — R3: user-data deny-list at any depth, case-folded, symlink-resolved, project-folder exemption (S8–S11).

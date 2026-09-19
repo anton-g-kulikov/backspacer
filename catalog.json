@@ -253,7 +253,7 @@
 
     { "id": "user-screenshots", "group": "Your files", "bucket": "decide", "manual": true,
       "label": "Screenshots and screen recordings",
-      "sizeCmd": "du -skc ~/Screenshots ~/Desktop/*.mov ~/Desktop/*.png 2>/dev/null | tail -1 | cut -f1",
+      "sizeCmd": "{ find ~/Screenshots -type f -print0 2>/dev/null; find ~/Desktop -maxdepth 1 \\( -name '*.mov' -o -name '*.png' -o -name '*.jpg' \\) -print0 2>/dev/null; } | xargs -0 du -sk 2>/dev/null | awk '{s+=$1} END {print s+0}'",
       "note": "Recordings are the bulk. Review in Finder." },
     { "id": "user-downloads", "group": "Your files", "bucket": "decide", "manual": true,
       "label": "Downloads", "path": "~/Downloads" },

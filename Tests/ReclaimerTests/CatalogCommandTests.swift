@@ -5,6 +5,7 @@ import Testing
 /// Runs catalog commands for real through `Shell.run`, with a fake `brew` first on PATH.
 @Suite struct CatalogCommandTests {
     let catalog = try! Fixture.catalog()
+    let fm = FileManager.default
 
     /// Creates <dir>/bin/brew (prints `dryRun` for `autoremove -n`) and <dir>/Cellar/<formula>/1.0/blob of the given MB.
     func fakeBrew(dryRun: String, cellar: [String: Int]) throws -> URL {
@@ -47,6 +48,32 @@ import Testing
         let dir = try fakeBrew(dryRun: "", cellar: [:])
         defer { try? FileManager.default.removeItem(at: dir) }
         #expect(try runInfo(with: dir) == "No orphaned dependencies.")
+    }
+
+    func screenshotsKB(home: URL) throws -> String {
+        let cmd = try #require(catalog.entry("user-screenshots")?.sizeCmd)
+        let r = Shell.run("HOME=\(Shell.q(home.path)); export HOME; " + cmd, timeout: 30, login: true)
+        return r.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    @Test("B4 — screenshots entry measures 0 when nothing matches")
+    func screenshotsEmpty() throws {
+        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-shots-\(UUID().uuidString)")
+        try fm.createDirectory(at: home.appendingPathComponent("Desktop"), withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: home) }
+        #expect(try screenshotsKB(home: home) == "0")
+    }
+
+    @Test("B5 — screenshots entry sums Screenshots/ and Desktop recordings")
+    func screenshotsSum() throws {
+        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-shots-\(UUID().uuidString)")
+        defer { try? fm.removeItem(at: home) }
+        for (rel, mb) in [("Screenshots/s.png", 1), ("Desktop/a.mov", 2), ("Desktop/notes.txt", 5)] {
+            let url = home.appendingPathComponent(rel)
+            try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data(repeating: 0, count: mb * 1024 * 1024).write(to: url)
+        }
+        #expect(try screenshotsKB(home: home) == "3072")
     }
 
     @Test("B3 — the check runs only from Info, never during a scan")
