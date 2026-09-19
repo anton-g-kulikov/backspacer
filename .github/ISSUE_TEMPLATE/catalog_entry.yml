@@ -1,0 +1,29 @@
+name: Catalog entry proposal
+description: A folder or tool leftover Reclaimer should know about.
+labels: [catalog]
+body:
+  - type: input
+    id: what
+    attributes: { label: What is it?, description: The app or tool, and what the folder holds. }
+    validations: { required: true }
+  - type: input
+    id: path
+    attributes: { label: Path, placeholder: "~/Library/Caches/com.example.app" }
+    validations: { required: true }
+  - type: input
+    id: verified
+    attributes: { label: Verified on, placeholder: "macOS 26.1, Example.app 4.2 — 1.3 GB on my Mac" }
+    validations: { required: true }
+  - type: dropdown
+    id: bucket
+    attributes:
+      label: Bucket
+      options: ["safe — rebuilt on its own, no cost", "regen — comes back on the next build/install, costs time", "decide — real data, the user chooses", "keep", "locked — macOS manages it"]
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes: { label: Why that bucket, and what brings it back?, description: What the user loses meanwhile (slow first launch, re-login, history…). }
+    validations: { required: true }
+  - type: textarea
+    id: catch
+    attributes: { label: Any catch?, description: Quit the app first? Admin? Full Disk Access? Inside another entry? }

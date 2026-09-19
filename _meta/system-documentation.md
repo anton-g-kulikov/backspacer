@@ -165,7 +165,9 @@ catalog.json              knowledge; catalog.schema.json describes it
 web/index.html            UI (DOM + state glue); web/logic.js pure logic, tested under Node
 Sources/Reclaimer/        app
 Tests/ReclaimerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
-.github/workflows/ci.yml  swift test + universal release build on push/PR
+.github/                  CI workflow, issue/PR templates, CODEOWNERS
+CONTRIBUTING.md           how to propose entries; inbound Apache-2.0 terms
+SECURITY.md               how to report a deletion-safety problem
 scripts/                  build-app.sh, notarize.sh, entitlements.plist, mac-storage-review.sh
 assets/                   icon sources and the .icns the build embeds
 _meta/                    this file, api-design, architecture-decisions, project-task-list, release-checklist

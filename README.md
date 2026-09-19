@@ -152,6 +152,12 @@ has Full Disk Access. Reclaimer detects this and shows a banner with a button
 that opens the right System Settings pane. Grant it, then Rescan. Without it,
 those entries under-report or show `?`.
 
+## Contributing
+
+Bug reports and catalog entries are the most useful things you can send —
+see [CONTRIBUTING.md](CONTRIBUTING.md) for the five questions a good entry
+answers, and [SECURITY.md](SECURITY.md) if it's about deleting the wrong thing.
+
 ## Something went wrong?
 
 Reclaimer keeps a plain-text log of what it did in
