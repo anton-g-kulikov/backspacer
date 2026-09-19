@@ -53,6 +53,7 @@ _(none)_
 
 ## Done
 
+- 2026-09-20 — 0.5.0 released.
 - 2026-09-20 — Plain `/bin/sh` for measurement, login zsh only for catalog commands (ADR-16; tests M1–M5). Scan 38 s → 27 s wall; median entry 107 ms; the suite itself 10 s → 3.4 s.
 
 - 2026-09-20 — Diagnostics log + Reveal log in About; web-process termination handled (tests L1–L6).

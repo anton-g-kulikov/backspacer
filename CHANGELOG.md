@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-09-20
+- While scanning, the header cycles through verbs (measuring, surveying, rummaging…) in a fresh order each time.
 - Scans are faster: measurement commands no longer start a login shell (which cost ~0.8 s each); small entries now measure in milliseconds. What remains is real disk work (node_modules across many projects is the biggest).
 - Diagnostics log at `~/Library/Logs/Reclaimer/Reclaimer.log` (About → Reveal log): scans, deletes and the commands run, failures, page errors, WebKit content-process restarts. Attach it to a bug report.
 - If WebKit's content process dies, the page reloads instead of going blank.
