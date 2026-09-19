@@ -289,7 +289,7 @@
   .row { display: grid; grid-template-columns: 26px minmax(0,1fr) 84px 242px; gap: 0 10px; align-items: center; padding: 5px 12px; border-top: 1px solid var(--line); }
   .row:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
   .row.done { opacity: .4; text-decoration: line-through; }
-  input[type=checkbox] { appearance: none; margin: 0; width: 24px; height: 16px; cursor: pointer; color: var(--muted); }
+  input[type=checkbox] { appearance: none; margin: 0; width: 24px; height: 16px; cursor: pointer; color: var(--muted); font: inherit; white-space: pre; }
   input[type=checkbox]::before { content: "[ ]"; }
   input[type=checkbox]:checked { color: var(--accent); }
   input[type=checkbox]:checked::before { content: "[x]"; }
