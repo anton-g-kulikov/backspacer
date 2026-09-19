@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.1 — 2026-09-20
 - Scans are faster again, without straining the machine: four entries measure at once, entries with many folders are measured two at a time, and the slow ones start first (the app remembers how long each took). Full scan on the reference Mac: 27 s → 16 s.
 
 ## 0.6.0 — 2026-09-20

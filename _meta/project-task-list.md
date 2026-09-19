@@ -160,6 +160,7 @@ Critical and Severe before anything else on the roadmap; ship as 0.6.1.
 
 ## Done
 
+- 2026-09-20 — 0.6.1 released.
 - 2026-09-20 — Scan speed round two: 4 workers, 2-way `du` for multi-path entries, heavy-first order from remembered durations; 27 s → 16 s wall, ≤ 8 `du` processes (tests F9, F10, L7, J13).
 
 - 2026-09-20 — 0.6.0 released.
