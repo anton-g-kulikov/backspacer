@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-XE4XcvXZ4a2gcqCEHtf1HM/hgoZiiNxBFqrQpAVX3IA=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-EMp2fepiyz2K6bb1HhjnbY6n4n0h7Bu+2v0HEivHCPk=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -79,6 +79,7 @@
   @media (prefers-contrast: more) { :root { --muted: var(--fg); --faint: var(--fg); --card: var(--card-strong); } }
 
   *, *::before, *::after { box-sizing: border-box; }
+  .hero-grid > *, .two > *, .buckets > *, .groups > *, .safety > * { min-width: 0; }   /* grid items may shrink; long <pre> lines scroll inside their block */
   html { scroll-behavior: smooth; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -93,7 +94,7 @@
   a:hover { text-decoration-thickness: 2px; }
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
   code, kbd, pre { font-family: var(--mono); font-size: .92em; }
-  pre { margin: 0; overflow-x: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--ink-fg); line-height: 1.5; }
+  pre { margin: 0; max-width: 100%; overflow-x: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--ink-fg); line-height: 1.5; }
   pre .c { color: var(--ink-muted); }
   .skip { position: absolute; left: var(--gutter); top: -60px; padding: 8px 12px; background: var(--accent); color: var(--accent-fg); border-radius: 8px; z-index: 10; }
   .skip:focus { top: var(--gutter); }

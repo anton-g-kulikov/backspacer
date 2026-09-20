@@ -83,6 +83,7 @@ test('W7 accessibility basics: landmarks, one h1, skip link, alt text, named con
   assert.match(html, /:focus-visible\s*\{/);
   assert.match(html, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(html, /@media \(prefers-color-scheme: dark\)/);
+  assert.match(html, /\.hero-grid > \*, \.two > \*[^{]*\{ min-width: 0; \}/, 'grid items may shrink so <pre> blocks scroll instead of widening the page');
 });
 
 test('W8 the wordmark is plain Backspacer, no (y) device, and the old name appears nowhere', gate, () => {
