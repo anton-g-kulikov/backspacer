@@ -267,19 +267,21 @@ final class Bridge: NSObject, @unchecked Sendable {
     }
 
     /// The system folder picker, on the main thread. The chosen path comes from the user via
-    /// macOS, never from the page.
+    /// macOS, never from the page. The isolation is spelled out: the Swift 6.0 compiler
+    /// (Xcode 16) does not infer it for a closure handed to `DispatchQueue.main.sync`.
     private func chooseFolder() -> String? {
-        var chosen: String?
-        let pick = {
-            let panel = NSOpenPanel()
-            panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
-            panel.directoryURL = URL(fileURLWithPath: self.home)
-            panel.message = "Choose a folder that holds your projects. Build output inside it (node_modules, Pods, …) becomes reclaimable."
-            panel.prompt = "Add"
-            if panel.runModal() == .OK { chosen = panel.url?.path }
-        }
-        if Thread.isMainThread { pick() } else { DispatchQueue.main.sync(execute: pick) }
-        return chosen
+        let home = self.home
+        if Thread.isMainThread { return MainActor.assumeIsolated { Self.pickFolder(startingAt: home) } }
+        return DispatchQueue.main.sync { MainActor.assumeIsolated { Self.pickFolder(startingAt: home) } }
+    }
+
+    @MainActor private static func pickFolder(startingAt home: String) -> String? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
+        panel.directoryURL = URL(fileURLWithPath: home)
+        panel.message = "Choose a folder that holds your projects. Build output inside it (node_modules, Pods, …) becomes reclaimable."
+        panel.prompt = "Add"
+        return panel.runModal() == .OK ? panel.url?.path : nil
     }
 
     // MARK: Ops
