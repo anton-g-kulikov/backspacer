@@ -176,6 +176,8 @@ test('W15 reveal hero: the System Data row unfolds into a real findings card; th
   assert.match(card[1], /<div class="fhead">[\s\S]*?\d+(?:\.\d+)? GB/, 'a header with the total found');
   assert.match(hero, /class="ftotals"[\s\S]*?safe to delete[\s\S]*?regenerable[\s\S]*?your call/i, 'three bucket totals');
   assert.doesNotMatch(hero, /<img|<picture/, 'no screenshot in the hero');
+  assert.match(html, /@media \(min-width: 960px\) \{ \.hero-grid \{[^}]*align-items: start/, 'columns align to the top on wide screens');
+  assert.match(html, /\.hero-copy \{ position: sticky; top: /, 'the copy column sticks while the reveal scrolls');
   assert.doesNotMatch(html, /class="vs"/, 'the old comparison grid is gone');
   const how = html.match(/<section id="how"[\s\S]*?<\/section>/)[0];
   assert.match(how, /<figure class="shot app">[\s\S]*?<img src="assets\/screenshot-light\.png" width="1400" height="1100"/, 'the real window, full width, in the buckets section');
@@ -186,7 +188,7 @@ test('W16 what it is not: one AppCleaner recommendation on the site and in the R
   const url = 'https://freemacsoft.net/appcleaner/';
   assert.equal((html.match(new RegExp(url.replace(/[./]/g, '\\$&'), 'g')) || []).length, 1, 'once on the page');
   assert.match(html, new RegExp(`<p class="isnot">[\\s\\S]*?<a href="${url.replace(/[./]/g, '\\$&')}">AppCleaner<\\/a>`), 'in the "what it isn\'t" line');
-  assert.match(text, /isn't an app uninstaller/i);
+  assert.match(text, /isn't:?\s+an app uninstaller/i);
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.ok(readme.includes(`[AppCleaner](${url})`), 'README links it too');
 });
