@@ -195,6 +195,13 @@ test('W16 what it is not: one AppCleaner recommendation on the site and in the R
   assert.ok(readme.includes(`[AppCleaner](${url})`), 'README links it too');
 });
 
+test('W17 footer links open in a new tab, safely', gate, () => {
+  const foot = html.match(/<footer>([\s\S]*?)<\/footer>/)[1];
+  const links = [...foot.matchAll(/<a\b[^>]*>/g)].map(m => m[0]);
+  assert.ok(links.length >= 4);
+  for (const l of links) if (/href="https?:/.test(l)) { assert.match(l, /target="_blank"/, l); assert.match(l, /rel="noopener"/, l); }
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);
