@@ -41,6 +41,11 @@ names every offending file.
    build-provenance attestation. A rejected notarization prints Apple's log in the run.
 5. Check the release page: DMG present, notes right, `gh attestation verify
    Backspacer-X.Y.Z.dmg --owner anton-g-kulikov` passes.
+6. Homebrew: the tap (github.com/anton-g-kulikov/homebrew-tap) bumps its cask to the
+   latest release by itself within six hours, after checking the DMG's SHA-256 against
+   the release notes and auditing the cask. To bump it now:
+   `gh workflow run bump.yml -R anton-g-kulikov/homebrew-tap`, then
+   `brew update && brew info --cask anton-g-kulikov/tap/backspacer` shows X.Y.Z.
 
 ### Secrets the workflow needs (once, Settings → Secrets and variables → Actions)
 | Secret | Value |

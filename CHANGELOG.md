@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Homebrew: `brew tap anton-g-kulikov/tap && brew install --cask backspacer`; `brew upgrade` follows releases.
+
 ## 0.9.0 — 2026-09-20
 - New app icon: a ring whose segments are the five buckets in the app's colours. It also leads the header in Glass (Terminal keeps its bare `$ Backspacer` prompt).
 - About → "Check for updates" (also in the app menu): asks GitHub for the latest release and shows a Download link when there is a newer one. Only when you click — the app never checks on its own or sends anything else.

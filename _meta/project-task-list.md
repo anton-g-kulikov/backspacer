@@ -14,9 +14,6 @@ what remains is grounded follow-up work.
 
 1. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
-2. **Homebrew cask** — `brew install --cask backspacer`: a cask in a tap under
-   the maintainer's account (or homebrew-cask once there are users), pointing
-   at the notarized DMG with its SHA-256; a release-checklist step to bump it.
 
 ## Roadmap (ideas, not grounded)
 
@@ -35,6 +32,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Homebrew cask: tap anton-g-kulikov/homebrew-tap with Casks/backspacer.rb (0.9.0), audit CI, self-bump workflow (schedule + dispatch, SHA-256 cross-checked with the release notes). Verified: style, strict online audit, real install into a scratch appdir from the public tap.
 - 2026-09-20 — 0.9.0 released: first release through the tag-triggered workflow (icon in the header, update check, scan verbs in the button, centred controls).
 - 2026-09-20 — Tag-triggered release workflow (Y1–Y7): temp keychain, notarytool from secrets, DMG + SHA-256 + provenance; checklist rewritten with the secrets table and a manual fallback. Blocked on the maintainer adding the five secrets before the first automated release.
 - 2026-09-20 — In-app update check (U1–U4, J18, A13): About button + app menu item, GitHub releases API on click only, link to the DMG. Test hygiene: every test bridge logs to a temp file (N3) — the suite had been writing fake refusals into the user's real log.

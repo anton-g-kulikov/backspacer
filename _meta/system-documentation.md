@@ -277,7 +277,12 @@ Developer ID certificate from the repository secrets goes into a throwaway keych
 the environment (the same script uses the keychain profile locally), Gatekeeper is
 asked, and `gh release create` publishes the DMG with the changelog section and its
 SHA-256, followed by a build-provenance attestation (`gh attestation verify`). The
-secrets and the manual fallback are in `release-checklist.md`.
+secrets and the manual fallback are in `release-checklist.md`. Homebrew users install
+with `brew tap anton-g-kulikov/tap && brew install --cask backspacer`: the cask lives in
+github.com/anton-g-kulikov/homebrew-tap (its own audit CI, and a workflow that bumps
+`version`/`sha256` to the latest release on a six-hour schedule or on demand, after
+verifying the DMG's SHA-256 against the release notes). The app itself is unchanged by
+this; `brew upgrade` covers updates for that audience.
 
 ## Repository layout
 
