@@ -59,4 +59,46 @@ import Foundation
             #expect(error.localizedDescription.contains("GitHub"), Comment(rawValue: error.localizedDescription))
         }
     }
+
+    private func bridge(fetchCount: Recorder, defaults: UserDefaults, version: String = "0.8.1") throws -> Bridge {
+        Bridge(catalog: try Fixture.catalog(), defaults: defaults, diagnostics: Fixture.quiet, appVersion: version,
+               fetch: { url in fetchCount.urls.append(url); return Data(Self.release.utf8) })
+    }
+    private func freshDefaults() -> UserDefaults { let n = "backspacer-auto-\(UUID().uuidString)"; let d = UserDefaults(suiteName: n)!; d.removePersistentDomain(forName: n); return d }
+
+    @Test("U5 autoCheckUpdate runs once, then not again within a day")
+    func autoThrottle() throws {
+        let rec = Recorder(), d = freshDefaults()
+        let b = try bridge(fetchCount: rec, defaults: d)
+        let first = try b.handle(op: "autoCheckUpdate", args: [:]) as? [String: Any]
+        #expect(first?["newer"] as? Bool == true)
+        #expect(rec.urls.count == 1)
+        let second = try b.handle(op: "autoCheckUpdate", args: [:]) as? [String: Any]
+        #expect(second?["skipped"] as? String == "recent")
+        #expect(rec.urls.count == 1, "no second request within 24 h")
+        d.set(Date(timeIntervalSinceNow: -25 * 3600), forKey: "update.lastCheck")
+        _ = try b.handle(op: "autoCheckUpdate", args: [:])
+        #expect(rec.urls.count == 2, "after a day it asks again")
+    }
+
+    @Test("U6 the automatic check is off when the preference says so; the manual check still works")
+    func autoOff() throws {
+        let rec = Recorder(), d = freshDefaults()
+        d.set("0", forKey: "ui.autoUpdateCheck")
+        let b = try bridge(fetchCount: rec, defaults: d)
+        let r = try b.handle(op: "autoCheckUpdate", args: [:]) as? [String: Any]
+        #expect(r?["skipped"] as? String == "off")
+        #expect(rec.urls.isEmpty)
+        _ = try b.handle(op: "checkUpdate", args: [:])
+        #expect(rec.urls.count == 1)
+    }
+
+    @Test("U7 an automatic check that fails is quiet: no throw, nothing shown")
+    func autoFailsQuietly() throws {
+        struct Offline: Error {}
+        let d = freshDefaults()
+        let b = Bridge(catalog: try Fixture.catalog(), defaults: d, diagnostics: Fixture.quiet, appVersion: "0.8.1", fetch: { _ in throw Offline() })
+        let r = try b.handle(op: "autoCheckUpdate", args: [:]) as? [String: Any]
+        #expect(r?["skipped"] as? String == "failed")
+    }
 }

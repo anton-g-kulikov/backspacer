@@ -60,7 +60,7 @@ function mockBridge() {
         case 'log': return { ok: true };
         case 'scanHints': return { durations: {} };
         case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Backspacer/Backspacer.log' };
-        case 'checkUpdate': return { current: 'dev', latest: '0.9.0', newer: true, url: 'https://github.com/anton-g-kulikov/backspacer/releases/latest' };
+        case 'checkUpdate': case 'autoCheckUpdate': return { current: 'dev', latest: '0.9.0', newer: true, url: 'https://github.com/anton-g-kulikov/backspacer/releases/latest' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
@@ -74,7 +74,7 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), autoChecked: false, scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
 // fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
@@ -160,6 +160,8 @@ async function init() {
     if (u.link) { const a = document.createElement('a'); a.href = u.link; a.textContent = u.linkText; out.appendChild(a); }
   };
   $('#checkUpd').onclick = () => { window.__checkUpdates(); };
+  bridge.call('prefGet', { key: 'autoUpdateCheck' }).then(r => { $('#autoUpd').checked = r.value !== '0'; }).catch(() => {});
+  $('#autoUpd').onchange = e => bridge.call('prefSet', { key: 'autoUpdateCheck', value: e.target.checked ? '1' : '0' }).catch(() => {});
   state.catalog = await bridge.call('catalog');
   NEST = buildNesting(state.catalog.entries);
   render(); syncGutter();
@@ -264,6 +266,7 @@ async function scan(only) {
   await Promise.all(workers);
   state.scanning = false; state.scanned = true; $('#scan').setAttribute('aria-busy', 'false'); updateScanBtn();
   announce('Scan complete');
+  if (!state.autoChecked) { state.autoChecked = true; autoCheckUpdates(); }
   stopScanWords();   // no "reclaimable" total — how much to reclaim is the user's call
   log('scan complete');
 }
@@ -312,6 +315,17 @@ function startScanWords() {
   const words = shuffled(SCAN_WORDS);   // a different order every scan
   $('#scan').textContent = scanFrame(0, words);
   scanTimer = setInterval(() => { $('#scan').textContent = scanFrame(++scanTick, words); }, 250);
+}
+// The quiet check: once per session, after the first scan (never at launch, never in the way).
+// The bridge throttles it to one request a day and honours the opt-out; only a newer version shows.
+async function autoCheckUpdates() {
+  let r; try { r = await bridge.call('autoCheckUpdate'); } catch { return; }
+  if (!r || r.skipped || !r.newer) return;
+  const u = updateText(r);
+  const notice = $('#updNotice'); notice.textContent = u.text + ' ';
+  const a = document.createElement('a'); a.href = u.link; a.textContent = u.linkText; notice.appendChild(a);
+  notice.hidden = false;
+  const out = $('#updResult'); out.textContent = u.text + ' '; out.appendChild(a.cloneNode(true));
 }
 function stopScanWords() { clearInterval(scanTimer); scanTimer = null; updateScanBtn(); }
 // While scanning the button carries the verbs (startScanWords); at rest it says what a click does.

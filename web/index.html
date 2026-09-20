@@ -193,6 +193,9 @@
   .status .sum b { color: var(--fg); font-weight: 600; }
   .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
   .tabs { border-top: 1px solid var(--sep); display: flex; justify-content: space-between; padding: 0 18px; }
+  .tabs .notice { align-self: center; font-size: 12px; color: var(--muted); }
+  .tabs .notice a { color: var(--accent); font-weight: 600; }
+  .about .opt { margin-left: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
   .tabs button { border: 0; background: none; padding: 7px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; }
   .tabs button::before { content: "▸ "; }
   .tabs button.on::before { content: "▾ "; }
@@ -388,6 +391,9 @@
   .status .sum b { color: var(--fg); font-weight: 700; }
   .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
   .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 calc(18px + var(--sb, 0px)); }
+  .tabs .notice { align-self: center; color: var(--muted); }
+  .tabs .notice a { color: var(--accent); font-weight: 700; }
+  .about .opt { margin-left: 10px; color: var(--muted); white-space: nowrap; }
   .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
   .tabs button::before { content: "▸ "; }
   .tabs button.on::before { content: "▾ "; }
@@ -468,6 +474,7 @@
   </div>
   <div class="tabs">
     <button data-panel="log" aria-expanded="false" aria-controls="log">Log</button>
+    <span class="notice" id="updNotice" hidden></span>
     <button data-panel="about" aria-expanded="false" aria-controls="about">About</button>
   </div>
   <pre id="log" class="panel" role="log" hidden></pre>
@@ -479,7 +486,8 @@
        macOS's own password dialog.</p>
     <p>Version <span id="aboutVersion"></span> · © 2026 Anton Kulikov · Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
        · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
-    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button> <span id="updResult" aria-live="polite"></span></p>
+    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button> <span id="updResult" aria-live="polite"></span>
+       <label class="opt"><input type="checkbox" id="autoUpd" checked> Check for updates automatically</label></p>
     <p class="diag">Something odd? Backspacer keeps a log of what it did — attach it to your report.
        <code id="logPath"></code> <button class="btn small" id="revealLog">Reveal log</button></p>
     <div class="lic">

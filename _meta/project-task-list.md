@@ -32,6 +32,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Automatic update notice (U5–U7, A16, P1): once per session after the first scan, daily throttle, opt-out pref, footer notice; README's network statement updated.
 - 2026-09-20 — Fixed: navigation delegate never called since Swift 6 (closure type mismatch) — About links opened in-window, the update DMG link did nothing; V1–V2 pin the selectors; external navigations are logged.
 - 2026-09-20 — 0.9.1 released: size filter inside Details (default 10 MB), Terminal tagline fit, themed inner scrollbars, Homebrew tap docs.
 - 2026-09-20 — Size filter inside Details (J19, A14) with a "smaller items" summary row; default threshold 10 MB (A15); Terminal brand column 400 px so the tagline fits (A12).

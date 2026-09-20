@@ -30,7 +30,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `delete` | `{id, item?}` | `{ok, freedBytes, trashed?: true}` | refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: one item of a granular entry — a path (then `rm -rf`, never for entries with a `deleteCmd`) or a key (then `deleteItemCmd` with `{key}` replaced by the shell-quoted key). Either way `item` is a selector, accepted only if it is in a fresh resolve / fresh `itemsCmd` run |
 | `reveal` | `{id}` | `{ok}` | Finder-selects the first resolved path |
 | `appInfo` | — | `{version, build}` | `CFBundleShortVersionString`, `CFBundleVersion` |
-| `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize` |
+| `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize`, `autoUpdateCheck` |
 | `prefSet` | `{key, value}` | `{ok}` | value ≤ 32 chars |
 | `projectRoots` | — | `{roots: [{path, display}]}` | folders `$PROJECTS` globs search; `display` abbreviates home as `~` |
 | `addProjectRoot` | — | `{roots}` | opens the macOS folder picker; the chosen folder must be inside home and not under `~/Library`; de-duplicated; persisted (`ui.projectRoots`) |
@@ -41,6 +41,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `revealLog` | — | `{path}` | selects the diagnostics file in Finder |
 | `contextTarget` | `{id, item?}` | `{ok}` | sent by the page on right-click over a row (entry id) or a Details item (its selector); the bridge notes it on the main thread before queuing, so the native context menu that follows can offer an action for it; quiet |
 | `open` | `{id, item?, with}` | `{path}` | the context menu's path action: opens the entry's first path, or one of its current Details items (any other selector is refused), with `with: "terminal"` (the only app the page may name — Finder is the row's Reveal) |
+| `autoCheckUpdate` | — | `{current, latest, newer, url}` or `{skipped: off\|recent\|failed}` | the page calls it once per session after the first scan; the bridge skips it when `ui.autoUpdateCheck` is `"0"` or the last check (`update.lastCheck`) is under 24 h old, and turns a failed request into `skipped: failed` rather than an error; quiet |
 | `checkUpdate` | — | `{current, latest, newer, url}` | one GET to GitHub's `releases/latest`, only when the user clicks About → Check for updates or the app menu's item — never at launch, nothing else is sent; `url` is the DMG asset (or the release page); failures reply with one plain message |
 | `dragWindow` | — | `{ok}` | the page's header is a window drag region: sent on mouse-down there, the bridge calls `NSWindow.performDrag(with:)` on the event still in flight (WKWebView has no drag regions of its own); quiet, no-op without a window |
 

@@ -228,6 +228,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A13 | update check UI | About has `<p class="upd">` with the `#checkUpd` button and an `aria-live` `#updResult`; `app.js` wires the click and `window.__checkUpdates` (for the app menu); the check is never called at init |
 | A14 | Details threshold | `renderItems` splits with `splitItems(items, minBytes())`, ends with a `data-showsmall` button ("N smaller items, X — below Y") that reveals them; `applyThreshold` re-renders open lists |
 | A15 | default threshold | `state.thr` is 0 (10 MB), the slider starts at 0 with `aria-valuetext="10 MB"`, the label reads 10 MB |
+| A16 | automatic check UI | `#updNotice` sits between Log and About; About has the `#autoUpd` opt-out bound to `prefSet autoUpdateCheck`; `autoCheckUpdates()` runs once per session right after the first scan completes, never at init |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -251,6 +252,9 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | U1 | release JSON | `Updates.parse` yields version without the `v`, the release page, and the `.dmg` asset's download URL |
 | U2 | `isNewer` | numeric per component (0.10.0 > 0.9.0), equal is not newer, `1.0` == `1.0.0`, a `-N-gHASH` dev suffix is ignored |
 | U3 | `checkUpdate` op | requests exactly `releases/latest` via the injected fetcher; replies `{current, latest, newer, url}` with the DMG URL; `newer` false when versions match |
+| U5 | `autoCheckUpdate` throttle | first call fetches and reports; a second call within 24 h replies `skipped: recent` without a request; after a day it fetches again |
+| U6 | opt-out | with `ui.autoUpdateCheck` = "0" the automatic check replies `skipped: off` and makes no request; the manual `checkUpdate` still works |
+| U7 | quiet failure | a failed fetch replies `skipped: failed` instead of throwing |
 | U4 | failures | a thrown fetch or a non-release body makes the op throw with a message that names GitHub |
 | N3 | test hygiene | every `Bridge(` in the test target passes `diagnostics:` (the suite must never write to `~/Library/Logs/Backspacer`) |
 
@@ -317,14 +321,14 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 |---|---|---|
 | SafetyGateTests | S1–S12 | passing |
 | CatalogTests | C1–C15 | passing |
-| PrefTests | P1–P3 | passing |
+| PrefTests | P1–P3 (P1 × theme, minSize, autoUpdateCheck) | passing |
 | ShellTests | Q1–Q4 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | BrandTests | N1–N3 | passing |
 | NavigationDelegateTests | V1–V2 | passing |
-| UpdateCheckTests | U1–U4 | passing |
+| UpdateCheckTests | U1–U7 | passing |
 | WindowDragTests | G1 | passing |
 | ContextMenuTests | X1, X2, X5 | passing |
 | PathActionTests | O1–O3 | passing |
@@ -333,7 +337,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
-| Web accessibility (node) | A1–A15 | passing |
+| Web accessibility (node) | A1–A16 | passing |
 | Site (node) | W1–W14 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y7 | passing |

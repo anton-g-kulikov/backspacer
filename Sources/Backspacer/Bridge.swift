@@ -151,7 +151,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget", "autoCheckUpdate"]
 
     // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
 
@@ -193,6 +193,21 @@ final class Bridge: NSObject, @unchecked Sendable {
         case "delete":    return try delete(entry(args), item: args["item"] as? String)
         case "reveal":    return try reveal(entry(args))
         case "open":      return try open(entry(args), item: args["item"] as? String, with: args["with"] as? String)
+        case "autoCheckUpdate":
+            // The quiet check the page runs after the first scan of a session: at most one request a
+            // day, off with one switch, and never an error the user has to dismiss.
+            guard defaults.string(forKey: "ui.autoUpdateCheck") != "0" else { return ["skipped": "off"] }
+            if let last = defaults.object(forKey: "update.lastCheck") as? Date, Date().timeIntervalSince(last) < 24 * 3600 { return ["skipped": "recent"] }
+            defaults.set(Date(), forKey: "update.lastCheck")
+            do {
+                let release = try Updates.parse(try fetch(Updates.latestURL))
+                let newer = Updates.isNewer(release.version, than: appVersion)
+                diagnostics.log(.info, "update check (automatic): running \(appVersion), latest \(release.version)\(newer ? " (newer)" : "")")
+                return ["current": appVersion, "latest": release.version, "newer": newer, "url": release.dmg ?? release.page]
+            } catch {
+                diagnostics.log(.info, "update check (automatic) failed: \(error.localizedDescription)")
+                return ["skipped": "failed"]
+            }
         case "checkUpdate":
             let release = try Updates.parse(try fetch(Updates.latestURL))
             let newer = Updates.isNewer(release.version, than: appVersion)
@@ -238,7 +253,7 @@ final class Bridge: NSObject, @unchecked Sendable {
 
     // MARK: Prefs — UI settings that should survive relaunch (the arm switch deliberately doesn't).
 
-    private static let prefKeys: Set<String> = ["theme", "minSize"]
+    private static let prefKeys: Set<String> = ["theme", "minSize", "autoUpdateCheck"]
 
     func prefKey(_ args: [String: Any]) throws -> String {
         guard let k = args["key"] as? String, Self.prefKeys.contains(k) else {
