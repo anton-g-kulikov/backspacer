@@ -1,6 +1,6 @@
 # Test Documentation
 
-Owner of test intent, strategy and status. Test code lives in `Tests/ReclaimerTests/`
+Owner of test intent, strategy and status. Test code lives in `Tests/BackspacerTests/`
 (Swift Testing, run with `swift test`). Behaviour docs live in `_meta/`; this file
 says what the tests prove, not how the system works.
 
@@ -50,7 +50,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C15 | catalog text is plain (R27): no `<` in any `label`, `note` or bucket `blurb` — they are rendered through `esc()` and would show literally | pass |
 | C14 | every entry whose path is under `~/Library/Containers`, `~/Library/Group Containers`, `~/Library/Messages`, `~/Library/Mail`, `~/Library/Safari` or `MobileSync` carries `fda: true`; the new Mail-downloads, Teams-cache and Messages-attachments entries exist with the right buckets | pass |
 | C13 | `android-avd` is a `children` entry with `companion: ".ini"`; `companion` only appears with `children` | pass |
-| C12 | `cache-logs` is a `children` entry excluding `Reclaimer` and `DiagnosticReports` (R21); `exclude` only ever appears with `children` | pass |
+| C12 | `cache-logs` is a `children` entry excluding `Backspacer` and `DiagnosticReports` (R21); `exclude` only ever appears with `children` | pass |
 | C11 | no entry combines `sudo` with `deleteCmd` or `deleteItemCmd` (R7): admin work is only ever an `rm -rf` the bridge builds from gate-checked paths | pass |
 | C10 | app-data revamp shape: `electron-caches` is a `safe` glob with the six cache names and the Service-Worker path pattern; `app-slack` is gone and `vscode-cache` no longer lists `Code/Cache` (both covered by the glob); `cache-user` and `cache-dot` are `children`; `ios-backups` has a plist `childLabel`; `ollama-models` pairs `itemsCmd`/`deleteItemCmd` | pass |
 | C8 | Time Machine local snapshots (`regrow-snapshots`) live in `locked`, are not deletable, have no `deleteCmd`, keep their `infoCmd` — macOS purges them itself and the app's free-space figure already counts them | pass |
@@ -136,7 +136,7 @@ Fixture: temp home with a `safe` cache, a `decide` folder, a `decide` `children`
 | D5 | whole-entry delete of a `safe` folder | removed permanently, trasher not called, reply has no `trashed` |
 
 ### SchemaTests — `catalog.schema.json`
-Validated with a small JSON-Schema subset validator in `Tests/ReclaimerTests/Support/MiniSchema.swift` (type, required, properties, additionalProperties, enum, const, items, minItems, pattern, anyOf, not, dependentRequired, dependentSchemas — the keywords the schema uses).
+Validated with a small JSON-Schema subset validator in `Tests/BackspacerTests/Support/MiniSchema.swift` (type, required, properties, additionalProperties, enum, const, items, minItems, pattern, anyOf, not, dependentRequired, dependentSchemas — the keywords the schema uses).
 | # | Case | Expect |
 |---|---|---|
 | V1 | the shipped `catalog.json` | validates |
@@ -205,7 +205,7 @@ Baseline 2026-09-20: `zsh -lc true` 815 ms, `/bin/sh -c true` 5 ms; a 63-entry s
 | M10 | normal completion is unaffected | a quick command still returns its stdout/stderr and exit status through the new spawner; output larger than a pipe buffer (200 KB) is read fully |
 | M8 | tool fallback PATH (R6) | every catalog command is prefixed with `export PATH=…` that keeps the user's `$PATH` first and appends the known tool prefixes (`/opt/homebrew/bin`, `/opt/homebrew/sbin`, `/usr/local/bin`, `/usr/local/share/dotnet`, `~/.dotnet/tools`, `~/.cargo/bin`, `~/.bun/bin`, `~/.pub-cache/bin`, `~/.local/bin`); a test `pathPrefix` still comes before `$PATH`; measurement commands (`du`, `find`) get no such prefix |
 | M6 | `Shell.adminScript(for:)` (R5/R27) | wraps the command in `do shell script "…" with administrator privileges`, escaping backslashes and double quotes; a path with `'` and `"` survives the round trip through `Shell.q` + AppleScript quoting |
-| M7 | `Shell.runAsAdmin` structure (R5) | the privileged command runs in a helper subprocess — Reclaimer's own executable launched with `--admin <command>` — never through `NSAppleScript` on the app's main thread. Pinned by the `runAsAdmin(_:helper:spawn:)` seam: the spawner receives the helper path and `[--admin, command]`; a helper exit of 128/"cancelled" surfaces as a failed result. M7b: `AdminHelper.main` returns 64 for anything but `--admin <command>` |
+| M7 | `Shell.runAsAdmin` structure (R5) | the privileged command runs in a helper subprocess — Backspacer's own executable launched with `--admin <command>` — never through `NSAppleScript` on the app's main thread. Pinned by the `runAsAdmin(_:helper:spawn:)` seam: the spawner receives the helper path and `[--admin, command]`; a helper exit of 128/"cancelled" surfaces as a failed result. M7b: `AdminHelper.main` returns 64 for anything but `--admin <command>` |
 
 ### Web accessibility — `Tests/web/a11y.test.js` (static checks over `index.html` / `app.js`)
 The DOM can't run under Node, so these pin the templates; the browser's accessibility tree is the live check (recorded in the task list when a change lands).
@@ -219,6 +219,19 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A7 | contrast (R14) | computed from the CSS tokens against each theme's panel background: `--muted` ≥ 4.5:1 in Glass light, Glass dark and Terminal; `--faint` ≥ 3.3:1 (Glass light) and ≥ 4.5:1 (Glass dark, Terminal); a `@media (prefers-contrast: more)` block raises both |
 | A8 | reduced motion (R15) | both themes have a `@media (prefers-reduced-motion: reduce)` block that stops the blink animations and transitions; `startScanWords` shows a static "Scanning…" when the media query matches |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
+
+### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
+| # | Case | Expect |
+|---|---|---|
+| N1 | standard log path | `Diagnostics.standard.file` ends in `Library/Logs/Backspacer/Backspacer.log` |
+| N2 | bridge channel | `Bridge.handlerName == "backspacer"` |
+| K1 | page | `<title>Backspacer</title>`; the wordmark is a plain `<h1>Backspacer</h1>` (no `(y)` in the app); About heading and license paragraph name Backspacer; no trace of the old name in `index.html` |
+| K2 | page ↔ Swift | `messageHandlers.backspacer`, `window.__backspacerReply`; the mock bridge's log path is `~/Library/Logs/Backspacer/Backspacer.log`; no old name in `app.js`/`logic.js`/`boot.js` |
+| K3 | `build-app.sh` | `APP_NAME="Backspacer"`, bundle id `com.antonkulikov.backspacer` |
+| K4 | `notarize.sh` | `build/Backspacer.app`, keychain profile `Backspacer`, `Backspacer-$VERSION.zip/.dmg`, volume `Backspacer` |
+| K5 | LICENSE and catalog | the preamble reserves "Backspacer"; `cache-logs` excludes `Backspacer` (its own log folder) |
+| K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band |
+| K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
 ## Manual verification (release checklist covers these)
 
@@ -238,11 +251,13 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |
+| BrandTests | N1–N2 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J16 | passing |
 | Web accessibility (node) | A1–A8 | passing |
+| Brand (node) | K1–K7 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

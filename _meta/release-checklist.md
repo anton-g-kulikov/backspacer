@@ -10,9 +10,9 @@ Requires an Apple Developer Program membership.
    `Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)`.
 2. An app-specific password from account.apple.com → Sign-In and Security, for
    the Apple ID that owns team R9BBCR3NF6 (anton.g.kulikov@gmail.com).
-3. `xcrun notarytool store-credentials Reclaimer --apple-id anton.g.kulikov@gmail.com --team-id R9BBCR3NF6`
+3. `xcrun notarytool store-credentials Backspacer --apple-id anton.g.kulikov@gmail.com --team-id R9BBCR3NF6`
    (prompts for the password; never put it in a script).
-   Check: `xcrun notarytool history --keychain-profile Reclaimer`. A `401` means
+   Check: `xcrun notarytool history --keychain-profile Backspacer`. A `401` means
    the profile's Apple ID or password is stale — re-run store-credentials.
 
 Signing is not `--deep`: the app has a single Mach-O. If a framework, XPC service
@@ -28,19 +28,19 @@ names every offending file.
 
 ## Steps
 1. `swift test` is green; `git status` is clean; CHANGELOG has the version's entry.
-2. Tag: `git tag -a vX.Y.Z -m "Reclaimer X.Y.Z"` — `build-app.sh` reads the
+2. Tag: `git tag -a vX.Y.Z -m "Backspacer X.Y.Z"` — `build-app.sh` reads the
    version from `git describe --tags`. Tag the *final* commit: an amend after
    tagging makes the version read `X.Y.Z-1-g…`; re-tag with `git tag -f -a`.
 3. Build: `IDENTITY="Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)" scripts/build-app.sh`
    — expect `arch: x86_64 arm64` and `signature OK`.
-4. Smoke-test `open build/Reclaimer.app`: scans, theme switch, one delete with confirm/cancel.
+4. Smoke-test `open build/Backspacer.app`: scans, theme switch, one delete with confirm/cancel.
 5. Notarize: `scripts/notarize.sh` — expect `status: Accepted` twice (app, DMG)
    and "notarized and stapled". On rejection the script prints the notary log.
 6. Verify from a user's point of view:
-   `spctl --assess --type open --context context:primary-signature -v build/Reclaimer-X.Y.Z.dmg`
-   and, with the DMG mounted, `spctl --assess --type execute -v /Volumes/Reclaimer/Reclaimer.app` → `accepted`.
+   `spctl --assess --type open --context context:primary-signature -v build/Backspacer-X.Y.Z.dmg`
+   and, with the DMG mounted, `spctl --assess --type execute -v /Volumes/Backspacer/Backspacer.app` → `accepted`.
 7. Push: `git push origin main --tags`.
-8. Release: `gh release create vX.Y.Z build/Reclaimer-X.Y.Z.dmg --title "Reclaimer X.Y.Z" --notes-file <notes>`.
+8. Release: `gh release create vX.Y.Z build/Backspacer-X.Y.Z.dmg --title "Backspacer X.Y.Z" --notes-file <notes>`.
 9. Remove the previous version's `.dmg`/`.zip` from `build/`.
 
 ## Rollback

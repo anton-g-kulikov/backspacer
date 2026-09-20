@@ -14,23 +14,6 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
 ### Next — brand and site (decided 2026-09-20, ADR-20)
-- **Rename to Backspacer** — one commit, then 0.8.0. Touch points, in order:
-  `scripts/build-app.sh` (`APP_NAME`, `BUNDLE_ID=com.antonkulikov.backspacer`),
-  `Package.swift` target and `Sources/` folder, `Sources/*` strings (window
-  title, menus, About, `setFrameAutosaveName`, the `defaults write` hint,
-  `Diagnostics` log path `Library/Logs/Backspacer/Backspacer.log`, admin
-  helper prompt text), `web/index.html` + `web/app.js` (title, header
-  wordmark `Backspacer (y)`, About copy, log-path note), `scripts/notarize.sh`
-  (`APP`, ZIP/DMG names, volume name), `LICENSE` preamble (reserved name
-  "Backspacer"), `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, issue
-  templates, `CHANGELOG.md` line, `_meta/*` and `Tests/test-documentation.md`,
-  every test that asserts a string with the old name (SafetyGate S-tests use
-  the fixture home, unaffected). Then: `gh repo rename backspacer` (old URL
-  redirects; update badges and links), register backspacer.app / .dev (the
-  maintainer's step), tag `v0.8.0`. Tests: `swift test` and the node suites
-  green; a grep for the old name finds only CHANGELOG history and ADR-20.
-  Migration: no `UserDefaults` migration — the app is new to macOS under the
-  new bundle id; the README release note says FDA must be granted again.
 - **Promo site (GitHub Pages)** — `site/index.html` under the new name,
   published by `.github/workflows/pages.yml` (SHA-pinned actions, `pages:
   write` + `id-token: write` only, gated by `node --test
@@ -69,6 +52,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Renamed to Backspacer (ADR-20): app, bundle id `com.antonkulikov.backspacer`, module and test target, log folder, scripts, LICENSE, docs, repository (old URL redirects); tests N1–N2, K1–K6 (K6 guards against the old name creeping back). First release under the name: 0.8.0.
 - 2026-09-20 — CI honest again: `shell: bash` (pipefail) — `swift test | tail` had masked `error: fatalError` on Xcode 16.4 since R23, three hollow green runs; the folder picker's main-actor isolation made explicit for the Swift 6.0 compiler (verified on the runner via PR #2; no local Xcode 16).
 - 2026-09-20 — CI package guard fixed: the v0.7.0 tag run died with `error: fatalError` (native `swift build` after a universal one, Swift 6.0 toolchain); the step now builds `UNIVERSAL=1` and runs on every push.
 - 2026-09-20 — 0.7.0 released: AVD per-device delete, FDA badge and needs-access state, Window/Help menus, Swift 6, no `--deep`.

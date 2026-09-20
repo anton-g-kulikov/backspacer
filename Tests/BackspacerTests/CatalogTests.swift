@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct CatalogTests {
     let catalog = try! Fixture.catalog()
@@ -115,7 +115,7 @@ import Testing
     func logsExclude() throws {
         let e = try #require(catalog.entry("cache-logs"))
         #expect(e.children == true)
-        #expect(Set(e.exclude ?? []) == ["Reclaimer", "DiagnosticReports"])
+        #expect(Set(e.exclude ?? []) == ["Backspacer", "DiagnosticReports"])
         for x in catalog.entries where x.exclude != nil { #expect(x.children == true, Comment(rawValue: x.id)) }
     }
 

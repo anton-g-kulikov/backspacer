@@ -1,10 +1,10 @@
 #!/bin/bash
-# Signs, notarizes and staples build/Reclaimer.app, then wraps it in a DMG.
+# Signs, notarizes and staples build/Backspacer.app, then wraps it in a DMG.
 #
 # One-time setup (Apple Developer Program membership required):
 #   1. Xcode → Settings → Accounts → Manage Certificates → "+" → Developer ID Application
 #   2. App-specific password at https://appleid.apple.com → Sign-In and Security
-#   3. xcrun notarytool store-credentials reclaimer \
+#   3. xcrun notarytool store-credentials backspacer \
 #        --apple-id you@example.com --team-id TEAMID --password <app-specific-password>
 #
 # Then:
@@ -13,8 +13,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP="build/Reclaimer.app"
-PROFILE="${PROFILE:-Reclaimer}"          # notarytool keychain profile name
+APP="build/Backspacer.app"
+PROFILE="${PROFILE:-Backspacer}"          # notarytool keychain profile name
 [ -d "$APP" ] || { echo "run scripts/build-app.sh first"; exit 1; }
 
 if codesign -dv "$APP" 2>&1 | grep -q "Signature=adhoc"; then
@@ -36,8 +36,8 @@ notarize() {
 }
 
 VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")
-ZIP="build/Reclaimer-$VERSION.zip"
-DMG="build/Reclaimer-$VERSION.dmg"
+ZIP="build/Backspacer-$VERSION.zip"
+DMG="build/Backspacer-$VERSION.dmg"
 
 if xcrun stapler validate "$APP" >/dev/null 2>&1; then
   echo "▸ $APP already notarized and stapled — skipping to DMG"
@@ -60,7 +60,7 @@ rm -f "$DMG"
 STAGE=$(mktemp -d)
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "Reclaimer" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+hdiutil create -volname "Backspacer" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
 rm -rf "$STAGE"
 IDENTITY=$(codesign -dvv "$APP" 2>&1 | sed -n 's/^Authority=\(Developer ID Application.*\)$/\1/p' | head -1)
 [ -n "$IDENTITY" ] || { echo "✗ couldn't read the Developer ID identity from $APP"; exit 1; }

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct SchemaTests {
     static let schemaURL = Fixture.repoRoot.appendingPathComponent("catalog.schema.json")

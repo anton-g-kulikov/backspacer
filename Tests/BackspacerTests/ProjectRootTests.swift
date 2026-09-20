@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct ProjectRootTests {
     let home: URL
@@ -10,12 +10,12 @@ import Testing
     let fm = FileManager.default
 
     init() throws {
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-roots-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-roots-\(UUID().uuidString)")
         for d in ["Projects/a/node_modules", "Developer/b/node_modules", "Library/Caches/x/node_modules", "Documents/mycode/c"] {
             try fm.createDirectory(at: home.appendingPathComponent(d), withIntermediateDirectories: true)
         }
         try "x".write(to: home.appendingPathComponent("notes.txt"), atomically: true, encoding: .utf8)
-        let suite = "reclaimer-tests-\(UUID().uuidString)"
+        let suite = "backspacer-tests-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))
         let json = """
         { "version": 1, "buckets": {}, "entries": [

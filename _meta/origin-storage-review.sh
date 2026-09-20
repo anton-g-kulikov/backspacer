@@ -1,5 +1,5 @@
 #!/bin/bash
-# origin-storage-review.sh — the read-only terminal audit Reclaimer grew out of (kept for the
+# origin-storage-review.sh — the read-only terminal audit Backspacer grew out of (kept for the
 # record; catalog.json is the maintained form of this knowledge). Deletes nothing. Run:
 #   bash _meta/origin-storage-review.sh 2>/dev/null | tee ~/Desktop/storage-review.txt
 

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct PrefTests {
     let bridge = try! Fixture.bridge()

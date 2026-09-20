@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct DiagnosticsTests {
     let dir: URL
@@ -8,8 +8,8 @@ import Testing
     let fm = FileManager.default
 
     init() {
-        dir = fm.temporaryDirectory.appendingPathComponent("reclaimer-diag-\(UUID().uuidString)")
-        diag = Diagnostics(file: dir.appendingPathComponent("Logs/Reclaimer.log"), maxBytes: 2_000)
+        dir = fm.temporaryDirectory.appendingPathComponent("backspacer-diag-\(UUID().uuidString)")
+        diag = Diagnostics(file: dir.appendingPathComponent("Logs/Backspacer.log"), maxBytes: 2_000)
     }
     func cleanup() { try? fm.removeItem(at: dir) }
     func text() -> String { (try? String(contentsOf: diag.file, encoding: .utf8)) ?? "" }
@@ -73,7 +73,7 @@ import Testing
     @Test("L7 — scan hints remember each entry's last duration")
     func scanHints() throws {
         defer { cleanup() }
-        let suite = "reclaimer-hints-\(UUID().uuidString)"
+        let suite = "backspacer-hints-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
         let shell = FakeShell()
         let bridge = Bridge(catalog: try Fixture.catalog(), defaults: defaults, shell: shell, diagnostics: diag)

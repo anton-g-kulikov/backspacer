@@ -1,5 +1,5 @@
 import Foundation
-@testable import Reclaimer
+@testable import Backspacer
 
 /// Scripted stand-in for the system shell. `answers` are matched by substring, first match wins;
 /// anything unmatched succeeds with empty output. Every call is recorded.

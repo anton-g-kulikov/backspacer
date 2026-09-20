@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 /// Per-item granularity, run against a throwaway directory that stands in for the home folder.
 @Suite struct ItemTests {
@@ -15,7 +15,7 @@ import Testing
     }
 
     init() throws {
-        let home = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-home-\(UUID().uuidString)")
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-home-\(UUID().uuidString)")
         func blob(_ rel: String, mb: Int) throws { try Self.blob(home, rel, mb: mb) }
         try blob("Projects/a/node_modules/x.bin", mb: 1)
         try blob("Projects/a/node_modules/x/node_modules/deep.bin", mb: 1)   // pruned: inside a match
@@ -34,7 +34,7 @@ import Testing
         try blob("Projects/n/.next/real/f.bin", mb: 1)
         try fm.createSymbolicLink(atPath: home.path + "/Projects/n/.next/cache", withDestinationPath: home.path + "/Library/Caches/target")
         try fm.createSymbolicLink(atPath: home.path + "/Library/Caches/alias", withDestinationPath: home.path + "/Library/Caches/target")
-        for d in ["Library/Logs/Reclaimer", "Library/Logs/DiagnosticReports", "Library/Logs/Zoom", "Library/Logs/Notion"] { try blob("\(d)/x.log", mb: 1) }
+        for d in ["Library/Logs/Backspacer", "Library/Logs/DiagnosticReports", "Library/Logs/Zoom", "Library/Logs/Notion"] { try blob("\(d)/x.log", mb: 1) }
         try blob(".android/avd/Pixel_7.avd/userdata.img", mb: 2)
         try blob(".android/avd/Tablet.avd/userdata.img", mb: 1)
         try "path=\(home.path)/.android/avd/Pixel_7.avd\n".write(to: home.appendingPathComponent(".android/avd/Pixel_7.ini"), atomically: true, encoding: .utf8)
@@ -65,7 +65,7 @@ import Testing
           { "id": "arch", "group": "t", "bucket": "safe", "label": "archives", "path": "~/Library/Developer/Xcode/Archives", "children": true },
           { "id": "next", "group": "t", "bucket": "safe", "label": "next", "glob": { "root": "~/Projects", "name": ".next", "maxdepth": 3, "type": "d", "then": "cache" } },
           { "id": "alias", "group": "t", "bucket": "safe", "label": "alias", "path": "~/Library/Caches/alias" },
-          { "id": "logs", "group": "t", "bucket": "safe", "label": "logs", "path": "~/Library/Logs", "children": true, "exclude": ["Reclaimer", "DiagnosticReports"] },
+          { "id": "logs", "group": "t", "bucket": "safe", "label": "logs", "path": "~/Library/Logs", "children": true, "exclude": ["Backspacer", "DiagnosticReports"] },
           { "id": "avd", "group": "t", "bucket": "safe", "label": "avds", "path": "~/.android/avd", "children": true, "companion": ".ini" },
           { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
             "path": "~/Library/Application Support/Code/User/workspaceStorage",
@@ -210,7 +210,7 @@ import Testing
         #expect((r?["bytes"] as? NSNumber)?.int64Value == expected, "total counts the listed items only")
         _ = try bridge.handle(op: "delete", args: ["id": "logs"])
         let logs = home.path + "/Library/Logs"
-        #expect(fm.fileExists(atPath: logs + "/Reclaimer/x.log") && fm.fileExists(atPath: logs + "/DiagnosticReports/x.log"))
+        #expect(fm.fileExists(atPath: logs + "/Backspacer/x.log") && fm.fileExists(atPath: logs + "/DiagnosticReports/x.log"))
         #expect(!fm.fileExists(atPath: logs + "/Zoom") && !fm.fileExists(atPath: logs + "/Notion"))
         #expect(fm.fileExists(atPath: logs), "the parent folder stays")
     }

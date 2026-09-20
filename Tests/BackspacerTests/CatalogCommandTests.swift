@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 /// Runs catalog commands for real through `Shell.run`, with a fake `brew` first on PATH.
 @Suite struct CatalogCommandTests {
@@ -9,7 +9,7 @@ import Testing
 
     /// Creates <dir>/bin/brew (prints `dryRun` for `autoremove -n`) and <dir>/Cellar/<formula>/1.0/blob of the given MB.
     func fakeBrew(dryRun: String, cellar: [String: Int]) throws -> URL {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-brew-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-brew-\(UUID().uuidString)")
         let bin = dir.appendingPathComponent("bin")
         try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
         let script = "#!/bin/sh\nprintf '%s' " + Shell.q(dryRun) + "\n"
@@ -58,7 +58,7 @@ import Testing
 
     @Test("B4 — screenshots entry measures 0 when nothing matches")
     func screenshotsEmpty() throws {
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-shots-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-shots-\(UUID().uuidString)")
         try fm.createDirectory(at: home.appendingPathComponent("Desktop"), withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: home) }
         #expect(try screenshotsKB(home: home) == "0")
@@ -66,7 +66,7 @@ import Testing
 
     @Test("B5 — screenshots entry sums Screenshots/ and Desktop recordings")
     func screenshotsSum() throws {
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-shots-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-shots-\(UUID().uuidString)")
         defer { try? fm.removeItem(at: home) }
         for (rel, mb) in [("Screenshots/s.png", 1), ("Desktop/a.mov", 2), ("Desktop/notes.txt", 5)] {
             let url = home.appendingPathComponent(rel)

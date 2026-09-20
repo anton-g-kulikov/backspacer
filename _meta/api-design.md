@@ -1,8 +1,8 @@
 # API Design — the JS ⇄ Swift bridge
 
 The only interface in the system. JS calls `bridge.call(op, args)`; the host
-replies `window.__reclaimerReply(id, ok, payload)`. Transport is
-`webkit.messageHandlers.reclaimer.postMessage({id, op, args})`.
+replies `window.__backspacerReply(id, ok, payload)`. Transport is
+`webkit.messageHandlers.backspacer.postMessage({id, op, args})`.
 
 ## Contract rules
 
@@ -44,11 +44,11 @@ replies `window.__reclaimerReply(id, ok, payload)`. Transport is
 
 | call | when |
 |---|---|
-| `window.__reclaimerReply(id, ok, payload)` | every reply |
+| `window.__backspacerReply(id, ok, payload)` | every reply |
 | `window.__setTheme("glass"\|"terminal")` | View menu |
 
 ## Mock bridge
 
-When `webkit.messageHandlers.reclaimer` is absent (plain browser), `mockBridge()`
+When `webkit.messageHandlers.backspacer` is absent (plain browser), `mockBridge()`
 answers every op with random sizes, a fixed 245 GB disk, `localStorage`-backed
 prefs, and a `dev (browser)` version. `?theme=…` on the URL selects a theme.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds Reclaimer.app into build/ from the SwiftPM package.
+# Builds Backspacer.app into build/ from the SwiftPM package.
 #
 #   scripts/build-app.sh            → ad-hoc signed (runs on this Mac only)
 #   IDENTITY="Developer ID Application: Your Name (TEAMID)" scripts/build-app.sh
@@ -8,8 +8,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_NAME="Reclaimer"
-BUNDLE_ID="${BUNDLE_ID:-com.antonkulikov.reclaimer}"
+APP_NAME="Backspacer"
+BUNDLE_ID="${BUNDLE_ID:-com.antonkulikov.backspacer}"
 VERSION="${VERSION:-$(git describe --tags --always 2>/dev/null | sed 's/^v//' || echo 0.1.0)}"
 BUILD_NUM="${BUILD_NUM:-$(date +%Y%m%d%H%M)}"
 MIN_OS="13.0"

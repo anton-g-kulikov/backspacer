@@ -6,16 +6,16 @@ import WebKit
 /// The UI sends `{id, op, args}`; every op that touches the disk takes a
 /// catalog entry *id*, never a path. Paths are resolved here from the bundled
 /// catalog.json, so a compromised or buggy web layer cannot name a path.
-/// Replies go back as `window.__reclaimerReply(id, ok, payload)`.
+/// Replies go back as `window.__backspacerReply(id, ok, payload)`.
 /// Conformance to the main-actor `WKScriptMessageHandler` lives in an extension so the rest of
 /// the class stays nonisolated: every op runs on the background queue.
 final class Bridge: NSObject, @unchecked Sendable {
-    static let handlerName = "reclaimer"
+    static let handlerName = "backspacer"
 
     /// Set once on the main thread at startup; read only inside `reply`, which hops to the main actor.
     @MainActor weak var webView: WKWebView?
     private let catalog: Catalog
-    private let queue = DispatchQueue(label: "reclaimer.bridge", qos: .userInitiated, attributes: .concurrent)
+    private let queue = DispatchQueue(label: "backspacer.bridge", qos: .userInitiated, attributes: .concurrent)
     private let home: String
     private let tildeHome: String
     private let defaults: UserDefaults
@@ -132,7 +132,7 @@ final class Bridge: NSObject, @unchecked Sendable {
         } else {
             json = #"{"error":"unserializable reply"}"#
         }
-        let js = "window.__reclaimerReply(\(id), \(ok), \(json));"
+        let js = "window.__backspacerReply(\(id), \(ok), \(json));"
         Task { @MainActor in self.webView?.evaluateJavaScript(js, completionHandler: nil) }
     }
 
@@ -617,7 +617,7 @@ enum BridgeError: LocalizedError {
         switch self {
         case .unknownOp(let op):      return "Unknown operation: \(op)"
         case .unknownEntry(let id):   return "Unknown catalog entry: \(id)"
-        case .notDeletable(let l):    return "\(l) isn't deletable from Reclaimer."
+        case .notDeletable(let l):    return "\(l) isn't deletable from Backspacer."
         case .unsafePath(let p):      return "Refused to delete \(p) — outside the allowed roots."
         case .failed(let m):          return m
         }

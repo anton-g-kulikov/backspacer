@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Reclaimer — pure page logic. No DOM, no state: everything here takes
+   Backspacer — pure page logic. No DOM, no state: everything here takes
    its inputs as arguments so it can run under Node (Tests/web) as well
    as in the page. index.html binds these to its state.
    ═══════════════════════════════════════════════════════════════════ */

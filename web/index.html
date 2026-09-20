@@ -6,7 +6,7 @@
 <!-- Second line of defence behind esc(): nothing inline may run, so a folder name that
      somehow reached an attribute as an event handler still can't execute (R2). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'">
-<title>Reclaimer</title>
+<title>Backspacer</title>
 <style id="css-glass">
   :root {
     color-scheme: light dark;
@@ -69,9 +69,11 @@
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
     display: grid; grid-template-columns: 1fr auto; gap: 10px 24px; align-items: center; position: relative; z-index: 2;
   }
-  .brand { display: flex; align-items: baseline; gap: 10px; }
-  .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.02em; }
+  .brand { display: flex; flex-direction: column; gap: 1px; }
+  .brand .name { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.02em; line-height: 1.15; }
   .brand .sub { color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .brand .tagline { color: var(--muted); font-size: 12.5px; font-weight: 500; }
   .disk { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
   .disk .lbl { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
   .bar { height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
@@ -240,7 +242,10 @@
     padding: 12px calc(18px + var(--sb, 0px)) 10px; border-bottom: 1px solid var(--line);
     display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center;
   }
-  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand .name { display: flex; align-items: baseline; gap: 12px; }
+  .brand .tagline { color: var(--muted); }
+  .brand .tagline::before { content: "// "; color: var(--faint); }
   .brand h1 { font-size: 13px; font-weight: 700; margin: 0; color: var(--accent); letter-spacing: .02em; }
   .brand h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
   .brand .sub { color: var(--muted); }
@@ -392,7 +397,7 @@
 <body>
 
 <header>
-  <div class="brand"><h1>Reclaimer</h1><span class="sub" id="host">scanning your Mac</span></div>
+  <div class="brand"><div class="name"><h1>Backspacer</h1><span class="sub" id="host">scanning your Mac</span></div><span class="tagline">I got some if you need it</span></div>
   <div class="controls">
     <div class="seg" id="theme" title="Look. Remembered between launches.">
       <button data-theme="glass" aria-pressed="true">Glass</button><button data-theme="terminal" aria-pressed="false">Terminal</button>
@@ -439,27 +444,27 @@
   </div>
   <pre id="log" class="panel" role="log" hidden></pre>
   <div id="about" class="panel about" hidden>
-    <h3>Reclaimer: get back your precious disk space</h3>
-    <p>Reclaimer isn't an app uninstaller or a general disk cleaner. It knows the caches, build output and
+    <h3>Backspacer: get back your precious disk space</h3>
+    <p>Backspacer isn't an app uninstaller or a general disk cleaner. It knows the caches, build output and
        tooling leftovers a developer's Mac accumulates, sorts them by how safe they are to remove, and lets
        you pick item by item. Nothing is deleted without a confirmation, and admin-only paths go through
        macOS's own password dialog.</p>
     <p>Version <span id="aboutVersion"></span> · © 2026 Anton Kulikov · Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
        · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
-    <p class="diag">Something odd? Reclaimer keeps a log of what it did — attach it to your report.
+    <p class="diag">Something odd? Backspacer keeps a log of what it did — attach it to your report.
        <code id="logPath"></code> <button class="btn small" id="revealLog">Reveal log</button></p>
     <div class="lic">
       <b>License</b>
-      Reclaimer is free for noncommercial use under the
+      Backspacer is free for noncommercial use under the
       <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm Noncommercial License 1.0.0</a>:
       use it, share it, read and modify the source, as long as it's not for a commercial purpose. Selling it,
       bundling it in a paid product or offering it as a paid service needs a separate license from the author.
       <b>Name and icon</b>
-      The "Reclaimer" name and icon are not licensed. A modified version must use a different name and icon,
+      The "Backspacer" name and icon are not licensed. A modified version must use a different name and icon,
       so nobody mistakes it for the signed build published on GitHub.
       <b>No warranty</b>
       Provided "as is", without warranty of any kind. The full license text ships in the repository as
-      <a href="https://github.com/anton-g-kulikov/reclaimer/blob/main/LICENSE">LICENSE</a>.
+      <a href="https://github.com/anton-g-kulikov/backspacer/blob/main/LICENSE">LICENSE</a>.
     </div>
   </div>
 </footer>

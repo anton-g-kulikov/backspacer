@@ -1,6 +1,6 @@
 import Foundation
 
-/// The log file a user can attach to a bug report: ~/Library/Logs/Reclaimer/Reclaimer.log.
+/// The log file a user can attach to a bug report: ~/Library/Logs/Backspacer/Backspacer.log.
 /// Plain text, one line per event, rotated once past `maxBytes` (one previous copy kept).
 /// Nothing is ever sent anywhere; sharing it is the user's own act.
 final class Diagnostics: Sendable {
@@ -8,10 +8,10 @@ final class Diagnostics: Sendable {
 
     let file: URL
     private let maxBytes: Int
-    private let queue = DispatchQueue(label: "reclaimer.diagnostics")
+    private let queue = DispatchQueue(label: "backspacer.diagnostics")
 
     static let standard = Diagnostics(
-        file: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Reclaimer/Reclaimer.log"),
+        file: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Backspacer/Backspacer.log"),
         maxBytes: 1_000_000)
 
     init(file: URL, maxBytes: Int) { self.file = file; self.maxBytes = maxBytes }

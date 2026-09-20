@@ -1,5 +1,5 @@
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct ShellTests {
     @Test("Q1 — plain path is single-quoted")

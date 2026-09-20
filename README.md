@@ -1,25 +1,26 @@
-# Reclaimer
+# Backspacer
 
-[![Download the latest release](https://img.shields.io/github/v/release/anton-g-kulikov/reclaimer?label=download&color=0a84ff)](https://github.com/anton-g-kulikov/reclaimer/releases/latest)
+[![Download the latest release](https://img.shields.io/github/v/release/anton-g-kulikov/backspacer?label=download&color=0a84ff)](https://github.com/anton-g-kulikov/backspacer/releases/latest)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)
 ![Apple silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-lightgrey)
-[![CI](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-g-kulikov/reclaimer/actions/workflows/ci.yml)
+[![CI](https://github.com/anton-g-kulikov/backspacer/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-g-kulikov/backspacer/actions/workflows/ci.yml)
 [![Buy me a book](https://img.shields.io/badge/buy%20me%20a%20book-%F0%9F%93%96-ffdd00)](https://buymeacoffee.com/antonkulikov)
 
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and
 deletes only what you tick — after a confirmation that lists every item.
 
-**[Download the latest release →](https://github.com/anton-g-kulikov/reclaimer/releases/latest)**
-Open the DMG, drag Reclaimer to Applications. Notarized; no Gatekeeper warnings.
+**[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
+Open the DMG, drag Backspacer to Applications. Notarized; no Gatekeeper warnings.
 
-> **Name clash, and a rename.** This project is not related to *Reclaimer* by
-> MNZN, LLC on the Mac App Store, nor to Reclaim.ai. To end the confusion it
-> is being renamed **Backspacer** for the next release (0.8.0); the repository
-> URL will redirect. Until then the app, DMG and log folder still say
-> Reclaimer.
+> **Formerly Reclaimer.** Renamed in 0.8.0: this project is not related to
+> *Reclaimer* by MNZN, LLC on the Mac App Store, nor to Reclaim.ai, and the
+> shared name caused confusion. The old repository URL redirects. macOS sees
+> Backspacer as a new app, so after updating grant Full Disk Access again and
+> re-add any project folders; the old copy and `~/Library/Logs/Reclaimer` can
+> go (the app lists that folder under Logs).
 
-![Reclaimer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
+![Backspacer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
 
 It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The
 knowledge from that chase lives in `catalog.json`; the app is a thin, careful
@@ -30,7 +31,7 @@ shell around it.
 │  web/index.html   (HTML/JS UI, runs in       │
 │                    WKWebView or a browser)   │
 │         │  {id, op, args}  ▲ reply(id, ok)   │
-│  Sources/Reclaimer/Bridge.swift              │
+│  Sources/Backspacer/Bridge.swift              │
 │    resolves catalog ids → paths, runs du /   │
 │    find / rm, asks for admin via the system  │
 │    dialog, opens Full Disk Access settings   │
@@ -104,13 +105,13 @@ open http://localhost:8765/web/index.html
 **The app:**
 
 ```bash
-scripts/build-app.sh             # → build/Reclaimer.app, ad-hoc signed
-open build/Reclaimer.app
+scripts/build-app.sh             # → build/Backspacer.app, ad-hoc signed
+open build/Backspacer.app
 ```
 
 Right-click → *Inspect Element* works inside debug builds (WKWebView
 inspector); for a release build turn it on with
-`defaults write com.antonkulikov.reclaimer WebInspector -bool YES`.
+`defaults write com.antonkulikov.backspacer WebInspector -bool YES`.
 `swift build` alone gives you the bare binary for compile checks; `swift test`
 runs the Swift suites and `node --test 'Tests/web/*.test.js'` the page-logic
 ones (what they cover: `Tests/test-documentation.md`).
@@ -166,7 +167,7 @@ click any bucket header to toggle it.
 
 macOS blocks every process, root included, from reading some `~/Library`
 folders (Safari, Mail, Messages, Containers of sandboxed apps) unless the app
-has Full Disk Access. Reclaimer detects this and shows a banner with a button
+has Full Disk Access. Backspacer detects this and shows a banner with a button
 that opens the right System Settings pane. Grant it, then Rescan. Without it,
 those entries under-report or show `?`.
 
@@ -179,10 +180,10 @@ Everyone is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Something went wrong?
 
-Reclaimer keeps a plain-text log of what it did in
-`~/Library/Logs/Reclaimer/Reclaimer.log` — every scan and delete, the exact
+Backspacer keeps a plain-text log of what it did in
+`~/Library/Logs/Backspacer/Backspacer.log` — every scan and delete, the exact
 commands it ran, failures, and page errors. About → **Reveal log** opens it in
-Finder. Attach it to an [issue](https://github.com/anton-g-kulikov/reclaimer/issues)
+Finder. Attach it to an [issue](https://github.com/anton-g-kulikov/backspacer/issues)
 or an email; note it names the folders and projects it measured.
 
 ## License
@@ -191,9 +192,9 @@ Free for noncommercial use under the
 [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
 — use it, share it, read and modify the source. Commercial use (selling it,
 bundling it in a paid product, paid services) needs a separate license from
-the author. The Reclaimer name and icon aren't licensed: a modified build must
+the author. The Backspacer name and icon aren't licensed: a modified build must
 be renamed. Full text and details in [LICENSE](LICENSE).
 
-If Reclaimer got you your disk back, you can
+If Backspacer got you your disk back, you can
 [buy me a book](https://buymeacoffee.com/antonkulikov). Support:
 anton.g.kulikov@gmail.com.

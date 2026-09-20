@@ -110,9 +110,9 @@ enum Shell {
     static let adminFlag = "--admin"
 
     /// Runs a command as root via the system authorization dialog without freezing the app (R5):
-    /// Reclaimer's own executable is launched again as a subprocess in helper mode, and *that*
+    /// Backspacer's own executable is launched again as a subprocess in helper mode, and *that*
     /// process runs `do shell script … with administrator privileges` on its main thread. One
-    /// prompt, attributed to Reclaimer (same signed binary), while the app's main thread stays
+    /// prompt, attributed to Backspacer (same signed binary), while the app's main thread stays
     /// free. The app never sees the password.
     static func runAsAdmin(_ command: String) -> ShellResult {
         runAsAdmin(command, helper: Bundle.main.executablePath ?? CommandLine.arguments[0], spawn: { spawn($0, $1, timeout: $2) })

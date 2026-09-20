@@ -1,6 +1,6 @@
 # Security
 
-Reclaimer deletes folders. If you find a way it could remove something it
+Backspacer deletes folders. If you find a way it could remove something it
 shouldn't — a catalog path that resolves outside the allowed roots, a way for
 the page to name a path, a gate that lets a user-data folder through — please
 email anton.g.kulikov@gmail.com rather than opening a public issue. You'll get

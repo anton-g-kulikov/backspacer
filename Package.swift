@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "Reclaimer",
+    name: "Backspacer",
     platforms: [.macOS(.v13)],
     targets: [
         .executableTarget(
-            name: "Reclaimer",
-            path: "Sources/Reclaimer"
+            name: "Backspacer",
+            path: "Sources/Backspacer"
         ),
         .testTarget(
-            name: "ReclaimerTests",
-            dependencies: ["Reclaimer"],
-            path: "Tests/ReclaimerTests"
+            name: "BackspacerTests",
+            dependencies: ["Backspacer"],
+            path: "Tests/BackspacerTests"
         )
     ]
 )

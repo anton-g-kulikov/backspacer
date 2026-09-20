@@ -2,7 +2,7 @@
 
 Thanks for looking. Two kinds of contribution help most:
 
-1. **Bug reports** — open an issue and attach `~/Library/Logs/Reclaimer/Reclaimer.log`
+1. **Bug reports** — open an issue and attach `~/Library/Logs/Backspacer/Backspacer.log`
    (About → *Reveal log*). It names the folders the app measured; trim it if you like.
 2. **Catalog entries** — the knowledge in `catalog.json` is the product. A good
    entry answers five questions; the issue and PR templates ask them:
@@ -34,7 +34,7 @@ that deletes folders doesn't take drive-by merges.
 ## Terms
 
 The project is distributed under the PolyForm Noncommercial License 1.0.0 (see
-`LICENSE`). So that the maintainer can keep distributing Reclaimer under that
+`LICENSE`). So that the maintainer can keep distributing Backspacer under that
 license and offer commercial licenses, **contributions are made under the
 Apache License 2.0**: by submitting a pull request you license your
 contribution to the project under Apache-2.0. You keep your copyright. If you

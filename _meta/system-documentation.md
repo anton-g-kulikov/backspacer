@@ -1,6 +1,6 @@
 # System Documentation
 
-Evergreen description of how Reclaimer works internally. User-facing setup and
+Evergreen description of how Backspacer works internally. User-facing setup and
 usage live in `README.md`; the bridge contract in `api-design.md`; the reasons
 behind the design in `architecture-decisions.md`.
 
@@ -13,12 +13,12 @@ behind the design in `architecture-decisions.md`.
 | `web/boot.js` | Picks the cached theme before first paint. |
 | `web/app.js` | Binds page state to the DOM and the bridge: rendering, scanning, the confirm flows, project folders, About. |
 | `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
-| `Sources/Reclaimer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
+| `Sources/Backspacer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `Diagnostics.swift` | The shareable log file (see *Diagnostics*). |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
 | `Catalog.swift` | Typed mirror of `catalog.json`; `Resources` locates bundled files. |
-| `Shell.swift` | Admin commands: `runAsAdmin` launches Reclaimer's own executable as a helper (`Reclaimer --admin <cmd>`, `AdminHelper` in `main.swift`) which runs `do shell script … with administrator privileges` on *its* main thread — one prompt, attributed to Reclaimer, and the app never blocks (R5). `Shell.spawn` launches with `posix_spawn` in a fresh process group with a clean signal mask, so a timeout can `killpg` the whole tree (SIGTERM, then SIGKILL after 2 s) instead of orphaning `du`/`rm` (R8). `CommandRunner` protocol (`run(_:timeout:login:)`, `runAsAdmin`) with `SystemShell` as the production implementation; `Bridge` takes one at init, tests inject `FakeShell`. Measurement and removal (`du`, `find`, `rm`) run with `login: false` — `/bin/sh` with a fixed system PATH, ~5 ms to start; catalog-defined commands run with `login: true` — the user's login zsh, so `brew`/`xcrun`/`dotnet` resolve, ~0.8 s to start — with the well-known tool prefixes (`/opt/homebrew/bin`, `/usr/local/bin`, dotnet, cargo, bun, pub, `~/.local/bin`) appended to `PATH` as a fallback for shells whose profile doesn't set it (`.zshrc`-only, bash, fish), never ahead of the user's own PATH (R6). |
+| `Shell.swift` | Admin commands: `runAsAdmin` launches Backspacer's own executable as a helper (`Backspacer --admin <cmd>`, `AdminHelper` in `main.swift`) which runs `do shell script … with administrator privileges` on *its* main thread — one prompt, attributed to Backspacer, and the app never blocks (R5). `Shell.spawn` launches with `posix_spawn` in a fresh process group with a clean signal mask, so a timeout can `killpg` the whole tree (SIGTERM, then SIGKILL after 2 s) instead of orphaning `du`/`rm` (R8). `CommandRunner` protocol (`run(_:timeout:login:)`, `runAsAdmin`) with `SystemShell` as the production implementation; `Bridge` takes one at init, tests inject `FakeShell`. Measurement and removal (`du`, `find`, `rm`) run with `login: false` — `/bin/sh` with a fixed system PATH, ~5 ms to start; catalog-defined commands run with `login: true` — the user's login zsh, so `brew`/`xcrun`/`dotnet` resolve, ~0.8 s to start — with the well-known tool prefixes (`/opt/homebrew/bin`, `/usr/local/bin`, dotnet, cargo, bun, pub, `~/.local/bin`) appended to `PATH` as a fallback for shells whose profile doesn't set it (`.zshrc`-only, bash, fish), never ahead of the user's own PATH (R6). |
 | `Shell` (enum) | Runs commands through a login `zsh` (so `xcrun`, `brew`, `dotnet` resolve), draining stdout/stderr on dedicated threads (GCD's global queue can be starved by concurrent callers and leave the readers unscheduled) with a timeout; admin commands go through AppleScript's `with administrator privileges`. |
 
 ## Startup
@@ -26,7 +26,7 @@ behind the design in `architecture-decisions.md`.
 1. `AppDelegate` loads the catalog via `Resources.root` — the app bundle's
    `Resources/` normally; in `DEBUG` builds without a bundle (Xcode ⌘R,
    `swift run`) it falls back to the repo root found from `#filePath`.
-2. A `WKWebView` is created with the `reclaimer` script message handler and
+2. A `WKWebView` is created with the `backspacer` script message handler and
    `loadFileURL(web/index.html, allowingReadAccessTo: Resources)`.
 3. The page picks the cached theme from `localStorage` before first paint, then
    asks the host (`prefGet theme`, `prefGet minSize`) and applies the stored
@@ -107,7 +107,7 @@ Tests I1–I8 run this against a temp directory used as `home`.
 A `children` entry may `exclude` subfolder names: they are neither listed
 nor removed, the total counts only the listed children, and a whole-entry
 delete sweeps child by child so the excluded ones and the parent stay.
-`~/Library/Logs` uses it to spare crash reports and Reclaimer's own
+`~/Library/Logs` uses it to spare crash reports and Backspacer's own
 diagnostics log (I15, C12).
 
 A `children` entry may name a `companion` extension: each child is shown by
@@ -192,14 +192,14 @@ Developer ID–signed builds; ad-hoc builds lose it on every rebuild.
 ## Build and packaging
 
 `scripts/build-app.sh` compiles with SwiftPM (universal when `IDENTITY` is
-set), assembles `build/Reclaimer.app` with a generated `Info.plist`, normalises
+set), assembles `build/Backspacer.app` with a generated `Info.plist`, normalises
 file modes, and signs (hardened runtime + timestamp with a Developer ID,
 ad-hoc otherwise). `scripts/notarize.sh` submits the app, staples, wraps it in
 a DMG, submits and staples that. See `release-checklist.md` for the sequence.
 
 ## Diagnostics
 
-`~/Library/Logs/Reclaimer/Reclaimer.log` (`Diagnostics.swift`) is the file a
+`~/Library/Logs/Backspacer/Backspacer.log` (`Diagnostics.swift`) is the file a
 user attaches to a bug report. Plain text, one line per event, `[info]`,
 `[warn]` or `[error]`, rotated once past 1 MB (one `.previous.log` kept).
 Written by the host only; nothing is ever sent anywhere. Recorded:
@@ -234,8 +234,8 @@ are not part of CI — they need the local keychain (see `release-checklist.md`)
 ```
 catalog.json              knowledge; catalog.schema.json describes it
 web/index.html            UI markup + CSP; boot.js, app.js (DOM + state glue); logic.js pure logic, tested under Node
-Sources/Reclaimer/        app
-Tests/ReclaimerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
+Sources/Backspacer/        app
+Tests/BackspacerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
 .github/                  CI workflow, issue/PR templates, CODEOWNERS
 CONTRIBUTING.md           how to propose entries; inbound Apache-2.0 terms
 SECURITY.md               how to report a deletion-safety problem

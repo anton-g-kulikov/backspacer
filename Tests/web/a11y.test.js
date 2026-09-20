@@ -46,7 +46,7 @@ test('A6 disclosure and toggle states, dialog labelling, focus, badges, headings
   assert.match(html, /<dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgText">/);
   assert.ok((html.match(/:focus-visible \{/g) || []).length >= 2, 'a focus ring in each theme');
   assert.doesNotMatch(html, /\.badge \{[^}]*font-size: 10px/);
-  assert.match(html, /<h3>Reclaimer: get back your precious disk space<\/h3>/);
+  assert.match(html, /<h3>Backspacer: get back your precious disk space<\/h3>/);
   assert.match(html, /\.row \.path \{[^}]*user-select: text/);
   assert.match(html, /\.sr-only \{/);
 });

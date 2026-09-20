@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 /// Your-call items go to the Trash; caches are removed for good. A recording trasher stands in
 /// for FileManager.trashItem so the user's real Trash is never touched.
@@ -12,7 +12,7 @@ import Testing
     let fm = FileManager.default
 
     init() throws {
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-trash-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-trash-\(UUID().uuidString)")
         for d in ["Library/Caches/x", "Library/Developer/Xcode/Archives/2026-01-01", "Library/Developer/Xcode/Archives/2026-02-02", "Library/Android/sdk/ndk", "Library/Application Support/App/data"] {
             try fm.createDirectory(at: home.appendingPathComponent(d), withIntermediateDirectories: true)
             try Data(repeating: 0, count: 1024).write(to: home.appendingPathComponent(d + "/f.bin"))

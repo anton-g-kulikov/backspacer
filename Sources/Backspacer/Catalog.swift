@@ -66,7 +66,7 @@ struct Catalog: Decodable {
 
     static func load() throws -> Catalog {
         guard let url = Resources.url("catalog.json") else {
-            throw NSError(domain: "Reclaimer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No resource URL"])
+            throw NSError(domain: "Backspacer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No resource URL"])
         }
         return try load(from: url)
     }
@@ -82,7 +82,7 @@ struct Catalog: Decodable {
 }
 
 /// Locates bundled files (catalog.json, web/). Normally these live in
-/// Reclaimer.app/Contents/Resources. Debug builds run as a bare binary from
+/// Backspacer.app/Contents/Resources. Debug builds run as a bare binary from
 /// Xcode or `swift run`, with no bundle, so they fall back to the source tree.
 enum Resources {
     static let root: URL? = {
@@ -91,7 +91,7 @@ enum Resources {
             return res
         }
         #if DEBUG
-        // Sources/Reclaimer/Catalog.swift → repo root
+        // Sources/Backspacer/Catalog.swift → repo root
         let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
         if FileManager.default.fileExists(atPath: repo.appendingPathComponent("Package.swift").path) {

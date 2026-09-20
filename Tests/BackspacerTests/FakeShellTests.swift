@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct FakeShellTests {
     let home: URL
@@ -9,7 +9,7 @@ import Testing
     let fm = FileManager.default
 
     init() throws {
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-fake-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-fake-\(UUID().uuidString)")
         // resolvePaths filters non-admin paths by existence, so the folders must exist; nothing inside is read.
         for d in ["Library/Caches", "Projects/my app/node_modules", "Projects/b/node_modules", "Library/Logs"] { try fm.createDirectory(at: home.appendingPathComponent(d), withIntermediateDirectories: true) }
         let json = """

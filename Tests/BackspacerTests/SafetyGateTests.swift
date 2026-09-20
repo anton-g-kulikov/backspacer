@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct SafetyGateTests {
     let bridge = try! Fixture.bridge()
@@ -60,10 +60,10 @@ import Testing
     @Test("S8b — inside a configured project folder is exempt")
     func projectFolderExempt() throws {
         let fm = FileManager.default
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-gate-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-gate-\(UUID().uuidString)")
         defer { try? fm.removeItem(at: home) }
         try fm.createDirectory(at: home.appendingPathComponent("Documents/mycode/app/node_modules"), withIntermediateDirectories: true)
-        let suite = "reclaimer-gate-\(UUID().uuidString)"
+        let suite = "backspacer-gate-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
         let b = Bridge(catalog: try Fixture.catalog(), home: home.path, tildeHome: home.path, defaults: defaults)
         #expect(!b.isSafeToDelete(home.path + "/Documents/mycode/app/node_modules"), "not a root yet")
@@ -91,7 +91,7 @@ import Testing
     @Test("S11 — symlinks are resolved before the check")
     func symlinks() throws {
         let fm = FileManager.default
-        let home = fm.temporaryDirectory.appendingPathComponent("reclaimer-link-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appendingPathComponent("backspacer-link-\(UUID().uuidString)")
         defer { try? fm.removeItem(at: home) }
         try fm.createDirectory(at: home.appendingPathComponent("Documents/Thesis"), withIntermediateDirectories: true)
         try fm.createDirectory(at: home.appendingPathComponent("Library/Caches"), withIntermediateDirectories: true)
@@ -106,10 +106,10 @@ import Testing
     func globsAndChildrenPassGate() throws {
         let catalog = try Fixture.catalog()
         let fm = FileManager.default
-        let tmp = fm.temporaryDirectory.appendingPathComponent("reclaimer-s12-\(UUID().uuidString)")
+        let tmp = fm.temporaryDirectory.appendingPathComponent("backspacer-s12-\(UUID().uuidString)")
         defer { try? fm.removeItem(at: tmp) }
         try fm.createDirectory(at: tmp.appendingPathComponent("Documents/code"), withIntermediateDirectories: true)
-        let suite = "reclaimer-s12-\(UUID().uuidString)"
+        let suite = "backspacer-s12-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
         let b = Bridge(catalog: catalog, home: tmp.path, tildeHome: tmp.path, defaults: defaults)
         try b.addProjectRoot(path: tmp.path + "/Documents/code")

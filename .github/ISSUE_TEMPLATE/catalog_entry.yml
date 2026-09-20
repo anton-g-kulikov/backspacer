@@ -1,5 +1,5 @@
 name: Catalog entry proposal
-description: A folder or tool leftover Reclaimer should know about.
+description: A folder or tool leftover Backspacer should know about.
 labels: [catalog]
 body:
   - type: input

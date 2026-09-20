@@ -32,8 +32,8 @@ jobs:
         run: swift --version && xcodebuild -version
       - name: Tests
         run: swift test 2>&1 | tail -30
-      - name: Web logic and accessibility tests (node)
-        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js'
+      - name: Web logic, accessibility and brand tests (node)
+        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js'
       - name: Catalog parses and validates
         run: |
           python3 -c "import json; json.load(open('catalog.json')); json.load(open('catalog.schema.json'))"
@@ -46,6 +46,6 @@ jobs:
       - name: Package and verify the app bundle
         run: |
           UNIVERSAL=1 scripts/build-app.sh
-          codesign --verify --deep --strict build/Reclaimer.app
-          plutil -lint build/Reclaimer.app/Contents/Info.plist
-          /usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' build/Reclaimer.app/Contents/Info.plist
+          codesign --verify --deep --strict build/Backspacer.app
+          plutil -lint build/Backspacer.app/Contents/Info.plist
+          /usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' build/Backspacer.app/Contents/Info.plist

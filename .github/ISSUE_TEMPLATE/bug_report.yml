@@ -4,7 +4,7 @@ labels: [bug]
 body:
   - type: input
     id: version
-    attributes: { label: Reclaimer version, description: About panel → Version (hover for the build). }
+    attributes: { label: Backspacer version, description: About panel → Version (hover for the build). }
     validations: { required: true }
   - type: input
     id: macos
@@ -18,5 +18,5 @@ body:
     id: log
     attributes:
       label: Diagnostics log
-      description: About → Reveal log, then paste the relevant part of ~/Library/Logs/Reclaimer/Reclaimer.log. It names the folders the app measured — trim what you'd rather not share.
+      description: About → Reveal log, then paste the relevant part of ~/Library/Logs/Backspacer/Backspacer.log. It names the folders the app measured — trim what you'd rather not share.
       render: text

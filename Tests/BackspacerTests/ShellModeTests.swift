@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 @Suite struct ShellModeTests {
     @Test("M1 — plain mode is /bin/sh with the system PATH")
@@ -21,7 +21,7 @@ import Testing
 
     @Test("M3 — measurement is plain, catalog commands are login")
     func routing() throws {
-        let home = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-mode-\(UUID().uuidString)")
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-mode-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: home) }
         for d in ["Library/Caches", "Projects/a/node_modules", "Library/Logs"] { try FileManager.default.createDirectory(at: home.appendingPathComponent(d), withIntermediateDirectories: true) }
         let json = """
@@ -55,7 +55,7 @@ import Testing
 
     @Test("M4 — the breakdown works without zsh globbing")
     func breakdown() throws {
-        let home = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-bd-\(UUID().uuidString)")
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-bd-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: home) }
         for (d, mb) in [("Library/Caches/big", 2), ("Library/Caches/small", 1)] {
             try FileManager.default.createDirectory(at: home.appendingPathComponent(d), withIntermediateDirectories: true)
@@ -84,14 +84,14 @@ import Testing
     @Test("M7 — admin work runs in a helper subprocess, not NSAppleScript on the app's main thread")
     func adminOffMainThread() {
         var spawned: [(String, [String])] = []
-        let r = Shell.runAsAdmin("rm -rf '/x'", helper: "/Applications/Reclaimer.app/Contents/MacOS/Reclaimer",
+        let r = Shell.runAsAdmin("rm -rf '/x'", helper: "/Applications/Backspacer.app/Contents/MacOS/Backspacer",
                                  spawn: { exe, args, _ in spawned.append((exe, args)); return ShellResult(status: 0, stdout: "", stderr: "") })
         #expect(r.ok)
         #expect(spawned.count == 1)
-        #expect(spawned.first?.0 == "/Applications/Reclaimer.app/Contents/MacOS/Reclaimer", "the app's own signed binary, so the prompt names Reclaimer")
+        #expect(spawned.first?.0 == "/Applications/Backspacer.app/Contents/MacOS/Backspacer", "the app's own signed binary, so the prompt names Backspacer")
         #expect(spawned.first?.1 == [Shell.adminFlag, "rm -rf '/x'"])
 
-        let cancelled = Shell.runAsAdmin("rm -rf '/x'", helper: "/x/Reclaimer",
+        let cancelled = Shell.runAsAdmin("rm -rf '/x'", helper: "/x/Backspacer",
                                          spawn: { _, _, _ in ShellResult(status: 128, stdout: "", stderr: "cancelled\n") })
         #expect(!cancelled.ok && cancelled.stderr.contains("cancelled"))
     }
@@ -148,7 +148,7 @@ import Testing
 
     @Test("M5 — ten plain dus are fast")
     func fast() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("reclaimer-fast-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-fast-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let start = Date()

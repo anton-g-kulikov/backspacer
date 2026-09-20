@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/anton-g-kulikov/reclaimer/catalog.schema.json",
-  "title": "Reclaimer catalog",
-  "description": "What Reclaimer measures, which bucket it belongs to, and how it is removed. Every disk path the app ever touches comes from here.",
+  "$id": "https://github.com/anton-g-kulikov/backspacer/catalog.schema.json",
+  "title": "Backspacer catalog",
+  "description": "What Backspacer measures, which bucket it belongs to, and how it is removed. Every disk path the app ever touches comes from here.",
   "type": "object",
   "required": ["version", "buckets", "entries"],
   "additionalProperties": false,

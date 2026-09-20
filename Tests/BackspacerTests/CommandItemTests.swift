@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Reclaimer
+@testable import Backspacer
 
 /// Command-listed items, run through the real catalog commands against a fake `xcrun`.
 @Suite struct CommandItemTests {
@@ -24,7 +24,7 @@ import Testing
     """
 
     init() throws {
-        dir = fm.temporaryDirectory.appendingPathComponent("reclaimer-xcrun-\(UUID().uuidString)")
+        dir = fm.temporaryDirectory.appendingPathComponent("backspacer-xcrun-\(UUID().uuidString)")
         let bin = dir.appendingPathComponent("bin")
         try fm.createDirectory(at: bin, withIntermediateDirectories: true)
         logFile = dir.appendingPathComponent("calls.log")

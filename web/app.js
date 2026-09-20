@@ -1,14 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════
    Bridge — talks to the Swift host. Falls back to a mock in a browser.
    Protocol:  JS  → bridge.call(op, args)  → Swift
-              Swift → window.__reclaimerReply(id, ok, payload)
+              Swift → window.__backspacerReply(id, ok, payload)
    Ops: catalog, disk, fdaStatus, size{id}, info{id}, delete{id}, reveal{id}, openFDA
    Safety: JS only ever sends catalog *ids*. Paths are resolved by Swift
    from its own copy of catalog.json, so the web layer can't name a path.
    ═══════════════════════════════════════════════════════════════════ */
-const native = window.webkit?.messageHandlers?.reclaimer;
+const native = window.webkit?.messageHandlers?.backspacer;
 const pending = new Map(); let seq = 0;
-window.__reclaimerReply = (id, ok, payload) => {
+window.__backspacerReply = (id, ok, payload) => {
   const p = pending.get(id); if (!p) return; pending.delete(id);
   ok ? p.res(payload) : p.rej(new Error(payload?.error || String(payload)));
 };
@@ -59,7 +59,7 @@ function mockBridge() {
         case 'appInfo': return { version: 'dev', build: 'browser' };
         case 'log': return { ok: true };
         case 'scanHints': return { durations: {} };
-        case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Reclaimer/Reclaimer.log' };
+        case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Backspacer/Backspacer.log' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
