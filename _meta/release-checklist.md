@@ -68,7 +68,7 @@ the certificate expires May 2031. Never paste any of these into a script or a co
 7. Remove the previous version's `.dmg`/`.zip` from `build/`.
 
 ## Rollback
-- A bad DMG: delete the GitHub release and the tag (`gh release delete vX.Y.Z --yes`,
+- A run that failed after publishing (or a bad DMG): delete the GitHub release and the tag (`gh release delete vX.Y.Z --yes`,
   `git push origin :refs/tags/vX.Y.Z`), fix, re-tag the fixed commit and push again.
 - Notarization can't be revoked by us; a rejected build never staples, so it
   never ships.

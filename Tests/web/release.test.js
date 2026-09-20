@@ -14,9 +14,9 @@ test('Y1 fires on version tags only', () => {
   assert.doesNotMatch(wf, /pull_request/);
 });
 
-test('Y2 permissions: write releases and mint an OIDC token for provenance, nothing else', () => {
+test('Y2 permissions: write releases, mint an OIDC token and store the attestation, nothing else', () => {
   const block = wf.match(/^permissions:\n((?:  .*\n)+)/m)[1];
-  assert.deepEqual(block.trim().split('\n').map((l) => l.trim()).sort(), ['contents: write', 'id-token: write']);
+  assert.deepEqual(block.trim().split('\n').map((l) => l.trim()).sort(), ['attestations: write', 'contents: write', 'id-token: write']);
 });
 
 test('Y3 every action is pinned to a commit SHA', () => {

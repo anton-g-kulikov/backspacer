@@ -13,10 +13,12 @@ on:
   push:
     tags: ['v*']
 
-# contents: write publishes the release; id-token: write signs the provenance attestation.
+# contents: write publishes the release; id-token: write signs the provenance attestation and
+# attestations: write stores it (without it the attest step fails with "Resource not accessible").
 permissions:
   contents: write
   id-token: write
+  attestations: write
 
 defaults:
   run:
@@ -86,6 +88,7 @@ jobs:
           DMG="build/Backspacer-$V.dmg"
           SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
           { sed -n "/^## $V /,/^## /p" CHANGELOG.md | sed '1d;$d' | sed '/^$/d'; echo; echo "SHA-256 \`Backspacer-$V.dmg\`: \`$SHA\`"; } > "$RUNNER_TEMP/notes.md"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then echo "a release for ${GITHUB_REF_NAME} already exists — delete it (and re-tag) to publish again"; exit 1; fi
           gh release create "${GITHUB_REF_NAME}" "$DMG" --title "Backspacer $V" --notes-file "$RUNNER_TEMP/notes.md"
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
