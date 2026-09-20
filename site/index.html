@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-gQM7LsBK+x9LwRol+BBmAwq8yGgdZl5P7tQaol8pePE=' 'sha256-cnX5TFzEa4JEokkatG1VaS9/osRuxaWPd0cvJDl8Wqg='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-XomDDpARpWcn1hj5DAJpggggsSf5VDdnBDDCm5+qy8E=' 'sha256-cnX5TFzEa4JEokkatG1VaS9/osRuxaWPd0cvJDl8Wqg='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -181,10 +181,10 @@
 
   .buckets { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); }
   .bucket { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 18px 18px 16px; }
-  .bucket h3 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+  .bucket h3 { margin: 0 0 6px; font-size: 18px; line-height: 1.25; display: flex; align-items: flex-start; gap: 10px; text-wrap: balance; }
   .bucket.safe { --dot: var(--safe); } .bucket.regen { --dot: var(--regen); } .bucket.decide { --dot: var(--decide); }
   .bucket.keep { --dot: var(--keep); } .bucket.locked { --dot: var(--locked); }
-  .bucket h3 i { width: 12px; height: 12px; border-radius: 50%; background: var(--dot); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 25%, transparent); }
+  .bucket h3 i { width: 12px; height: 12px; margin-top: .33em; border-radius: 50%; background: var(--dot); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 25%, transparent); }
   .bucket p { margin: 0; color: var(--muted); font-size: 15.5px; }
   .bucket .tag { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--faint); border: 1px solid rgba(128,128,128,.3); border-radius: 999px; padding: 2px 9px; }
 
