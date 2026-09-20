@@ -228,10 +228,14 @@ tag and size — without JS or when the API is rate-limited the button opens
 the release page. "Release notes" is a separate link. Under the buttons, the Homebrew
 command (`brew tap anton-g-kulikov/tap && brew install --cask backspacer`,
 two steps because Homebrew 7 no longer taps on the fly) with a Copy button;
-W13 keeps it identical to the README's. Screenshots: light
-(the README's window capture, title bar cropped) and dark (captured from
-the page's mock bridge), served by `prefers-color-scheme` inside a CSS
-window frame; `og.png` is the share card.
+W13 keeps it identical to the README's. The hero's right column is
+the "reveal": the macOS Storage list ending in System Data, then a findings
+card with seven of this Mac's largest entries and the three bucket totals
+— markup, not an image, measured with `du` over the catalog on 2026-09-20,
+so it stays legible at any size and follows the look and colour scheme.
+The real window capture sits full width under the bucket cards (light,
+dark and Terminal variants, chosen by `prefers-color-scheme` and the
+look); `og.png` is the share card.
 
 Look: the same two skins as the app. Glass follows the OS light/dark
 setting; Terminal is always dark. The header switcher sets

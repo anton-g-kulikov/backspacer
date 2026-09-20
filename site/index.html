@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-0bxPRhqmM+roUz2b2qJr4VGMUnvdfCK7tgg/1QlUTss=' 'sha256-Ixjc8/p8gkfbQQmHigKZYKzj0CFCV/6IBa/4y3h5GoM='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-REtQLI/T0SdNKh+wZlSped0Y5SHLNIStc5UbyhddWtc=' 'sha256-g+HS7MZWKe9EA0SQ/ksMFDRQnkBMsznCdH3TAKZPfYk='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -116,14 +116,10 @@
     nav ul { gap: 2px 14px; }
   }
 
-  .hero { padding: clamp(40px, 7vw, 80px) 0 8px; }
+  .hero { padding: clamp(36px, 6vw, 72px) 0 20px; }
+  .hero-grid { display: grid; grid-template-columns: 1fr; gap: 36px; align-items: center; }
+  @media (min-width: 960px) { .hero-grid { grid-template-columns: 11fr 10fr; gap: 48px; } }
   .hero-copy { max-width: 46rem; }
-  @media (min-width: 900px) {
-    .hero-copy { margin-inline: auto; text-align: center; }
-    .hero .lede { margin-inline: auto; }
-    .hero .cta, .hero .meta { justify-content: center; }
-    .hero .brew { margin-inline: auto; text-align: left; }
-  }
   h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
   .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
   .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 40ch; }
@@ -148,29 +144,38 @@
   section { padding: 44px 0; }
   section h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.015em; line-height: 1.15; text-wrap: balance; }
   section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; text-wrap: pretty; }
-  h1, .tagline, .lede, .story, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
+  h1, .tagline, .lede, .rcap, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
 
-  .vs { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: stretch; }
-  @media (min-width: 900px) { .vs { grid-template-columns: 1fr 1fr; gap: 28px; } }
-  .panel { display: flex; flex-direction: column; }
-  /* The app panel is a findings crop (no window chrome) that fades out mid-list; the Storage
-     rows spread to match its height so the two numbers sit side by side. */
-  .vs .shot.findings { flex: 1; display: flex; flex-direction: column; }
-  .vs .shot.findings picture { flex: 1; min-height: 0; position: relative; overflow: hidden; }
-  .vs .shot.findings img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
-  .vs .shot.findings picture::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%; background: linear-gradient(to bottom, transparent, var(--card-strong)); pointer-events: none; }
-  @media (max-width: 899px) { .vs .shot.findings picture { aspect-ratio: 1400 / 760; } }
-  @media (min-width: 900px) { .vs .shot.findings { min-height: 310px; } .vs .storage { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; } }
-  .panel .label { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
-  .storage { margin: 0; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
-  .storage .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
+  /* The reveal: the macOS Storage row, then what Backspacer finds inside it — markup, not an image,
+     so every number stays legible at any size and the card follows the look and the colour scheme. */
+  .reveal .label { margin: 0 0 8px; font-size: 12.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+  .unfold { text-align: center; color: var(--faint); font-size: 18px; line-height: 1; padding: 8px 0 6px; }
+  .findings { border-radius: var(--radius); background: var(--card-strong); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; font-size: 14.5px; }
+  .fhead { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 12px 16px; border-bottom: 1px solid rgba(128,128,128,.18); }
+  .fhead .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 3px color-mix(in srgb, var(--safe) 25%, transparent); }
+  .fhead b { font-size: 16px; font-variant-numeric: tabular-nums; } .fhead span { color: var(--muted); font-size: 13px; }
+  .frow { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 8px 16px; border-top: 1px solid rgba(128,128,128,.14); }
+  .fhead + .frow { border-top: 0; }
+  .frow i { width: 10px; height: 10px; border-radius: 50%; background: var(--dot); }
+  .frow.safe, .ftotals .safe { --dot: var(--safe); } .frow.regen, .ftotals .regen { --dot: var(--regen); } .frow.decide, .ftotals .decide { --dot: var(--decide); }
+  .fname { display: flex; flex-direction: column; min-width: 0; } .fname b { font-weight: 500; }
+  .fname code { font-family: var(--mono); font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fsize { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; }
+  .fmore { padding: 9px 16px 11px; color: var(--faint); font-size: 12.5px; border-top: 1px dashed rgba(128,128,128,.28); }
+  .ftotals { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--muted); }
+  .ftotals li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: var(--dot); vertical-align: 1px; }
+  .ftotals b { color: var(--fg); font-variant-numeric: tabular-nums; }
+  .rcap { margin: 14px 0 0; font-size: 14px; color: var(--faint); max-width: 52ch; }
+  .shot.app { margin: 28px 0 0; }
+  .shot.app figcaption { padding: 10px 14px 12px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--border); }
+  .storage { margin: 0; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2px 16px; }
+  .storage .row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
   .storage .row:first-child { border-top: 0; }
-  .storage .ic { width: 30px; height: 30px; border-radius: 8px; background: #8e8e93; color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .storage .ic { width: 26px; height: 26px; border-radius: 8px; background: #8e8e93; color: #fff; display: grid; place-items: center; font-weight: 700; }
   .storage .ic.dots::after { content: "···"; letter-spacing: 1px; }
   .storage .ic.dev { background: #6e6e73; font-size: 14px; }
   .storage .n { font-variant-numeric: tabular-nums; color: var(--muted); }
   .storage .n.big { color: var(--fg); font-weight: 600; }
-  .story { max-width: 62ch; margin: 26px 0 0; color: var(--muted); }
 
   .buckets { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); }
   .bucket { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 18px 18px 16px; }
@@ -228,9 +233,9 @@
   [data-skin="terminal"] h1 { color: var(--accent); font-weight: 700; letter-spacing: 0; font-size: clamp(34px, 6vw, 56px); }
   [data-skin="terminal"] h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
   [data-skin="terminal"] .tagline::before { content: "// "; color: var(--faint); }
-  [data-skin="terminal"] .panel .label::before { content: "// "; }
+  [data-skin="terminal"] .reveal .label::before { content: "// "; }
   [data-skin="terminal"] section h2 { font-size: clamp(18px, 2.3vw, 24px); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
-  [data-skin="terminal"] section .sub, [data-skin="terminal"] .story { max-width: 70ch; }
+  [data-skin="terminal"] section .sub { max-width: 70ch; }
   [data-skin="terminal"] section h2::before { content: "── "; color: var(--faint); font-weight: 400; }
   [data-skin="terminal"] .btn { background: none; border: 0; box-shadow: none; padding: 6px 4px; border-radius: 0; color: var(--fg); font-weight: 400; }
   [data-skin="terminal"] .btn::before { content: "["; color: var(--faint); margin-right: 6px; } [data-skin="terminal"] .btn::after { content: "]"; color: var(--faint); margin-left: 6px; }
@@ -243,8 +248,10 @@
   [data-skin="terminal"] .brew .copy::before { content: "["; color: var(--faint); } [data-skin="terminal"] .brew .copy::after { content: "]"; color: var(--faint); }
   [data-skin="terminal"] .shot { border-radius: 4px; }
   [data-skin="terminal"] .shot .win { display: none; }
-  [data-skin="terminal"] .storage, [data-skin="terminal"] .bucket, [data-skin="terminal"] .groups li, [data-skin="terminal"] .safety li { border-radius: 4px; }
+  [data-skin="terminal"] .findings, [data-skin="terminal"] .storage, [data-skin="terminal"] .bucket, [data-skin="terminal"] .groups li, [data-skin="terminal"] .safety li { border-radius: 4px; }
   [data-skin="terminal"] .storage .ic { border-radius: 2px; background: #3a464d; }
+  [data-skin="terminal"] .frow i, [data-skin="terminal"] .fhead .dot, [data-skin="terminal"] .ftotals li::before { border-radius: 0; box-shadow: none; }
+  [data-skin="terminal"] .fhead b { color: var(--accent); }
   [data-skin="terminal"] .bucket h3 i { box-shadow: none; border-radius: 0; width: 8px; height: 8px; }
   [data-skin="terminal"] .bucket .tag { border-radius: 0; }
   [data-skin="terminal"] .bucket .tag::before { content: "# "; }
@@ -314,7 +321,7 @@
 
 <main id="main">
   <section class="hero">
-    <div class="wrap">
+    <div class="wrap hero-grid">
       <div class="hero-copy">
         <h1>Backspacer</h1>
         <p class="tagline">I got some if you need it.</p>
@@ -336,38 +343,34 @@ brew install --cask backspacer</code></pre>
           <li>Free for noncommercial use</li>
         </ul>
       </div>
-    </div>
-  </section>
-
-  <section id="why" aria-labelledby="why-h">
-    <div class="wrap">
-      <h2 id="why-h">You know this row.</h2>
-      <p class="sub">System Settings tells you how much, never what. Backspacer grew out of a month of chasing that number on a 245 GB MacBook Air.</p>
-      <div class="vs">
-        <div class="panel">
-          <p class="label">What macOS shows you</p>
-          <div class="storage" role="img" aria-label="macOS storage list: Applications 42.8 GB, Developer 20.2 GB, Documents 63.8 GB, System Data 74.1 GB">
-            <div class="row"><span class="ic dev" aria-hidden="true">A</span><span>Applications</span><span class="n">42.78 GB</span></div>
-            <div class="row"><span class="ic dev" aria-hidden="true">⌘</span><span>Developer</span><span class="n">20.16 GB</span></div>
-            <div class="row"><span class="ic dev" aria-hidden="true">≡</span><span>Documents</span><span class="n">63.83 GB</span></div>
-            <div class="row"><span class="ic dots" aria-hidden="true"></span><span><b>System Data</b></span><span class="n big">74.11 GB</span></div>
-          </div>
+      <div class="reveal" aria-label="What macOS shows, and what Backspacer finds inside it">
+        <p class="label">What macOS shows you</p>
+        <div class="storage" role="img" aria-label="macOS storage list: Applications 42.8 GB, Developer 20.2 GB, Documents 63.8 GB, System Data 74.1 GB">
+          <div class="row"><span class="ic dev" aria-hidden="true">A</span><span>Applications</span><span class="n">42.78 GB</span></div>
+          <div class="row"><span class="ic dev" aria-hidden="true">⌘</span><span>Developer</span><span class="n">20.16 GB</span></div>
+          <div class="row"><span class="ic dev" aria-hidden="true">≡</span><span>Documents</span><span class="n">63.83 GB</span></div>
+          <div class="row"><span class="ic dots" aria-hidden="true"></span><span><b>System Data</b></span><span class="n big">74.11 GB</span></div>
         </div>
-        <div class="panel">
-          <p class="label">What Backspacer shows you</p>
-          <figure class="shot findings">
-            <picture>
-              <source srcset="assets/screenshot-terminal-findings.webp" type="image/webp" media="not all" data-skin="terminal">
-              <source srcset="assets/screenshot-terminal-findings.png" media="not all" data-skin="terminal">
-              <source srcset="assets/screenshot-dark-findings.webp" type="image/webp" media="(prefers-color-scheme: dark)">
-              <source srcset="assets/screenshot-dark-findings.png" media="(prefers-color-scheme: dark)">
-              <source srcset="assets/screenshot-light-findings.webp" type="image/webp">
-              <img src="assets/screenshot-light-findings.png" width="1400" height="760" alt="Backspacer's Safe to delete bucket: 75.1 GB found, with rows for Claude session data, ~/Library/Caches, ~/.cache and the Trash, each with its size and Details, Reveal and Delete buttons" loading="lazy">
-            </picture>
-          </figure>
+        <div class="unfold" aria-hidden="true">▾</div>
+        <p class="label">What Backspacer finds inside it</p>
+        <div class="findings" aria-label="Backspacer's findings on this Mac: 74.6 GB across 7 of the largest entries and dozens more">
+          <div class="fhead"><i class="dot" aria-hidden="true"></i><b>74.6 GB found</b><span>on a 245 GB MacBook Air, sorted by how safe it is to remove</span></div>
+          <div class="frow regen"><i aria-hidden="true"></i><span class="fname"><b>node_modules in project folders</b><code>~/Projects/*/node_modules</code></span><span class="fsize">14 GB</span></div>
+          <div class="frow safe"><i aria-hidden="true"></i><span class="fname"><b>Xcode DerivedData</b><code>~/Library/Developer/Xcode/DerivedData</code></span><span class="fsize">11.2 GB</span></div>
+          <div class="frow decide"><i aria-hidden="true"></i><span class="fname"><b>iOS DeviceSupport symbols</b><code>~/Library/Developer/Xcode/iOS DeviceSupport</code></span><span class="fsize">6 GB</span></div>
+          <div class="frow safe"><i aria-hidden="true"></i><span class="fname"><b>~/Library/Caches</b><code>one folder per app</code></span><span class="fsize">5.3 GB</span></div>
+          <div class="frow regen"><i aria-hidden="true"></i><span class="fname"><b>Gradle dependency cache</b><code>~/.gradle/caches</code></span><span class="fsize">5.3 GB</span></div>
+          <div class="frow safe"><i aria-hidden="true"></i><span class="fname"><b>VS Code workspace storage</b><code>…/Code/User/workspaceStorage</code></span><span class="fsize">4.6 GB</span></div>
+          <div class="frow regen"><i aria-hidden="true"></i><span class="fname"><b>.NET NuGet cache</b><code>~/.nuget/packages</code></span><span class="fsize">4.6 GB</span></div>
+          <div class="fmore">and dozens more: Claude, Codex and Gemini sessions, Notion, Steam, simulators, npm, Docker…</div>
         </div>
+        <ul class="ftotals">
+          <li class="safe"><b>27.6 GB</b> safe to delete</li>
+          <li class="regen"><b>26.6 GB</b> regenerable</li>
+          <li class="decide"><b>20.5 GB</b> your call</li>
+        </ul>
+        <p class="rcap">System Settings tells you how much, never what. Backspacer grew out of a month of chasing that number on this MacBook Air.</p>
       </div>
-      <p class="story">Most of it was Xcode, simulators, npm, Gradle, Docker, Electron apps and the AI tools' own caches, each one rebuildable, none of them visible from where macOS puts the number. Backspacer is the catalog of everything that chase found, with a Scan button in front of it.</p>
     </div>
   </section>
 
@@ -382,6 +385,18 @@ brew install --cask backspacer</code></pre>
         <article class="bucket keep"><h3><i aria-hidden="true"></i>Keep</h3><p>Needed for current work. Shown so the numbers add up.</p><span class="tag">read-only</span></article>
         <article class="bucket locked"><h3><i aria-hidden="true"></i>Managed by macOS</h3><p>macOS manages these itself — purged automatically or SIP-protected. Shown for accounting.</p><span class="tag">read-only</span></article>
       </div>
+      <figure class="shot app">
+        <div class="win" aria-hidden="true"><i></i><i></i><i></i></div>
+        <picture>
+          <source srcset="assets/screenshot-terminal.webp" type="image/webp" media="not all" data-skin="terminal">
+          <source srcset="assets/screenshot-terminal.png" media="not all" data-skin="terminal">
+          <source srcset="assets/screenshot-dark.webp" type="image/webp" media="(prefers-color-scheme: dark)">
+          <source srcset="assets/screenshot-dark.png" media="(prefers-color-scheme: dark)">
+          <source srcset="assets/screenshot-light.webp" type="image/webp">
+          <img src="assets/screenshot-light.png" width="1400" height="1100" alt="Backspacer after a scan: the icon and tagline with 100.5 GB of space found, a disk meter, then the Safe to delete bucket listing Claude session data, ~/Library/Caches and ~/.cache with sizes and Details, Reveal and Delete buttons on each row" loading="lazy">
+        </picture>
+        <figcaption>A real scan. Xcode, simulators, npm, Gradle, Docker, Electron apps and the AI tools' own caches — every row says what it is, where it lives and how much, with its own Details, Reveal and Delete.</figcaption>
+      </figure>
     </div>
   </section>
 

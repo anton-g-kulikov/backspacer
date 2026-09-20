@@ -164,6 +164,24 @@ test('W14 SEO: crawl files, structured data, social card, description length, 40
   assert.ok(title.length <= 60, `title ${title.length} chars`);
 });
 
+test('W15 reveal hero: the System Data row unfolds into a real findings card; the app screenshot is full width below', gate, () => {
+  const hero = html.match(/<section class="hero">([\s\S]*?)<\/section>/)[1];
+  assert.match(hero, /<div class="reveal"/, 'the reveal sits in the hero');
+  assert.match(hero, /System Data<\/b><\/span><span class="n big">74\.11 GB/, 'the macOS Storage row');
+  const card = hero.match(/<div class="findings"[^>]*>([\s\S]*?)(?=<ul class="ftotals")/);
+  assert.ok(card, 'a findings card');
+  const rows = [...card[1].matchAll(/<div class="frow (safe|regen|decide)">[\s\S]*?<span class="fsize">(\d+(?:\.\d+)? (?:GB|MB))<\/span>/g)];
+  assert.ok(rows.length >= 6, `at least six real rows (${rows.length})`);
+  assert.ok(new Set(rows.map(r => r[1])).size >= 2, 'more than one bucket represented');
+  assert.match(card[1], /<div class="fhead">[\s\S]*?\d+(?:\.\d+)? GB/, 'a header with the total found');
+  assert.match(hero, /class="ftotals"[\s\S]*?safe to delete[\s\S]*?regenerable[\s\S]*?your call/i, 'three bucket totals');
+  assert.doesNotMatch(hero, /<img|<picture/, 'no screenshot in the hero');
+  assert.doesNotMatch(html, /class="vs"/, 'the old comparison grid is gone');
+  const how = html.match(/<section id="how"[\s\S]*?<\/section>/)[0];
+  assert.match(how, /<figure class="shot app">[\s\S]*?<img src="assets\/screenshot-light\.png" width="1400" height="1100"/, 'the real window, full width, in the buckets section');
+  assert.match(how, /<figcaption>/, 'with a caption');
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);
