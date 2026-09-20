@@ -194,27 +194,25 @@
   .tabs { border-top: 1px solid var(--sep); display: flex; justify-content: space-between; padding: 0 18px; }
   .tabs .notice { align-self: center; font-size: 12px; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 600; }
-  .about .upd { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0; }
-  .about .opt { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; white-space: nowrap; cursor: pointer; }
-  .about .opt input { flex: none; }
-  .about #updResult:empty { display: none; }
-  .tabs button { border: 0; background: none; padding: 7px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; }
-  .tabs button::before { content: "▸ "; }
-  .tabs button.on::before { content: "▾ "; }
-  .tabs button:hover { color: var(--fg); }
-  .panel { margin: 0; padding: 4px 18px 12px; max-height: 200px; overflow: auto; font-size: 12px; color: var(--muted); -webkit-user-select: text; user-select: text; }
-  .panel[hidden] { display: none; }
-  #log { font-family: var(--mono); font-size: 11px; }
-  #log .err { color: var(--danger); }
-  #log .ok { color: var(--safe); }
-  .about h3 { margin: 4px 0 2px; font-size: 13px; color: var(--fg); }
-  .about p { margin: 0 0 6px; }
-  .about a { color: var(--accent); text-decoration: none; }
-  .about .diag code { font-family: var(--mono); font-size: 11px; color: var(--faint); margin: 0 6px 0 2px; }
-  .about .lic { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--track); font-size: 11.5px; line-height: 1.5; }
-  .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
-  .about .lic b:first-child { margin-top: 0; }
-  .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
+  /* ── About: a centred card, like the confirm dialog but calmer ── */
+  dialog.about { width: 360px; min-width: 0; text-align: center; }
+  dialog.about .close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--track); color: var(--muted); font-size: 18px; line-height: 28px; cursor: pointer; }
+  dialog.about .close:hover { background: rgba(0,0,0,.12); color: var(--fg); }
+  dialog.about .card { padding: 30px 26px 22px; }
+  dialog.about .mark { width: 72px; height: 72px; border-radius: 17px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  dialog.about h2 { margin: 12px 0 2px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+  dialog.about p { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; }
+  dialog.about .ver { color: var(--fg); font-weight: 600; }
+  dialog.about .upstate:empty { display: none; }
+  dialog.about .upd { margin: 10px 0 8px; }
+  dialog.about .opt { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; cursor: pointer; }
+  dialog.about .opt input { flex: none; }
+  dialog.about hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0 14px; }
+  dialog.about a { color: var(--accent); text-decoration: none; }
+  dialog.about .diag { margin-top: 8px; }
+  dialog.about .fine { font-size: 11px; color: var(--faint); line-height: 1.5; }
+  dialog.about .fine code { font-family: var(--mono); font-size: 10.5px; }
+  dialog.about .links { font-size: 12.5px; }
 
   /* ── dialog ─────────────────────────── */
   dialog { border: 1px solid var(--glass-border); border-radius: 24px; padding: 0; color: var(--fg); max-width: min(760px, calc(100vw - 80px)); width: max-content; min-width: 420px;
@@ -394,28 +392,26 @@
   .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 calc(18px + var(--sb, 0px)); }
   .tabs .notice { align-self: center; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 700; }
-  .about .upd { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0; }
-  .about .opt { display: inline-flex; align-items: baseline; gap: 8px; color: var(--muted); white-space: nowrap; cursor: pointer; }
-  .about .opt input { flex: none; height: auto; line-height: inherit; }
-  .about #updResult:empty { display: none; }
-  .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
-  .tabs button::before { content: "▸ "; }
-  .tabs button.on::before { content: "▾ "; }
-  .tabs button:hover { color: var(--fg); }
-  .panel { margin: 0; padding: 4px 18px 10px; max-height: 200px; overflow: auto; font: inherit; font-size: 11.5px; color: var(--muted); -webkit-user-select: text; user-select: text; }
-  .panel[hidden] { display: none; }
-  #log .err { color: var(--danger); }
-  #log .ok { color: var(--safe); }
-  .about h3 { margin: 4px 0 2px; font-size: 12px; color: var(--accent); }
-  .about h3::before { content: "$ "; color: var(--muted); font-weight: 400; }
-  .about p { margin: 0 0 6px; }
-  .about a { color: var(--accent); text-decoration: none; }
-  .about a::before { content: "<"; color: var(--faint); } .about a::after { content: ">"; color: var(--faint); }
-  .about .diag code { color: var(--faint); margin: 0 6px 0 2px; }
-  .about .lic { margin-top: 8px; padding: 8px 10px; border-left: 2px solid var(--line-strong); background: var(--bg); line-height: 1.5; }
-  .about .lic b { display: block; color: var(--fg); margin: 8px 0 2px; }
-  .about .lic b:first-child { margin-top: 0; }
-  .about .lic ul { margin: 2px 0 4px; padding-left: 18px; }
+  /* ── About ── */
+  dialog.about { width: 380px; min-width: 0; text-align: center; border-color: var(--line-strong); box-shadow: 0 0 0 1px var(--bg); }
+  dialog.about .close { position: absolute; top: 8px; right: 10px; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+  dialog.about .close::before { content: "[ "; color: var(--faint); } dialog.about .close::after { content: " ]"; color: var(--faint); }
+  dialog.about .close:hover { color: var(--accent); }
+  dialog.about .card { padding: 28px 24px 20px; }
+  dialog.about .mark { display: none; }
+  dialog.about h2 { margin: 0 0 4px; font-size: 14px; color: var(--accent); }
+  dialog.about h2::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  dialog.about p { margin: 0 0 6px; color: var(--muted); }
+  dialog.about .ver { color: var(--fg); }
+  dialog.about .upstate:empty { display: none; }
+  dialog.about .upd { margin: 10px 0 6px; }
+  dialog.about .opt { display: inline-flex; align-items: baseline; gap: 8px; color: var(--muted); cursor: pointer; }
+  dialog.about .opt input { flex: none; height: auto; line-height: inherit; }
+  dialog.about hr { border: 0; border-top: 1px dashed var(--line-strong); margin: 14px 0 12px; }
+  dialog.about a { color: var(--accent); text-decoration: none; }
+  dialog.about a::before { content: "<"; color: var(--faint); } dialog.about a::after { content: ">"; color: var(--faint); }
+  dialog.about .diag { margin-top: 8px; }
+  dialog.about .fine { font-size: 11px; color: var(--faint); line-height: 1.5; }
 
   /* ── dialog ─────────────────────────── */
   dialog { border: 1px solid var(--danger); padding: 0; background: var(--panel); color: var(--fg); box-shadow: 0 0 0 1px var(--bg), 0 0 40px color-mix(in srgb, var(--danger) 30%, transparent); max-width: min(760px, calc(100vw - 80px)); width: max-content; min-width: 420px; font: inherit; }
@@ -479,38 +475,29 @@
   <div class="tabs">
     <button data-panel="log" aria-expanded="false" aria-controls="log">Log</button>
     <span class="notice" id="updNotice" hidden></span>
-    <button data-panel="about" aria-expanded="false" aria-controls="about">About</button>
   </div>
   <pre id="log" class="panel" role="log" hidden></pre>
-  <div id="about" class="panel about" hidden>
-    <h3>Backspacer: get back your precious disk space</h3>
-    <p>Backspacer isn't an app uninstaller or a general disk cleaner. It knows the caches, build output and
-       tooling leftovers a developer's Mac accumulates, sorts them by how safe they are to remove, and lets
-       you pick item by item. Nothing is deleted without a confirmation, and admin-only paths go through
-       macOS's own password dialog.</p>
-    <p>Version <span id="aboutVersion"></span> · © 2026 Anton Kulikov · Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
-       · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
-    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button>
-       <label class="opt"><input type="checkbox" id="autoUpd" checked>Check for updates automatically</label>
-       <span id="updResult" aria-live="polite"></span></p>
-    <p class="diag">Something odd? Backspacer keeps a log of what it did — attach it to your report.
-       <code id="logPath"></code> <button class="btn small" id="revealLog">Reveal log</button></p>
-    <div class="lic">
-      <b>License</b>
-      Backspacer is free for noncommercial use under the
-      <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm Noncommercial License 1.0.0</a>:
-      use it, share it, read and modify the source, as long as it's not for a commercial purpose. Selling it,
-      bundling it in a paid product or offering it as a paid service needs a separate license from the author.
-      <b>Name and icon</b>
-      The "Backspacer" name and icon are not licensed. A modified version must use a different name and icon,
-      so nobody mistakes it for the signed build published on GitHub.
-      <b>No warranty</b>
-      Provided "as is", without warranty of any kind. The full license text ships in the repository as
-      <a href="https://github.com/anton-g-kulikov/backspacer/blob/main/LICENSE">LICENSE</a>.
-    </div>
-  </div>
+
 </footer>
 
+<dialog id="about" class="about" aria-labelledby="aboutTitle">
+  <button class="close" id="aboutClose" aria-label="Close">×</button>
+  <div class="card">
+    <img class="mark" src="icon.svg" alt="">
+    <h2 id="aboutTitle">Backspacer</h2>
+    <p class="ver">Version <span id="aboutVersion"></span></p>
+    <p class="upstate" id="updResult" aria-live="polite"></p>
+    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button></p>
+    <label class="opt"><input type="checkbox" id="autoUpd" checked>Check for updates automatically</label>
+    <hr>
+    <p class="help">Need help? <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a></p>
+    <p class="diag"><button class="btn small" id="revealLog">Reveal log</button></p>
+    <p class="fine"><code id="logPath"></code></p>
+    <hr>
+    <p class="links"><a href="https://github.com/anton-g-kulikov/backspacer/blob/main/LICENSE">License</a> · <a href="https://github.com/anton-g-kulikov/backspacer">GitHub</a> · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
+    <p class="fine">Free for noncommercial use (PolyForm Noncommercial 1.0.0). The "Backspacer" name and icon are not licensed. © 2026 Anton Kulikov</p>
+  </div>
+</dialog>
 <dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgText">
   <form method="dialog">
     <div class="body"><h3 id="dlgTitle"></h3><p id="dlgText"></p><ul id="dlgList"></ul></div>

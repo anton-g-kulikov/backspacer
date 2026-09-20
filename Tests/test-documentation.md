@@ -221,7 +221,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A5 | meter (R16) | `#diskBar` has `role="img"` and `updateMeter` writes an `aria-label` summarising the segments |
 | A7 | contrast (R14) | computed from the CSS tokens against each theme's panel background: `--muted` ≥ 4.5:1 in Glass light, Glass dark and Terminal; `--faint` ≥ 3.3:1 (Glass light) and ≥ 4.5:1 (Glass dark, Terminal); a `@media (prefers-contrast: more)` block raises both |
 | A8 | reduced motion (R15) | both themes have a `@media (prefers-reduced-motion: reduce)` block that stops the blink animations and transitions; `startScanWords` shows a static "Scanning…" when the media query matches |
-| A9 | scrollbar | the thumb is styled for `main`, `.info-out` (Details) and `.panel` (Log/About) in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
+| A9 | scrollbar | the thumb is styled for `main`, `.info-out` (Details) and `.panel` (Log) in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
 | A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
 | A11 | right-click target (ADR-10) | `app.js` has a `contextmenu` listener that sends `contextTarget {id, item}` — selectors only, never a path; Details items carry `data-item` |
 | A12 | scan button and header layout | `startScanWords` writes the verb frames to `#scan` (static "Scanning…" under Reduce Motion); nothing references `#host`; `#scan` is its own grid cell after `.controls`; the brand column is a fixed 360 px in Glass and 400 px in Terminal (monospace) and the Scan button has a fixed `min-width` at rest and while busy — so the centred `.controls` never move; `main` is `overflow-y: scroll` (permanent track, WebKit ignores `scrollbar-gutter`) and the gutter is measured at load, so the header's margins never shift either — and a `max-width: 959px` block that stacks the brand over the controls |
@@ -229,7 +229,8 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A14 | Details threshold | `renderItems` splits with `splitItems(items, minBytes())`, ends with a `data-showsmall` button ("N smaller items, X — below Y") that reveals them; `applyThreshold` re-renders open lists |
 | A15 | default threshold | `state.thr` is 0 (10 MB), the slider starts at 0 with `aria-valuetext="10 MB"`, the label reads 10 MB |
 | A16 | automatic check UI | `#updNotice` sits between Log and About; About has the `#autoUpd` opt-out bound to `prefSet autoUpdateCheck`; `autoCheckUpdates()` runs once per session right after the first scan completes, never at init |
-| A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
+| A17 | About dialog | `<dialog id="about" aria-labelledby="aboutTitle">` with a labelled close button; icon → name → version → status → Check for updates → opt-out → help/log → License/GitHub/Buy me a book; no About tab in the footer; styled in both themes; `__openAbout` uses `showModal` (Escape closes) |
+| A6 | states (R17) | Details buttons toggle `aria-expanded`; the Log tab carries `aria-expanded`; About is a `<dialog>` (A17); theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
 | # | Case | Expect |
@@ -334,7 +335,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
-| Web accessibility (node) | A1–A16 | passing |
+| Web accessibility (node) | A1–A17 | passing |
 | Site (node) | W1–W18 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y8 | passing |

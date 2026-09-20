@@ -328,15 +328,16 @@ function stopScanWords() { clearInterval(scanTimer); scanTimer = null; updateSca
 function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
 $('#scan').onclick = () => scan();
 $('#thr').oninput = e => setThreshold(e.target.value, true);
-// Footer panels: Log (left) and About (right); one open at a time.
+// Footer panel: Log. (About is a dialog; the app menu and __openAbout open it.)
 document.querySelector('.tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   const open = !b.classList.contains('on');
   document.querySelectorAll('.tabs button').forEach(x => { const on = open && x === b; x.classList.toggle('on', on); x.setAttribute('aria-expanded', String(on)); $('#' + x.dataset.panel).hidden = !on; });
   if (open && b.dataset.panel === 'log') { const p = $('#log'); p.scrollTop = p.scrollHeight; }
 };
-// The app menu's Check for Updates… lands in About, where the result is shown.
-window.__openAbout = () => { const b = document.querySelector('.tabs button[data-panel="about"]'); if (!b.classList.contains('on')) b.click(); };
+// About: a modal card (Escape closes it), opened from the app menu's About Backspacer.
+window.__openAbout = () => { const d = $('#about'); if (!d.open) d.showModal(); };
+$('#aboutClose').onclick = () => $('#about').close();
 $('#fdaBtn').onclick = () => bridge.call('openFDA');
 $('#clearSel').onclick = () => { state.selected.clear(); document.querySelectorAll('[data-sel],[data-selall]').forEach(c => c.checked = false); updateTotals(); };
 document.addEventListener('change', e => {

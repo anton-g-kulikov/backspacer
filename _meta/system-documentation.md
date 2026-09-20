@@ -66,7 +66,7 @@ value as a size (`aria-valuetext`). A visually-hidden `aria-live="polite"`
 region (`announce()`) reports scan start/end and every delete outcome; the
 log is `role="log"`; the Scan button uses `aria-busy` rather than `disabled`
 so focus isn't lost. The disk meter is `role="img"` with a label listing
-each segment. Details, the Log/About tabs and the theme buttons carry
+each segment. Details, the Log tab and the theme buttons carry
 `aria-expanded` / `aria-pressed`; the dialog is labelled by its title and
 described by its text; every theme has a `:focus-visible` ring; paths are
 selectable for copying. Contrast: `--muted` ≥ 4.5:1 and `--faint` ≥ 3.3:1
@@ -210,7 +210,7 @@ housekeeping (`catalog`, `disk`, `fdaStatus`, prefs, `projectRoots`,
 `appInfo`, `log`) with its subject, outcome and duration; every `rm`/`trash`
 and every catalog command that fails (status + stderr); WebKit content-process
 terminations (the page is reloaded); the page's own log lines and uncaught
-JS errors, tagged `page:`. About → **Reveal log** selects the file in Finder.
+JS errors, tagged `page:`. About (a modal card opened from the app menu: icon, version, update check and opt-out, help, log, license links) → **Reveal log** selects the file in Finder.
 Because catalog paths and per-item names appear in it, the log reveals folder
 and project names — the About text says so.
 

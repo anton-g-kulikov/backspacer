@@ -64,7 +64,7 @@ password dialog.
 - **Updates, and nothing else, use the network.** Once a day (and after the first
   scan) the app fetches `backspacer.dev/appcast.xml` and, if there's a newer
   version, downloads the DMG from GitHub in the background — then asks before
-  installing and relaunching; it never installs on its own. About → *Check for
+  installing and relaunching; it never installs on its own. About (in the app menu) → *Check for
   updates automatically* turns the check off. Updates are verified against a key
   built into the app (Sparkle 2) on top of Apple's notarization. Nothing about you
   or your disk is sent.
@@ -201,7 +201,7 @@ Everyone is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 Backspacer keeps a plain-text log of what it did in
 `~/Library/Logs/Backspacer/Backspacer.log` — every scan and delete, the exact
-commands it ran, failures, and page errors. About → **Reveal log** opens it in
+commands it ran, failures, and page errors. About (app menu) → **Reveal log** opens it in
 Finder. Attach it to an [issue](https://github.com/anton-g-kulikov/backspacer/issues)
 or an email; note it names the folders and projects it measured.
 

@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.0.1 — 2026-09-20
-- About: the update controls sit on one aligned line with room between them.
+- About is a proper dialog now (app menu → About Backspacer): icon, version, update status and controls, help, log, license — the footer keeps just Log.
 - Internal: the release run now redeploys the site itself so `backspacer.dev/appcast.xml` follows every release (a release created by the workflow never triggers the site on its own).
 
 ## 1.0.0 — 2026-09-20

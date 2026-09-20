@@ -46,7 +46,7 @@ test('A6 disclosure and toggle states, dialog labelling, focus, badges, headings
   assert.match(html, /<dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgText">/);
   assert.ok((html.match(/:focus-visible \{/g) || []).length >= 2, 'a focus ring in each theme');
   assert.doesNotMatch(html, /\.badge \{[^}]*font-size: 10px/);
-  assert.match(html, /<h3>Backspacer: get back your precious disk space<\/h3>/);
+  assert.match(html, /<h2 id="aboutTitle">Backspacer<\/h2>/, "About's heading is the app name in a dialog");
   assert.match(html, /\.row \.path \{[^}]*user-select: text/);
   assert.match(html, /\.sr-only \{/);
 });
@@ -126,8 +126,7 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
 });
 
 test('A13 About offers a manual update check with a live result', () => {
-  assert.match(html, /<p class="upd"><button class="btn small" id="checkUpd">Check for updates<\/button>\s*<label class="opt">/, 'its own line: button, opt-out, then the result');
-  assert.match(html, /<span id="updResult" aria-live="polite"><\/span>/);
+  assert.match(html, /<p class="upstate" id="updResult" aria-live="polite"><\/p>\s*<p class="upd"><button class="btn small" id="checkUpd">Check for updates<\/button><\/p>\s*<label class="opt">/, 'status line, then the button, then the opt-out — LensSense order');
   assert.match(app, /\$\('#checkUpd'\)\.onclick = /);
   assert.match(app, /bridge\.call\('checkUpdate'\)/);
   assert.match(app, /window\.__checkUpdates = /, 'the app menu triggers the same check');
@@ -148,12 +147,23 @@ test('A15 the size filter defaults to 10 MB (the slider\'s first stop) unless a 
 });
 
 test('A16 Sparkle drives the notice: the page shows what the updater found and routes both controls to it', () => {
-  assert.match(html, /<div class="tabs">\s*<button data-panel="log"[^>]*>Log<\/button>\s*<span class="notice" id="updNotice" hidden><\/span>\s*<button data-panel="about"/, 'the notice sits between Log and About');
+  assert.match(html, /<div class="tabs">\s*<button data-panel="log"[^>]*>Log<\/button>\s*<span class="notice" id="updNotice" hidden><\/span>\s*<\/div>/, 'the footer is Log plus the update notice — About is a dialog now');
   assert.match(html, /<label class="opt"><input type="checkbox" id="autoUpd" checked>Check for updates automatically<\/label>/);
-  assert.equal((html.match(/\.about \.upd \{ display: flex; align-items: (center|baseline); flex-wrap: wrap;/g) || []).length, 2, 'the update row is one aligned flex line in both themes');
   assert.match(app, /window\.__updateFound = /, 'Sparkle → page: a newer version was found');
   assert.match(app, /bridge\.call\('checkUpdate'\)/, 'page → Sparkle: the manual check');
   assert.match(app, /prefSet', \{ key: 'autoUpdateCheck'/);
   assert.doesNotMatch(app, /autoCheckUpdate/, 'the page no longer polls');
   assert.doesNotMatch(app, /api\.github\.com/);
+});
+
+test('A17 About is a proper dialog: centred card, close button, Escape, opened from the app menu', () => {
+  assert.match(html, /<dialog id="about" class="about" aria-labelledby="aboutTitle">\s*<button class="close" id="aboutClose" aria-label="Close">/);
+  assert.match(html, /<img class="mark" src="icon.svg" alt="">\s*<h2 id="aboutTitle">Backspacer<\/h2>\s*<p class="ver">Version <span id="aboutVersion"><\/span><\/p>/, 'icon, name, version — top of the card');
+  assert.match(html, /<p class="help">Need help\? <a href="mailto:anton\.g\.kulikov@gmail\.com">/);
+  assert.match(html, /<button class="btn small" id="revealLog">Reveal log<\/button>/);
+  assert.match(html, /<a href="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/blob\/main\/LICENSE">License<\/a>/);
+  assert.doesNotMatch(html, /data-panel="about"/, 'no About tab in the footer');
+  assert.equal((html.match(/dialog\.about \{/g) || []).length, 2, 'the card is styled in both themes');
+  assert.match(app, /window\.__openAbout = \(\) => \{ const d = \$\('#about'\); if \(!d\.open\) d\.showModal\(\); \}/, 'modal, so Escape closes it');
+  assert.match(app, /\$\('#aboutClose'\)\.onclick = \(\) => \$\('#about'\)\.close\(\)/);
 });

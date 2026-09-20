@@ -12,7 +12,7 @@ test('K1 page title and wordmark', () => {
   const html = read('web/index.html');
   assert.match(html, /<title>Backspacer<\/title>/);
   assert.match(html, /<h1>Backspacer<\/h1>/, 'plain wordmark — no (y) in the app');
-  assert.match(html, /<h3>Backspacer: get back your precious disk space<\/h3>/);
+  assert.match(html, /<h2 id="aboutTitle">Backspacer<\/h2>/);
   assert.match(html, /The "Backspacer" name and icon are not licensed/);
   assert.doesNotMatch(html, /Reclaimer/);
 });
