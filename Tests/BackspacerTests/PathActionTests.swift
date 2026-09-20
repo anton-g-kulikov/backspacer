@@ -25,7 +25,7 @@ import AppKit
         """
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
         let r = rec
-        bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, opener: { url, with in r.opened.append((url, with)) })
+        bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, diagnostics: Fixture.quiet, opener: { url, with in r.opened.append((url, with)) })
     }
     func cleanup() { try? fm.removeItem(at: home) }
 

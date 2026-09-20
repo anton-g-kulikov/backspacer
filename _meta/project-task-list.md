@@ -17,10 +17,7 @@ what remains is grounded follow-up work.
 2. **Homebrew cask** — `brew install --cask backspacer`: a cask in a tap under
    the maintainer's account (or homebrew-cask once there are users), pointing
    at the notarized DMG with its SHA-256; a release-checklist step to bump it.
-3. **In-app update check** — About → "Check for updates" against the GitHub
-   releases API (no Sparkle, no auto-download: show the version and a link),
-   so users learn that a fix shipped.
-4. **Tag-triggered release workflow** — build, sign with a temp keychain,
+3. **Tag-triggered release workflow** — build, sign with a temp keychain,
    notarize with `notarytool`, upload the DMG with SHA-256 in the notes and
    SLSA provenance; replaces the manual checklist steps 3–8.
 
@@ -41,6 +38,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — In-app update check (U1–U4, J18, A13): About button + app menu item, GitHub releases API on click only, link to the DMG. Test hygiene: every test bridge logs to a temp file (N3) — the suite had been writing fake refusals into the user's real log.
 - 2026-09-20 — Scan verbs in the Scan button; header as brand | centred controls | button, stacking under 960 px (A12, K7).
 - 2026-09-20 — App icon in the header (K8): `web/icon.svg` synced from the source by make-icon.sh; 42 px / 8 px gap in Glass, hidden in Terminal; README screenshot recaptured.
 - 2026-09-20 — 0.8.1 released: header drag, reclaimable counter in the tagline, trimmed right-click menu, themed scrollbar; site switcher.

@@ -65,6 +65,9 @@ password dialog.
   case-insensitively. The one exception is a project folder you added
   yourself: what the globs find inside it (`node_modules`, `Pods`, build
   output) is yours to reclaim.
+- **No network, except when you ask.** The app never phones home. The one
+  request it can make is About → *Check for updates*: a GET to GitHub's
+  releases API, on your click, that comes back with a version and a link.
 - **Every delete goes through a confirmation** listing exactly what will go
   and how much. Nothing is removed by a single click.
 - **Your call goes to the Trash; caches are removed for good.** Real data

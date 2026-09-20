@@ -60,6 +60,7 @@ function mockBridge() {
         case 'log': return { ok: true };
         case 'scanHints': return { durations: {} };
         case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Backspacer/Backspacer.log' };
+        case 'checkUpdate': return { current: 'dev', latest: '0.9.0', newer: true, url: 'https://github.com/anton-g-kulikov/backspacer/releases/latest' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
@@ -149,6 +150,16 @@ async function init() {
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   bridge.call('logPath').then(r => { $('#logPath').textContent = r.path.replace(/^\/Users\/[^/]+/, '~'); }).catch(() => {});
   $('#revealLog').onclick = () => bridge.call('revealLog').catch(err => log(err.message, 'err'));
+  // Update check: only ever on the click (or the app menu), never at launch — no phoning home.
+  window.__checkUpdates = async () => {
+    const out = $('#updResult'); out.textContent = 'Checking…';
+    let r = null, err = null;
+    try { r = await bridge.call('checkUpdate'); } catch (e) { err = e.message; log('update check: ' + e.message, 'err'); }
+    const u = updateText(r, err);
+    out.textContent = u.text + ' ';
+    if (u.link) { const a = document.createElement('a'); a.href = u.link; a.textContent = u.linkText; out.appendChild(a); }
+  };
+  $('#checkUpd').onclick = () => { window.__checkUpdates(); };
   state.catalog = await bridge.call('catalog');
   NEST = buildNesting(state.catalog.entries);
   render(); syncGutter();
@@ -312,6 +323,8 @@ document.querySelector('.tabs').onclick = e => {
   document.querySelectorAll('.tabs button').forEach(x => { const on = open && x === b; x.classList.toggle('on', on); x.setAttribute('aria-expanded', String(on)); $('#' + x.dataset.panel).hidden = !on; });
   if (open && b.dataset.panel === 'log') { const p = $('#log'); p.scrollTop = p.scrollHeight; }
 };
+// The app menu's Check for Updates… lands in About, where the result is shown.
+window.__openAbout = () => { const b = document.querySelector('.tabs button[data-panel="about"]'); if (!b.classList.contains('on')) b.click(); };
 $('#fdaBtn').onclick = () => bridge.call('openFDA');
 $('#clearSel').onclick = () => { state.selected.clear(); document.querySelectorAll('[data-sel],[data-selall]').forEach(c => c.checked = false); updateTotals(); };
 document.addEventListener('change', e => {

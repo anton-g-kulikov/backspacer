@@ -84,6 +84,12 @@ const RECLAIMABLE = ['safe', 'regen', 'decide'];
 function taglineText(bytes) {
   return bytes > 0 ? `I got some [${fmt(bytes)} of space] if you need it` : TAGLINE;
 }
+// About → Check for updates: one line per outcome; a link only when there is something to get.
+function updateText(r, error) {
+  if (!r) return { text: error || 'Couldn’t check for updates.', link: null, linkText: null };
+  if (r.newer) return { text: `${r.latest} is available.`, link: r.url, linkText: `Download ${r.latest}` };
+  return { text: 'You’re up to date.', link: null, linkText: null };
+}
 const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
 const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -104,5 +110,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, updateText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

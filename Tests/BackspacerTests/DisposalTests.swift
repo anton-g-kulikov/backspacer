@@ -34,7 +34,7 @@ import Testing
                              trasher: { url in
                                  if rec.fail { throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "trash refused"]) }
                                  rec.trashed.append(url.path); try FileManager.default.removeItem(at: url)
-                             })
+                             }, diagnostics: Fixture.quiet)
     }
     func cleanup() { try? fm.removeItem(at: home) }
     func e(_ id: String) -> Catalog.Entry { bridge.catalogEntry(id)! }

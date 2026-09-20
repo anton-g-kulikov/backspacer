@@ -65,7 +65,7 @@ import Testing
         try fm.createDirectory(at: home.appendingPathComponent("Documents/mycode/app/node_modules"), withIntermediateDirectories: true)
         let suite = "backspacer-gate-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
-        let b = Bridge(catalog: try Fixture.catalog(), home: home.path, tildeHome: home.path, defaults: defaults)
+        let b = Bridge(catalog: try Fixture.catalog(), home: home.path, tildeHome: home.path, defaults: defaults, diagnostics: Fixture.quiet)
         #expect(!b.isSafeToDelete(home.path + "/Documents/mycode/app/node_modules"), "not a root yet")
         try b.addProjectRoot(path: home.path + "/Documents/mycode")
         #expect(b.isSafeToDelete(home.path + "/Documents/mycode/app/node_modules"))
@@ -96,7 +96,7 @@ import Testing
         try fm.createDirectory(at: home.appendingPathComponent("Documents/Thesis"), withIntermediateDirectories: true)
         try fm.createDirectory(at: home.appendingPathComponent("Library/Caches"), withIntermediateDirectories: true)
         try fm.createSymbolicLink(atPath: home.path + "/Library/Caches/evil", withDestinationPath: home.path + "/Documents")
-        let b = Bridge(catalog: try Fixture.catalog(), home: home.path, tildeHome: home.path)
+        let b = Bridge(catalog: try Fixture.catalog(), home: home.path, tildeHome: home.path, diagnostics: Fixture.quiet)
         #expect(!b.isSafeToDelete(home.path + "/Library/Caches/evil"))
         #expect(!b.isSafeToDelete(home.path + "/Library/Caches/evil/Thesis"))
         #expect(b.isSafeToDelete(home.path + "/Library/Caches"))
@@ -111,7 +111,7 @@ import Testing
         try fm.createDirectory(at: tmp.appendingPathComponent("Documents/code"), withIntermediateDirectories: true)
         let suite = "backspacer-s12-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
-        let b = Bridge(catalog: catalog, home: tmp.path, tildeHome: tmp.path, defaults: defaults)
+        let b = Bridge(catalog: catalog, home: tmp.path, tildeHome: tmp.path, defaults: defaults, diagnostics: Fixture.quiet)
         try b.addProjectRoot(path: tmp.path + "/Documents/code")
         let expand = { (p: String) in p.hasPrefix("~") ? tmp.path + p.dropFirst() : p }
         for e in catalog.entries where ["safe", "regen", "decide"].contains(e.bucket) && !e.isManual {

@@ -76,7 +76,7 @@ import Testing
         cat.rawJSON = json
         // Paths in the catalog say "~"; the bridge expands them with the real HOME, so point them at the fixture.
         self.home = home
-        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path)
+        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, diagnostics: Fixture.quiet)
     }
 
     func cleanup() { try? fm.removeItem(at: home) }

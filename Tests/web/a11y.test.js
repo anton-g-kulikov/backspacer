@@ -119,3 +119,12 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
   assert.equal(stacks.length, 2, 'below 960 px the header stacks: brand row, then controls + button, in both themes');
 });
+
+test('A13 About offers a manual update check with a live result', () => {
+  assert.match(html, /<p class="upd"><button class="btn small" id="checkUpd">Check for updates<\/button>/, 'its own line, not squeezed into the credits');
+  assert.match(html, /<span id="updResult" aria-live="polite"><\/span>/);
+  assert.match(app, /\$\('#checkUpd'\)\.onclick = /);
+  assert.match(app, /bridge\.call\('checkUpdate'\)/);
+  assert.match(app, /window\.__checkUpdates = /, 'the app menu triggers the same check');
+  assert.doesNotMatch(app, /checkUpdate'\)[^;]*\n[^\n]*init\(/, 'never at launch — only on the click');
+});

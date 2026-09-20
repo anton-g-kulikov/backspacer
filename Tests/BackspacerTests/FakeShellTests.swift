@@ -28,7 +28,7 @@ import Testing
         """
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
         self.home = home
-        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, shell: shell)
+        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, shell: shell, diagnostics: Fixture.quiet)
     }
     func cleanup() { try? fm.removeItem(at: home) }
     func n(_ v: Any?) -> Int64? { (v as? NSNumber)?.int64Value }

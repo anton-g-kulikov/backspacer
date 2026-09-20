@@ -177,6 +177,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
 | J14 | `confirmDialog` (R1) | resolves `true` only when the dialog closed with `returnValue === "ok"`; a close without a value (Escape) after a previous "ok" resolves `false` — the stale value is reset before every open |
 | J17 | `taglineText` | `0`/`undefined` → the plain tagline; otherwise `I got some [<fmt(bytes)> of space] if you need it`; `RECLAIMABLE` is exactly `safe, regen, decide` |
+| J18 | `updateText` | newer → "X is available." plus a Download link; current → "You’re up to date."; no result → the error text; links only when there is something to get |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
@@ -223,6 +224,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
 | A11 | right-click target (ADR-10) | `app.js` has a `contextmenu` listener that sends `contextTarget {id, item}` — selectors only, never a path; Details items carry `data-item` |
 | A12 | scan button and header layout | `startScanWords` writes the verb frames to `#scan` (static "Scanning…" under Reduce Motion); nothing references `#host`; `#scan` is its own grid cell after `.controls`; both themes use `minmax(0, 360px) 1fr auto` with `.controls { justify-self: center }`, a `min-width` on the busy button, and a `max-width: 959px` block that stacks the brand over the controls |
+| A13 | update check UI | About has `<p class="upd">` with the `#checkUpd` button and an `aria-live` `#updResult`; `app.js` wires the click and `window.__checkUpdates` (for the app menu); the check is never called at init |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -239,6 +241,15 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | O1 | `open` op on an entry | opens the entry's first resolved path with the opener (`.terminal`) and replies `{path}` |
 | O2 | `open` op on a Details item | the selector must be one of the entry's current items; a foreign path or `/etc` is refused and nothing opens |
 | O3 | `open` op's app | only `with: "terminal"` is accepted; anything else or nothing is refused |
+
+### Update check — `Tests/BackspacerTests/UpdateCheckTests.swift`
+| # | Case | Expect |
+|---|---|---|
+| U1 | release JSON | `Updates.parse` yields version without the `v`, the release page, and the `.dmg` asset's download URL |
+| U2 | `isNewer` | numeric per component (0.10.0 > 0.9.0), equal is not newer, `1.0` == `1.0.0`, a `-N-gHASH` dev suffix is ignored |
+| U3 | `checkUpdate` op | requests exactly `releases/latest` via the injected fetcher; replies `{current, latest, newer, url}` with the DMG URL; `newer` false when versions match |
+| U4 | failures | a thrown fetch or a non-release body makes the op throw with a message that names GitHub |
+| N3 | test hygiene | every `Bridge(` in the test target passes `diagnostics:` (the suite must never write to `~/Library/Logs/Backspacer`) |
 
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
@@ -289,7 +300,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |
-| BrandTests | N1–N2 | passing |
+| BrandTests | N1–N3 | passing |
+| UpdateCheckTests | U1–U4 | passing |
 | WindowDragTests | G1 | passing |
 | ContextMenuTests | X1, X2, X5 | passing |
 | PathActionTests | O1–O3 | passing |
@@ -297,8 +309,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J17 | passing |
-| Web accessibility (node) | A1–A12 | passing |
+| Web logic (node) | J1–J18 | passing |
+| Web accessibility (node) | A1–A13 | passing |
 | Site (node) | W1–W12 | passing |
 | Brand (node) | K1–K8 | passing |
 | DiagnosticsTests | L1–L7 | passing |

@@ -35,7 +35,7 @@ import Testing
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
         let shell = FakeShell()
         shell.on("xcrun list", stdout: "k1\tOne\t10\n")
-        let bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, shell: shell)
+        let bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, shell: shell, diagnostics: Fixture.quiet)
         _ = try bridge.handle(op: "size", args: ["id": "p"])
         _ = try bridge.handle(op: "size", args: ["id": "g"])
         _ = try bridge.handle(op: "delete", args: ["id": "p"])
@@ -63,7 +63,7 @@ import Testing
         }
         let json = #"{ "version": 1, "buckets": {}, "entries": [ { "id": "p", "group": "t", "bucket": "safe", "label": "c", "path": "~/Library/Caches" } ] }"#
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
-        let bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path)
+        let bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, diagnostics: Fixture.quiet)
         let text = (try bridge.handle(op: "info", args: ["id": "p"]) as? [String: Any])?["text"] as? String ?? ""
         let lines = text.split(separator: "\n")
         try #require(lines.count == 2, Comment(rawValue: text))
@@ -114,7 +114,7 @@ import Testing
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
         let shell = FakeShell()
         let home = "/Users/tester"
-        let bridge = Bridge(catalog: cat, home: home, tildeHome: home, pathPrefix: "/fake/bin", shell: shell)
+        let bridge = Bridge(catalog: cat, home: home, tildeHome: home, pathPrefix: "/fake/bin", shell: shell, diagnostics: Fixture.quiet)
         _ = try bridge.handle(op: "info", args: ["id": "c"])
         _ = try bridge.handle(op: "size", args: ["id": "p"])
         let info = try #require(shell.calls.first { $0.contains("brew info") })

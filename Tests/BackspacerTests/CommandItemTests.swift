@@ -41,7 +41,7 @@ import Testing
         let xcrun = bin.appendingPathComponent("xcrun")
         try script.write(to: xcrun, atomically: true, encoding: .utf8)
         try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: xcrun.path)
-        bridge = Bridge(catalog: try Fixture.catalog(), pathPrefix: bin.path)
+        bridge = Bridge(catalog: try Fixture.catalog(), pathPrefix: bin.path, diagnostics: Fixture.quiet)
     }
 
     func cleanup() { try? fm.removeItem(at: dir) }

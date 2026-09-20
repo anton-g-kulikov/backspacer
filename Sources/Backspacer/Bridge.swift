@@ -38,7 +38,9 @@ final class Bridge: NSObject, @unchecked Sendable {
          trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
          shell: CommandRunner = SystemShell(),
          diagnostics: Diagnostics = .standard,
-         opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener) {
+         opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener,
+         appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev",
+         fetch: @escaping @Sendable (URL) throws -> Data = Updates.systemFetch) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
@@ -48,6 +50,8 @@ final class Bridge: NSObject, @unchecked Sendable {
         self.shell = shell
         self.diagnostics = diagnostics
         self.opener = opener
+        self.appVersion = appVersion
+        self.fetch = fetch
     }
 
     func catalogEntry(_ id: String) -> Catalog.Entry? { catalog.entry(id) }
@@ -189,6 +193,11 @@ final class Bridge: NSObject, @unchecked Sendable {
         case "delete":    return try delete(entry(args), item: args["item"] as? String)
         case "reveal":    return try reveal(entry(args))
         case "open":      return try open(entry(args), item: args["item"] as? String, with: args["with"] as? String)
+        case "checkUpdate":
+            let release = try Updates.parse(try fetch(Updates.latestURL))
+            let newer = Updates.isNewer(release.version, than: appVersion)
+            diagnostics.log(.info, "update check: running \(appVersion), latest \(release.version)\(newer ? " (newer)" : "")")
+            return ["current": appVersion, "latest": release.version, "newer": newer, "url": release.dmg ?? release.page]
         case "contextTarget": return ["ok": true]   // noted on the main thread before it was queued (see the message handler)
         case "appInfo":   return ["version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "dev",
                                   "build": Bundle.main.infoDictionary?["CFBundleVersion"] ?? "local"]
@@ -521,6 +530,8 @@ final class Bridge: NSObject, @unchecked Sendable {
     /// Apps the page may ask to open a path with. Anything else is refused by name.
     enum Opener: String, Sendable { case terminal }
     private let opener: @Sendable (URL, Opener) -> Void
+    private let appVersion: String
+    private let fetch: @Sendable (URL) throws -> Data
     static let systemOpener: @Sendable (URL, Opener) -> Void = { url, with in
         DispatchQueue.main.async {
             switch with {

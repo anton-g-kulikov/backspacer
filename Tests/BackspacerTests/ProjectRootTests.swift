@@ -25,7 +25,7 @@ import Testing
         """
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
         self.home = home; self.defaults = defaults; self.suite = suite
-        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, defaults: defaults)
+        self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path, defaults: defaults, diagnostics: Fixture.quiet)
     }
 
     func cleanup() { try? fm.removeItem(at: home); defaults.removePersistentDomain(forName: suite) }

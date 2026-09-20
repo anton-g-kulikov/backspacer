@@ -109,6 +109,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
     @objc private func revealLog(_ sender: Any?) { NSWorkspace.shared.activateFileViewerSelecting([Diagnostics.standard.file]) }
 
     /// View ▸ Glass / Terminal. The page stores the choice through the bridge (UserDefaults "ui.theme").
+    @objc private func checkForUpdates(_ sender: Any?) {
+        webView.evaluateJavaScript("window.__openAbout && window.__openAbout(); window.__checkUpdates()", completionHandler: nil)
+    }
+
     @objc private func setTheme(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? String else { return }
         webView.evaluateJavaScript("window.__setTheme(\(id.debugDescription))", completionHandler: nil)
@@ -135,6 +139,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
         let appItem = NSMenuItem(); main.addItem(appItem)
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "About Backspacer", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Hide Backspacer", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(.separator())

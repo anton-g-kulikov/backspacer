@@ -41,6 +41,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `revealLog` | — | `{path}` | selects the diagnostics file in Finder |
 | `contextTarget` | `{id, item?}` | `{ok}` | sent by the page on right-click over a row (entry id) or a Details item (its selector); the bridge notes it on the main thread before queuing, so the native context menu that follows can offer an action for it; quiet |
 | `open` | `{id, item?, with}` | `{path}` | the context menu's path action: opens the entry's first path, or one of its current Details items (any other selector is refused), with `with: "terminal"` (the only app the page may name — Finder is the row's Reveal) |
+| `checkUpdate` | — | `{current, latest, newer, url}` | one GET to GitHub's `releases/latest`, only when the user clicks About → Check for updates or the app menu's item — never at launch, nothing else is sent; `url` is the DMG asset (or the release page); failures reply with one plain message |
 | `dragWindow` | — | `{ok}` | the page's header is a window drag region: sent on mouse-down there, the bridge calls `NSWindow.performDrag(with:)` on the event still in flight (WKWebView has no drag regions of its own); quiet, no-op without a window |
 
 ## Host → page calls

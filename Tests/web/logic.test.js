@@ -174,3 +174,12 @@ test('J17 taglineText: the reclaimable total sits inside the tagline as an aside
   assert.equal(taglineText(689e6), 'I got some [689 MB of space] if you need it');
   assert.deepEqual(RECLAIMABLE, ['safe', 'regen', 'decide'], 'Keep and Managed by macOS never count');
 });
+
+test('J18 updateText: one line per outcome, the link only when there is something to get', () => {
+  const { updateText } = require('../../web/logic.js');
+  assert.deepEqual(updateText({ current: '0.8.1', latest: '0.9.0', newer: true, url: 'https://x/Backspacer-0.9.0.dmg' }),
+    { text: '0.9.0 is available.', link: 'https://x/Backspacer-0.9.0.dmg', linkText: 'Download 0.9.0' });
+  assert.deepEqual(updateText({ current: '0.9.0', latest: '0.9.0', newer: false, url: 'https://x' }),
+    { text: 'You’re up to date.', link: null, linkText: null });
+  assert.deepEqual(updateText(null, 'Couldn’t reach GitHub.'), { text: 'Couldn’t reach GitHub.', link: null, linkText: null });
+});
