@@ -36,7 +36,8 @@ test('Y4 tests run before anything is signed; steps fail on any error in a pipe'
 test('Y5 the certificate lives in a temporary keychain that is deleted whatever happens', () => {
   assert.match(wf, /security create-keychain -p "\$KEYCHAIN_PASSWORD" "\$KEYCHAIN"/);
   assert.match(wf, /security import .* -P "\$\{\{ secrets\.MACOS_CERT_PASSWORD \}\}"/);
-  assert.match(wf, /if: always\(\)\n\s+run: security delete-keychain "\$KEYCHAIN"/, 'deleted in an always() step');
+  assert.match(wf, /if: always\(\)\n\s+run: security delete-keychain "\$RUNNER_TEMP\/release\.keychain-db"/, 'deleted in an always() step');
+  assert.doesNotMatch(wf, /\$\{\{ runner\./, 'the runner context is not available in job-level env — a parse error, not a runtime one');
   assert.doesNotMatch(wf, /login\.keychain/);
 });
 

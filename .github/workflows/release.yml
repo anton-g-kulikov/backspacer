@@ -26,8 +26,6 @@ jobs:
   release:
     name: build, notarize, publish
     runs-on: macos-15
-    env:
-      KEYCHAIN: ${{ runner.temp }}/release.keychain-db
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,6 +50,7 @@ jobs:
           CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
         run: |
           test -n "$CERT_P12" || { echo "secret MACOS_CERT_P12 is not set — see .github/workflows/release.yml"; exit 1; }
+          KEYCHAIN="$RUNNER_TEMP/release.keychain-db"
           KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security set-keychain-settings -lut 1800 "$KEYCHAIN"
@@ -95,4 +94,4 @@ jobs:
 
       - name: Remove the temporary keychain
         if: always()
-        run: security delete-keychain "$KEYCHAIN" 2>/dev/null || true
+        run: security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
