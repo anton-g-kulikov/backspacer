@@ -180,7 +180,7 @@ test('W15 reveal hero: the System Data row unfolds into a real findings card; th
   assert.match(html, /\.hero-copy \{ position: sticky; top: /, 'the copy column sticks while the reveal scrolls');
   assert.doesNotMatch(html, /class="vs"/, 'the old comparison grid is gone');
   const how = html.match(/<section id="how"[\s\S]*?<\/section>/)[0];
-  assert.match(how, /<figure class="shot app">[\s\S]*?<img src="assets\/screenshot-light\.png" width="1400" height="1100"/, 'the real window, full width, in the buckets section');
+  assert.match(how, /<figure class="shot app">[\s\S]*?<img src="assets\/screenshot-light\.png" width="2134" height="1676"/, 'the real window, full width, in the buckets section');
   assert.match(how, /<figcaption>/, 'with a caption');
 });
 
