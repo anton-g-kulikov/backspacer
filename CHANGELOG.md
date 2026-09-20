@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Internal: CI steps fail when the command in a pipe fails (`pipefail`); the folder picker compiles under Xcode 16's Swift 6.0 compiler, which is now the verified toolchain floor.
+
 ## 0.7.0 — 2026-09-20
 - Internal: Swift 6 language mode with strict concurrency; signing without `--deep`; the origin audit script moved under `_meta/`.
 - Window menu gets Zoom and Bring All to Front; a Help menu links to GitHub, the issue tracker and the diagnostics log.

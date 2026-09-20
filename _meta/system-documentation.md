@@ -220,7 +220,12 @@ build on a macOS 15 runner with the newest Xcode 16 for every push to `main`,
 every tag and every pull request, then assembles the app ad-hoc from that same
 universal build (`UNIVERSAL=1`) and runs `codesign --verify --strict`. The
 package step runs on every push, not only tags, so a broken guard shows up on
-the commit that broke it rather than at the next release. The token is read-only, actions are
+the commit that broke it rather than at the next release. Steps run under
+`shell: bash`, i.e. `-eo pipefail`: with GitHub's default `bash -e`, `swift test
+| tail -30` reported tail's exit code, and three runs after the move to Swift 6
+were green without compiling. Xcode 16 is the floor: its Swift 6.0 compiler is
+stricter about actor inference than Xcode 26/27, so a local build proves less
+than CI does. The token is read-only, actions are
 SHA-pinned and Dependabot bumps them monthly. Signing and notarization
 are not part of CI — they need the local keychain (see `release-checklist.md`).
 

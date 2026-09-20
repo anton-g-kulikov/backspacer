@@ -140,6 +140,10 @@ to the background queue as `Data` rather than a non-Sendable dictionary.
 the `DateFormatter`). No SwiftLint/SwiftFormat: one maintainer, consistent
 style, and a linter would be a dependency for contributors to install; an
 `.editorconfig` covers the basics. Revisit when there are regular contributors.
+Toolchain floor: Xcode 16.4 (Swift 6.0), enforced by CI. Its compiler does not
+infer main-actor isolation for a closure handed to `DispatchQueue.main.sync`,
+where Xcode 27's does — isolation is spelled out (`@MainActor` helper +
+`MainActor.assumeIsolated`) rather than left to inference.
 
 ## ADR-20 — Rename to Backspacer (decided 2026-09-20, not yet applied)
 "Reclaimer" is also a paid disk cleaner by MNZN, LLC on the Mac App Store
