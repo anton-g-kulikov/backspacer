@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Catalog: entries may declare `platforms` and per-OS `os.linux` / `os.windows` overrides (ADR-22, step 1); 40 entries are marked portable with Linux and Windows locations. No change to what the macOS app shows.
+
 ## 1.0.2 — 2026-09-20
 - The update window shows the release notes themselves instead of the GitHub page; the Log tab is a text tab again; the About dialog's close cross is centred and no longer opens focused.
 

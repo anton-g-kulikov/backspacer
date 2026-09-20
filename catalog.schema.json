@@ -4,489 +4,126 @@
   "title": "Backspacer catalog",
   "description": "What Backspacer measures, which bucket it belongs to, and how it is removed. Every disk path the app ever touches comes from here.",
   "type": "object",
-  "required": [
-    "version",
-    "buckets",
-    "entries"
-  ],
+  "required": ["version", "buckets", "entries"],
   "additionalProperties": false,
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
-    "version": {
-      "type": "integer",
-      "const": 1
-    },
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
     "buckets": {
       "type": "object",
-      "required": [
-        "safe",
-        "regen",
-        "decide",
-        "keep",
-        "locked"
-      ],
+      "required": ["safe", "regen", "decide", "keep", "locked"],
       "additionalProperties": false,
       "properties": {
-        "safe": {
-          "$ref": "#/$defs/bucket"
-        },
-        "regen": {
-          "$ref": "#/$defs/bucket"
-        },
-        "decide": {
-          "$ref": "#/$defs/bucket"
-        },
-        "keep": {
-          "$ref": "#/$defs/bucket"
-        },
-        "locked": {
-          "$ref": "#/$defs/bucket"
-        }
+        "safe":   { "$ref": "#/$defs/bucket" },
+        "regen":  { "$ref": "#/$defs/bucket" },
+        "decide": { "$ref": "#/$defs/bucket" },
+        "keep":   { "$ref": "#/$defs/bucket" },
+        "locked": { "$ref": "#/$defs/bucket" }
       }
     },
-    "entries": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/entry"
-      }
-    }
+    "entries": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/entry" } }
   },
   "$defs": {
     "bucket": {
       "type": "object",
-      "required": [
-        "title",
-        "blurb"
-      ],
+      "required": ["title", "blurb"],
       "additionalProperties": false,
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "blurb": {
-          "type": "string"
-        }
-      }
+      "properties": { "title": { "type": "string" }, "blurb": { "type": "string" } }
     },
-    "entry": {
+    "glob": {
       "type": "object",
-      "required": [
-        "id",
-        "group",
-        "bucket",
-        "label"
-      ],
+      "required": ["root"],
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9-]*$",
-          "description": "Stable; the UI and the bridge key on it."
-        },
-        "group": {
-          "type": "string",
-          "description": "Sub-heading inside the bucket."
-        },
-        "bucket": {
-          "type": "string",
-          "enum": [
-            "safe",
-            "regen",
-            "decide",
-            "keep",
-            "locked"
-          ],
-          "description": "safe: caches every app rebuilds; regen: comes back on the next build or install; decide: the user's call, goes to the Trash; keep: shown, never deletable; locked: managed by macOS."
-        },
-        "label": {
-          "type": "string",
-          "description": "The row's title — a folder name or the tool's own name; the note carries the reasoning."
-        },
-        "platforms": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "enum": [
-              "macos",
-              "linux",
-              "windows"
-            ]
-          },
-          "description": "Hosts that show the entry. Absent = macOS only. A platform listed here with no `os` override uses the base fields as they are (dot-folders, $PROJECTS)."
-        },
-        "os": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "linux": {
-              "$ref": "#/$defs/override"
-            },
-            "windows": {
-              "$ref": "#/$defs/override"
-            }
-          },
-          "description": "Per-OS overrides of the location and command fields, for tools that live elsewhere on that platform. A platform with an override must also be listed in `platforms`. The macOS host ignores this block."
-        },
-        "note": {
-          "type": "string",
-          "description": "Shown under the label."
-        },
-        "path": {
-          "type": "string",
-          "description": "One path. `~` is the home folder; `$PROJECTS` the user's project folders. Per-OS overrides (`os`) may use `$HOME`, `$XDG_CACHE_HOME`, `$XDG_CONFIG_HOME`, `$XDG_DATA_HOME` (Linux) and `$LOCALAPPDATA`, `$APPDATA`, `$TEMP` (Windows)."
-        },
-        "paths": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          },
-          "description": "Several fixed paths measured and removed together (~ is home). Use path for one, glob to search."
-        },
-        "glob": {
-          "type": "object",
-          "required": [
-            "root"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "root": {
-              "type": "string",
-              "description": "A folder, or \"$PROJECTS\" for the user's project folders."
-            },
-            "name": {
-              "type": "string"
-            },
-            "names": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              }
-            },
-            "pathPatterns": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              },
-              "description": "find -path patterns, relative to root."
-            },
-            "maxdepth": {
-              "type": "integer"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "d",
-                "f"
-              ]
-            },
-            "then": {
-              "type": "string",
-              "description": "Appended to each match (e.g. \".next\" → \".next/cache\")."
-            },
-            "requireSibling": {
-              "type": "string",
-              "description": "Keep a match only if its parent holds a file matching this glob (e.g. \"*.csproj\")."
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "name"
-              ]
-            },
-            {
-              "required": [
-                "names"
-              ]
-            },
-            {
-              "required": [
-                "pathPatterns"
-              ]
-            }
-          ],
-          "description": "a glob needs name, names or pathPatterns"
-        },
-        "children": {
-          "type": "boolean",
-          "description": "List the path's immediate subfolders as separately deletable items."
-        },
-        "exclude": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          },
-          "description": "With children: subfolder names that are never listed nor removed (e.g. crash reports inside ~/Library/Logs)."
-        },
-        "companion": {
-          "type": "string",
-          "pattern": "^\\.[A-Za-z0-9]+$",
-          "description": "With children: a sibling file named <child stem><companion> is removed together with each child (an AVD's .ini)."
-        },
-        "childLabel": {
-          "type": "object",
-          "required": [
-            "file",
-            "keys"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "file": {
-              "type": "string"
-            },
-            "keys": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "description": "With children: name each subfolder after the first present key in <child>/<file> (JSON)."
-        },
-        "fda": {
-          "type": "boolean",
-          "description": "Lives behind Full Disk Access (containers, Mail, Messages, Safari, MobileSync): without it the size shows as unknown, not 0."
-        },
-        "sudo": {
-          "type": "boolean",
-          "description": "Measured and removed through the macOS admin dialog."
-        },
-        "manual": {
-          "type": "boolean",
-          "description": "Measured and explained, never removed by the app."
-        },
-        "sizeCmd": {
-          "type": "string",
-          "description": "Prints the size in KB."
-        },
-        "infoCmd": {
-          "type": "string",
-          "description": "Output shown by Details."
-        },
-        "deleteCmd": {
-          "type": "string",
-          "description": "Replaces rm -rf <path>."
-        },
-        "itemsCmd": {
-          "type": "string",
-          "description": "Prints one item per line: key<TAB>label<TAB>KB."
-        },
-        "deleteItemCmd": {
-          "type": "string",
-          "pattern": "\\{key\\}",
-          "description": "Removes one item; {key} is replaced by the shell-quoted key."
-        }
+        "root":           { "type": "string", "description": "A folder, or \"$PROJECTS\" for the user's project folders." },
+        "name":           { "type": "string" },
+        "names":          { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "pathPatterns":   { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "find -path patterns, relative to root." },
+        "maxdepth":       { "type": "integer" },
+        "type":           { "type": "string", "enum": ["d", "f"] },
+        "then":           { "type": "string", "description": "Appended to each match (e.g. \".next\" → \".next/cache\")." },
+        "requireSibling": { "type": "string", "description": "Keep a match only if its parent holds a file matching this glob (e.g. \"*.csproj\")." }
       },
-      "anyOf": [
-        {
-          "required": [
-            "path"
-          ]
-        },
-        {
-          "required": [
-            "paths"
-          ]
-        },
-        {
-          "required": [
-            "glob"
-          ]
-        },
-        {
-          "required": [
-            "sizeCmd"
-          ]
-        },
-        {
-          "required": [
-            "infoCmd"
-          ]
-        },
-        {
-          "required": [
-            "itemsCmd"
-          ]
-        }
-      ],
-      "description": "an entry needs something to measure or show: path, paths, glob, sizeCmd, infoCmd or itemsCmd",
-      "dependentRequired": {
-        "children": [
-          "path"
-        ],
-        "childLabel": [
-          "children"
-        ],
-        "exclude": [
-          "children"
-        ],
-        "companion": [
-          "children"
-        ],
-        "itemsCmd": [
-          "deleteItemCmd"
-        ],
-        "deleteItemCmd": [
-          "itemsCmd"
-        ]
-      },
-      "dependentSchemas": {
-        "sudo": {
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "deleteCmd"
-                ]
-              },
-              {
-                "required": [
-                  "deleteItemCmd"
-                ]
-              }
-            ],
-            "description": "admin entries can't run commands — root work is only ever an rm the app builds from gate-checked paths"
-          }
-        },
-        "children": {
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "paths"
-                ]
-              },
-              {
-                "required": [
-                  "glob"
-                ]
-              },
-              {
-                "required": [
-                  "deleteCmd"
-                ]
-              }
-            ],
-            "description": "children needs a single path and no paths, glob or deleteCmd"
-          }
-        }
-      }
+      "anyOf": [ { "required": ["name"] }, { "required": ["names"] }, { "required": ["pathPatterns"] } ],
+      "description": "a glob needs name, names or pathPatterns"
     },
     "override": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "path": {
-          "type": "string",
-          "description": "One path. `~` is the home folder; `$PROJECTS` the user's project folders. Per-OS overrides (`os`) may use `$HOME`, `$XDG_CACHE_HOME`, `$XDG_CONFIG_HOME`, `$XDG_DATA_HOME` (Linux) and `$LOCALAPPDATA`, `$APPDATA`, `$TEMP` (Windows)."
-        },
-        "paths": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          },
-          "description": "Several fixed paths measured and removed together (~ is home). Use path for one, glob to search."
-        },
-        "glob": {
-          "type": "object",
-          "required": [
-            "root"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "root": {
-              "type": "string",
-              "description": "A folder, or \"$PROJECTS\" for the user's project folders."
-            },
-            "name": {
-              "type": "string"
-            },
-            "names": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              }
-            },
-            "pathPatterns": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              },
-              "description": "find -path patterns, relative to root."
-            },
-            "maxdepth": {
-              "type": "integer"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "d",
-                "f"
-              ]
-            },
-            "then": {
-              "type": "string",
-              "description": "Appended to each match (e.g. \".next\" → \".next/cache\")."
-            },
-            "requireSibling": {
-              "type": "string",
-              "description": "Keep a match only if its parent holds a file matching this glob (e.g. \"*.csproj\")."
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "name"
-              ]
-            },
-            {
-              "required": [
-                "names"
-              ]
-            },
-            {
-              "required": [
-                "pathPatterns"
-              ]
-            }
-          ],
-          "description": "a glob needs name, names or pathPatterns"
-        },
-        "sizeCmd": {
-          "type": "string",
-          "description": "Prints the size in KB."
-        },
-        "infoCmd": {
-          "type": "string",
-          "description": "Output shown by Details."
-        },
-        "deleteCmd": {
-          "type": "string",
-          "description": "Replaces rm -rf <path>."
-        },
-        "itemsCmd": {
-          "type": "string",
-          "description": "Prints one item per line: key<TAB>label<TAB>KB."
-        },
-        "deleteItemCmd": {
-          "type": "string",
-          "pattern": "\\{key\\}",
-          "description": "Removes one item; {key} is replaced by the shell-quoted key."
-        }
+        "path":  { "type": "string" },
+        "paths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "glob":  { "$ref": "#/$defs/glob" },
+        "sizeCmd": { "type": "string" }, "infoCmd": { "type": "string" }, "deleteCmd": { "type": "string" },
+        "itemsCmd": { "type": "string" }, "deleteItemCmd": { "type": "string", "pattern": "\\{key\\}" }
       },
-      "description": "Replaces the entry's location and/or commands on one platform. Fields absent here fall back to the base entry's — except commands, which never carry over (a macOS shell command is not assumed to work elsewhere)."
+      "description": "Replaces an entry's location and/or commands on one platform. Location fields absent here fall back to the base entry's; commands never carry over (a macOS shell command is not assumed to work elsewhere)."
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "group", "bucket", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Stable; the UI and the bridge key on it." },
+        "group":  { "type": "string", "description": "Sub-heading inside the bucket." },
+        "bucket": { "type": "string", "enum": ["safe", "regen", "decide", "keep", "locked"],
+                    "description": "safe: caches every app rebuilds; regen: comes back on the next build or install; decide: the user's call, goes to the Trash; keep: shown, never deletable; locked: managed by macOS." },
+        "label":  { "type": "string", "description": "The row's title — a folder name or the tool's own name; the note carries the reasoning." },
+        "platforms": { "type": "array", "minItems": 1, "items": { "type": "string", "enum": ["macos", "linux", "windows"] },
+                       "description": "Hosts that show the entry. Absent = macOS only. A platform listed with no os override uses the base fields as they are." },
+        "os": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "linux": { "$ref": "#/$defs/override" }, "windows": { "$ref": "#/$defs/override" } },
+          "description": "Per-OS overrides of the location and command fields. A platform with an override must also be listed in platforms. The macOS host ignores this block."
+        },
+        "note":   { "type": "string", "description": "Shown under the label." },
+        "path":   { "type": "string", "description": "One path. ~ is the home folder; $PROJECTS the user's project folders. In os overrides also $HOME, $XDG_CACHE_HOME, $XDG_CONFIG_HOME, $XDG_DATA_HOME (Linux) and $LOCALAPPDATA, $APPDATA, $TEMP (Windows)." },
+        "paths":  { "type": "array", "minItems": 1, "items": { "type": "string" },
+                    "description": "Several fixed paths measured and removed together (~ is home). Use path for one, glob to search." },
+        "glob":   { "$ref": "#/$defs/glob" },
+        "children":   { "type": "boolean", "description": "List the path's immediate subfolders as separately deletable items." },
+        "exclude":    { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "With children: subfolder names that are never listed nor removed (e.g. crash reports inside ~/Library/Logs)." },
+        "companion":  { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$", "description": "With children: a sibling file named <child stem><companion> is removed together with each child (an AVD's .ini)." },
+        "childLabel": {
+          "type": "object",
+          "required": ["file", "keys"],
+          "additionalProperties": false,
+          "properties": { "file": { "type": "string" }, "keys": { "type": "array", "minItems": 1, "items": { "type": "string" } } },
+          "description": "With children: name each subfolder after the first present key in <child>/<file> (JSON)."
+        },
+        "fda":    { "type": "boolean", "description": "Lives behind Full Disk Access (containers, Mail, Messages, Safari, MobileSync): without it the size shows as unknown, not 0." },
+        "sudo":   { "type": "boolean", "description": "Measured and removed through the macOS admin dialog." },
+        "manual": { "type": "boolean", "description": "Measured and explained, never removed by the app." },
+        "sizeCmd":       { "type": "string", "description": "Prints the size in KB." },
+        "infoCmd":       { "type": "string", "description": "Output shown by Details." },
+        "deleteCmd":     { "type": "string", "description": "Replaces rm -rf <path>." },
+        "itemsCmd":      { "type": "string", "description": "Prints one item per line: key<TAB>label<TAB>KB." },
+        "deleteItemCmd": { "type": "string", "pattern": "\\{key\\}", "description": "Removes one item; {key} is replaced by the shell-quoted key." }
+      },
+      "anyOf": [
+        { "required": ["path"] }, { "required": ["paths"] }, { "required": ["glob"] },
+        { "required": ["sizeCmd"] }, { "required": ["infoCmd"] }, { "required": ["itemsCmd"] }
+      ],
+      "description": "an entry needs something to measure or show: path, paths, glob, sizeCmd, infoCmd or itemsCmd",
+      "dependentRequired": {
+        "children":      ["path"],
+        "childLabel":    ["children"],
+        "exclude":       ["children"],
+        "companion":     ["children"],
+        "itemsCmd":      ["deleteItemCmd"],
+        "deleteItemCmd": ["itemsCmd"]
+      },
+      "dependentSchemas": {
+        "sudo": {
+          "not": { "anyOf": [ { "required": ["deleteCmd"] }, { "required": ["deleteItemCmd"] } ],
+                   "description": "admin entries can't run commands — root work is only ever an rm the app builds from gate-checked paths" }
+        },
+        "children": {
+          "not": { "anyOf": [ { "required": ["paths"] }, { "required": ["glob"] }, { "required": ["deleteCmd"] } ],
+                   "description": "children needs a single path and no paths, glob or deleteCmd" }
+        }
+      }
     }
   }
 }
