@@ -6,21 +6,39 @@ on:
     tags: ['v*']
   pull_request:
 
+# Read-only token: nothing here needs to write to the repo, and a PR from a fork must not be able to.
+permissions:
+  contents: read
+
 jobs:
   test:
     name: swift test + release build
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v5
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | tail -1)"
+      # SHA-pinned (v5.0.0): a tag can be moved, a commit can't.
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Select the newest Xcode 16 on the runner
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)"
+          test -n "$XCODE" || { echo "no Xcode 16 on this runner"; ls /Applications | grep Xcode; exit 1; }
+          sudo xcode-select -s "$XCODE"
       - name: Toolchain
         run: swift --version && xcodebuild -version
       - name: Tests
         run: swift test 2>&1 | tail -30
+      - name: Web logic and accessibility tests (node)
+        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js'
+      - name: Catalog parses and validates
+        run: |
+          python3 -c "import json; json.load(open('catalog.json')); json.load(open('catalog.schema.json'))"
+          plutil -lint scripts/entitlements.plist
       - name: Release build (universal)
         run: swift build -c release --arch arm64 --arch x86_64 2>&1 | tail -5
-      - name: Catalog is valid JSON
-        run: python3 -c "import json; json.load(open('catalog.json'))"
-      - name: Web logic tests (node)
-        run: node --test 'Tests/web/*.test.js'
+      # On a tag, also prove the packaged app assembles and signs (ad-hoc — no Developer ID on CI).
+      - name: Package and verify the app bundle (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          scripts/build-app.sh
+          codesign --verify --deep --strict build/Reclaimer.app
+          plutil -lint build/Reclaimer.app/Contents/Info.plist
+          /usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' build/Reclaimer.app/Contents/Info.plist
