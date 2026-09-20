@@ -50,5 +50,8 @@ names every offending file.
   never ships.
 
 ## After
+- Check the tag's CI run went green (`gh run list --branch vX.Y.Z`); it packages
+  the app ad-hoc as a guard. It failing does not affect the shipped DMG, which
+  was built and notarized locally, but fix the guard before the next release.
 - Move the task's entry in `_meta/project-task-list.md` to Done.
 - Note anything that surprised you in this checklist.

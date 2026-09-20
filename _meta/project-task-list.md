@@ -38,6 +38,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — CI package guard fixed: the v0.7.0 tag run died with `error: fatalError` (native `swift build` after a universal one, Swift 6.0 toolchain); the step now builds `UNIVERSAL=1` and runs on every push.
 - 2026-09-20 — 0.7.0 released: AVD per-device delete, FDA badge and needs-access state, Window/Help menus, Swift 6, no `--deep`.
 - 2026-09-20 — R23: Swift 6 language mode; Bridge handler conformance isolated in an extension, Data hand-off; Diagnostics Sendable; .editorconfig (ADR-19). Review queue complete.
 - 2026-09-20 — R24: no `codesign --deep`; nested-code guard in build-app.sh; release checklist notes the inside-out rule.

@@ -217,8 +217,10 @@ and project names — the About text says so.
 `.github/workflows/ci.yml` runs `swift test`, the Node logic and accessibility
 tests, a catalog/schema parse plus `plutil -lint`, and a universal release
 build on a macOS 15 runner with the newest Xcode 16 for every push to `main`,
-every tag and every pull request; on tags it also assembles the app ad-hoc and
-runs `codesign --verify --strict`. The token is read-only, actions are
+every tag and every pull request, then assembles the app ad-hoc from that same
+universal build (`UNIVERSAL=1`) and runs `codesign --verify --strict`. The
+package step runs on every push, not only tags, so a broken guard shows up on
+the commit that broke it rather than at the next release. The token is read-only, actions are
 SHA-pinned and Dependabot bumps them monthly. Signing and notarization
 are not part of CI — they need the local keychain (see `release-checklist.md`).
 
