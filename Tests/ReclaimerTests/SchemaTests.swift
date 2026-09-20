@@ -26,21 +26,23 @@ import Testing
     }
 
     @Test("V2 — the schema rejects the mistakes that matter", arguments: [
-        ("unknown field",                    ["typo": true]),
-        ("unknown bucket",                   ["bucket": "maybe"]),
-        ("id with spaces",                   ["id": "my entry"]),
-        ("children without path",            ["path": nil, "glob": ["root": "~/x", "name": "n"], "children": true]),
-        ("children alongside glob",          ["glob": ["root": "~/x", "name": "n"], "children": true]),
-        ("itemsCmd without deleteItemCmd",   ["itemsCmd": "ls"]),
-        ("deleteItemCmd without {key}",      ["itemsCmd": "ls", "deleteItemCmd": "rm it"]),
-        ("childLabel without children",      ["childLabel": ["file": "f", "keys": ["k"]]]),
-        ("no source at all",                 ["path": nil]),
-        ("sudo with deleteCmd",              ["sudo": true, "deleteCmd": "rm -rf /"]),
-        ("sudo with deleteItemCmd",          ["sudo": true, "itemsCmd": "ls", "deleteItemCmd": "rm {key}"]),
-    ] as [(String, [String: Any?])])
-    func rejects(_ name: String, _ patch: [String: Any?]) {
+        ("unknown field",                    #"{"typo": true}"#),
+        ("unknown bucket",                   #"{"bucket": "maybe"}"#),
+        ("id with spaces",                   #"{"id": "my entry"}"#),
+        ("children without path",            #"{"path": null, "glob": {"root": "~/x", "name": "n"}, "children": true}"#),
+        ("children alongside glob",          #"{"glob": {"root": "~/x", "name": "n"}, "children": true}"#),
+        ("itemsCmd without deleteItemCmd",   #"{"itemsCmd": "ls"}"#),
+        ("deleteItemCmd without {key}",      #"{"itemsCmd": "ls", "deleteItemCmd": "rm it"}"#),
+        ("childLabel without children",      #"{"childLabel": {"file": "f", "keys": ["k"]}}"#),
+        ("no source at all",                 #"{"path": null}"#),
+        ("sudo with deleteCmd",              #"{"sudo": true, "deleteCmd": "rm -rf /"}"#),
+        ("sudo with deleteItemCmd",          #"{"sudo": true, "itemsCmd": "ls", "deleteItemCmd": "rm {key}"}"#),
+    ])
+    func rejects(_ name: String, _ patchJSON: String) throws {
+        // Arguments must be Sendable (Swift 6), so each patch is JSON; null removes the key.
+        let patch = try #require(JSONSerialization.jsonObject(with: Data(patchJSON.utf8)) as? [String: Any])
         var e = base
-        for (k, v) in patch { if let v { e[k] = v } else { e.removeValue(forKey: k) } }
+        for (k, v) in patch { if v is NSNull { e.removeValue(forKey: k) } else { e[k] = v } }
         let errs = errors(withEntry(e))
         #expect(!errs.isEmpty, Comment(rawValue: name))
         #expect(errs.allSatisfy { $0.contains("entries/0") }, Comment(rawValue: "\(name): \(errs)"))

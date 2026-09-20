@@ -130,6 +130,17 @@ twice). Chosen: re-launch Reclaimer's own signed executable with `--admin
 with the status. One prompt, "Allow administrator access for Reclaimer?",
 the app stays responsive, no helper tool to install or trust (ADR-4 holds).
 
+## ADR-19 — Swift 6 language mode
+`swift-tools-version:6.0` turns on strict concurrency for good. The one
+structural consequence: `Bridge` keeps its `WKScriptMessageHandler`
+conformance in an extension (that protocol is main-actor, and declaring it
+on the class made every method main-actor), and the message body crosses
+to the background queue as `Data` rather than a non-Sendable dictionary.
+`Diagnostics` is `Sendable` outright (a `Calendar`-based timestamp replaced
+the `DateFormatter`). No SwiftLint/SwiftFormat: one maintainer, consistent
+style, and a linter would be a dependency for contributors to install; an
+`.editorconfig` covers the basics. Revisit when there are regular contributors.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.

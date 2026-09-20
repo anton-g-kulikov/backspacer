@@ -21,9 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-30. **R23 · Swift 6 language mode** + strict concurrency; drop `@unchecked
-    Sendable` on `Diagnostics`; SwiftLint/SwiftFormat, `.editorconfig`.
-
 ## Roadmap (ideas, not grounded)
 
 From the 2026-09-20 review: in-app updates (Sparkle 2 or a "Check for updates"
@@ -41,8 +38,9 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R23: Swift 6 language mode; Bridge handler conformance isolated in an extension, Data hand-off; Diagnostics Sendable; .editorconfig (ADR-19). Review queue complete.
 - 2026-09-20 — R24: no `codesign --deep`; nested-code guard in build-app.sh; release checklist notes the inside-out rule.
-- 2026-09-20 — R25: Edit/Window/Help menus completed; CFBundleInfoDictionaryVersion and CFBundleDevelopmentRegion in Info.plist.
+- 2026-09-20 — R25: Window/Help menus completed; Edit keeps only Copy/Select All (no editable fields, so Undo/Cut/Paste would be inert); Info.plist dictionary version.
 - 2026-09-20 — R18: the origin audit script moved to `_meta/origin-storage-review.sh`, header de-personalised.
 - 2026-09-20 — R19: README screenshot (assets/screenshot-glass.png, captured from the app). preview-512.png is the icon preview, kept for the icon source.
 - 2026-09-20 — R26: CODE_OF_CONDUCT, FUNDING.yml, GitHub topics. LICENSE preamble kept: PolyForm isn't in GitHub's detector, so a pure text would still read "Other".

@@ -3,15 +3,12 @@ import Foundation
 /// The log file a user can attach to a bug report: ~/Library/Logs/Reclaimer/Reclaimer.log.
 /// Plain text, one line per event, rotated once past `maxBytes` (one previous copy kept).
 /// Nothing is ever sent anywhere; sharing it is the user's own act.
-final class Diagnostics: @unchecked Sendable {
+final class Diagnostics: Sendable {
     enum Level: String { case info, warn, error }
 
     let file: URL
     private let maxBytes: Int
     private let queue = DispatchQueue(label: "reclaimer.diagnostics")
-    private let stamp: DateFormatter = {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd HH:mm:ss"; return f
-    }()
 
     static let standard = Diagnostics(
         file: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Reclaimer/Reclaimer.log"),
@@ -21,8 +18,14 @@ final class Diagnostics: @unchecked Sendable {
 
     func log(_ level: Level, _ message: String) {
         let oneLine = message.replacingOccurrences(of: "\r\n", with: "⏎").replacingOccurrences(of: "\n", with: "⏎").replacingOccurrences(of: "\r", with: "⏎")
-        let line = "\(stamp.string(from: Date())) [\(level.rawValue)] \(oneLine)\n"
+        let line = "\(Self.stamp(Date())) [\(level.rawValue)] \(oneLine)\n"
         queue.sync { append(line) }
+    }
+
+    /// `yyyy-MM-dd HH:mm:ss` in local time, without a DateFormatter (not Sendable).
+    private static func stamp(_ date: Date) -> String {
+        let c = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        return String(format: "%04d-%02d-%02d %02d:%02d:%02d", c.year!, c.month!, c.day!, c.hour!, c.minute!, c.second!)
     }
 
     private func append(_ line: String) {

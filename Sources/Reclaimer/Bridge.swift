@@ -7,10 +7,13 @@ import WebKit
 /// catalog entry *id*, never a path. Paths are resolved here from the bundled
 /// catalog.json, so a compromised or buggy web layer cannot name a path.
 /// Replies go back as `window.__reclaimerReply(id, ok, payload)`.
-final class Bridge: NSObject, WKScriptMessageHandler {
+/// Conformance to the main-actor `WKScriptMessageHandler` lives in an extension so the rest of
+/// the class stays nonisolated: every op runs on the background queue.
+final class Bridge: NSObject, @unchecked Sendable {
     static let handlerName = "reclaimer"
 
-    weak var webView: WKWebView?
+    /// Set once on the main thread at startup; read only inside `reply`, which hops to the main actor.
+    @MainActor weak var webView: WKWebView?
     private let catalog: Catalog
     private let queue = DispatchQueue(label: "reclaimer.bridge", qos: .userInitiated, attributes: .concurrent)
     private let home: String
@@ -102,15 +105,13 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         p == "~" ? tildeHome : p.hasPrefix("~/") ? tildeHome + p.dropFirst() : p
     }
 
-    // MARK: WKScriptMessageHandler
-
-    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let body = message.body as? [String: Any],
-              let id = body["id"] as? Int,
-              let op = body["op"] as? String else { return }
-        let args = body["args"] as? [String: Any] ?? [:]
+    /// Runs one request on the background queue and replies.
+    private func dispatchRequest(_ raw: Data) {
         queue.async { [weak self] in
-            guard let self else { return }
+            guard let self,
+                  let body = (try? JSONSerialization.jsonObject(with: raw)) as? [String: Any],
+                  let id = body["id"] as? Int, let op = body["op"] as? String else { return }
+            let args = body["args"] as? [String: Any] ?? [:]
             do {
                 let payload = try self.handle(op: op, args: args)
                 self.reply(id, ok: true, payload: payload)
@@ -132,7 +133,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
             json = #"{"error":"unserializable reply"}"#
         }
         let js = "window.__reclaimerReply(\(id), \(ok), \(json));"
-        DispatchQueue.main.async { self.webView?.evaluateJavaScript(js, completionHandler: nil) }
+        Task { @MainActor in self.webView?.evaluateJavaScript(js, completionHandler: nil) }
     }
 
     // MARK: Dispatch
@@ -618,5 +619,15 @@ enum BridgeError: LocalizedError {
         case .unsafePath(let p):      return "Refused to delete \(p) — outside the allowed roots."
         case .failed(let m):          return m
         }
+    }
+}
+
+// MARK: WKScriptMessageHandler (main actor)
+
+extension Bridge: WKScriptMessageHandler {
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        // The body is a non-Sendable [String: Any]; re-encode it so the hand-off to the queue is a Data.
+        guard let body = message.body as? [String: Any], let raw = try? JSONSerialization.data(withJSONObject: body) else { return }
+        dispatchRequest(raw)
     }
 }
