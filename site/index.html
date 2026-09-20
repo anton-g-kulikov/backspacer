@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-LsuAU966goveLdstNH6QTn+ZvnG3J97OAc0MDKnJFno=' 'sha256-lGsir0rovzvSRdwzITPmRProdujmq/jjvVIVxs/l9vU='; script-src 'sha256-nXreUbphuyKY4RJ1mqfnANKpbo9EMb9wTqRfEzamAiM='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-jULZCgtkNMdOwVU9kXh0C7okTznJhBC7t3yDn7d4dNE=' 'sha256-UBjzmWI2oNcsIhaDyT74rLjuWb80EinhYJlDgS4O0Ks='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -122,16 +122,17 @@
   h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
   .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
   .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 34ch; }
-  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; align-items: center; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 22px; align-items: center; }
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); background: var(--card-strong); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
   .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .btn.primary small { font-weight: 500; opacity: .85; font-family: var(--mono); font-size: 13px; }
   .notes { font-size: 14px; color: var(--muted); }
-  .brew { margin: 14px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14.5px; color: var(--muted); }
-  .brew code { font-size: 13.5px; padding: 6px 10px; border-radius: 8px; background: var(--card-strong); border: 1px solid var(--border); color: var(--fg); user-select: all; }
-  .brew .copy { border: 1px solid var(--border); background: var(--card); color: var(--muted); font: 600 12.5px var(--sans); padding: 5px 10px; border-radius: 999px; cursor: pointer; }
-  .brew .copy:hover { color: var(--fg); }
-  .brew .copied { font-size: 12.5px; color: var(--safe); min-width: 4em; }
+  .brew { margin: 16px 0 0; max-width: 34rem; border-radius: 12px; background: var(--card); border: 1px solid var(--border); overflow: hidden; }
+  .brew-head { display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 12px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .brew-head .copied { margin-left: auto; font-size: 12.5px; color: var(--safe); }
+  .brew .copy { border: 1px solid var(--border); background: var(--card-strong); color: var(--fg); font: 600 12.5px var(--sans); padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+  .brew .copy:hover { color: var(--accent); }
+  .brew pre { background: transparent; color: var(--fg); padding: 10px 12px; border-radius: 0; font-size: 13.5px; line-height: 1.6; white-space: pre; overflow-x: auto; user-select: all; }
   .meta { margin: 14px 0 0; font-size: 14px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; list-style: none; }
   .shot { margin: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); background: var(--card-strong); }
   .shot .win { display: flex; gap: 8px; padding: 10px 12px; }
@@ -218,8 +219,9 @@
   [data-skin="terminal"] .btn:hover { color: var(--accent); } [data-skin="terminal"] .btn:hover::before, [data-skin="terminal"] .btn:hover::after { color: var(--fg); }
   [data-skin="terminal"] .btn.primary { color: var(--accent); font-weight: 700; } [data-skin="terminal"] .btn.primary::before, [data-skin="terminal"] .btn.primary::after { color: var(--accent); }
   [data-skin="terminal"] .btn.primary small { color: var(--muted); }
-  [data-skin="terminal"] .brew code { border-radius: 0; background: var(--card); color: var(--accent); }
-  [data-skin="terminal"] .brew .copy { border: 0; background: none; border-radius: 0; padding: 0 2px; }
+  [data-skin="terminal"] .brew { border-radius: 4px; }
+  [data-skin="terminal"] .brew pre { color: var(--accent); }
+  [data-skin="terminal"] .brew .copy { border: 0; background: none; border-radius: 0; padding: 0 2px; color: var(--muted); }
   [data-skin="terminal"] .brew .copy::before { content: "["; color: var(--faint); } [data-skin="terminal"] .brew .copy::after { content: "]"; color: var(--faint); }
   [data-skin="terminal"] .shot { border-radius: 4px; }
   [data-skin="terminal"] .shot .win { display: none; }
@@ -255,8 +257,8 @@
     apply(document.documentElement.dataset.skin);
     document.querySelector('.skins').addEventListener('click', e => { const t = e.target.dataset.skin; if (t) store(apply(t)); });
     for (const b of document.querySelectorAll('button.copy')) b.addEventListener('click', async () => {
-      const code = document.getElementById(b.dataset.copy), out = b.nextElementSibling;
-      try { await navigator.clipboard.writeText(code.textContent); out.textContent = 'copied'; }
+      const code = document.getElementById(b.dataset.copy), out = b.parentElement.querySelector('.copied');
+      try { await navigator.clipboard.writeText(code.dataset.copytext || code.textContent); out.textContent = 'copied'; }
       catch { const r = document.createRange(); r.selectNodeContents(code); getSelection().removeAllRanges(); getSelection().addRange(r); out.textContent = 'selected — press ⌘C'; }
       setTimeout(() => { out.textContent = ''; }, 2000);
     });
@@ -304,7 +306,11 @@
           <a class="btn" href="https://github.com/anton-g-kulikov/backspacer">Read the source</a>
           <a class="notes" href="https://github.com/anton-g-kulikov/backspacer/releases/latest">Release notes</a>
         </div>
-        <p class="brew">or <code id="brew">brew tap anton-g-kulikov/tap &amp;&amp; brew install --cask backspacer</code><button type="button" class="copy" data-copy="brew" aria-label="Copy the Homebrew command">Copy</button><span class="copied" role="status" aria-live="polite"></span></p>
+        <div class="brew">
+          <div class="brew-head"><span>Or with Homebrew</span><span class="copied" role="status" aria-live="polite"></span><button type="button" class="copy" data-copy="brew" aria-label="Copy the Homebrew command">Copy</button></div>
+          <pre><code id="brew" data-copytext="brew tap anton-g-kulikov/tap &amp;&amp; brew install --cask backspacer">brew tap anton-g-kulikov/tap
+brew install --cask backspacer</code></pre>
+        </div>
         <ul class="meta">
           <li>macOS 13 or later</li>
           <li>Apple silicon and Intel</li>

@@ -127,9 +127,11 @@ test('W12 look switcher: Glass / Terminal like the app, persisted, applied befor
 
 test('W13 Homebrew: the exact install command, once, in a <code>, with a copy button and matching the README', gate, () => {
   const cmd = 'brew tap anton-g-kulikov/tap && brew install --cask backspacer';   // Homebrew 7 needs the explicit tap
-  assert.ok(html.includes(`<code id="brew">${cmd.replace('&&', '&amp;&amp;')}</code>`), 'the command in a <code>');
+  const code = html.match(/<code id="brew" data-copytext="([^"]+)">([\s\S]*?)<\/code>/);
+  assert.ok(code, 'the command in <code id="brew"> with the one-line form to copy');
+  assert.equal(unesc(code[1]), cmd, 'Copy puts the one-liner on the clipboard');
+  assert.equal(code[2].trim(), 'brew tap anton-g-kulikov/tap\nbrew install --cask backspacer', 'shown as two terminal lines');
   assert.equal((text.match(/brew tap/g) || []).length, 1, 'one command on the page');
-  assert.ok(unesc(text).includes(cmd), 'renders unescaped');
   assert.match(html, /<button type="button" class="copy" data-copy="brew" aria-label="Copy the Homebrew command">/);
   assert.match(html, /navigator\.clipboard\.writeText/, 'the copy button uses the clipboard API');
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
