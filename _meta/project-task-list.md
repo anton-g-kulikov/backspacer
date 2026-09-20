@@ -13,19 +13,12 @@ Numbered by priority. R-numbers are the 2026-09-20 technical review's findings
 Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
-### Next — brand and site (decided 2026-09-20, ADR-20)
-- **Promo site (GitHub Pages)** — `site/index.html` under the new name,
-  published by `.github/workflows/pages.yml` (SHA-pinned actions, `pages:
-  write` + `id-token: write` only, gated by `node --test
-  'Tests/web/site.test.js'`). Tests W1–W9 in `Tests/web/site.test.js` are
-  written; they skip while `site/index.html` is absent so CI stays green,
-  and fail with `SITE_REQUIRED=1` (which the workflow sets). They pin head/OG tags, local assets, release and repo
-  links, bucket copy verbatim from `catalog.json`, ADR-14 license wording,
-  landmarks/alt/reduced-motion, the `Backspacer (y)` wordmark, and the
-  workflow shape, and the tagline "I got some if you need it." as the one Pearl Jam nod
-  (W10). Screenshots: light and dark Glass, Terminal, captured from
-  the page's mock bridge at 1180×860 @2x. Blocked on the rename (the site
-  must not ship pointing at `Reclaimer-*.dmg`).
+### Next — site goes live (maintainer)
+- Enable GitHub Pages on the repo with source "GitHub Actions", set the custom
+  domain `backspacer.dev` and Enforce HTTPS (`gh api -X PUT
+  repos/anton-g-kulikov/backspacer/pages -f cname=backspacer.dev -F
+  https_enforced=true` once the first deploy has run), and verify the domain
+  under account Settings → Pages (`VERIFY=<code> scripts/pages-dns.sh`).
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
@@ -51,6 +44,8 @@ From the 0.1.0 README:
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — Promo site: `site/index.html` (buckets and groups from the catalog, live version badge, hashed CSP, light/dark screenshots), `pages.yml` (SHA-pinned, `SITE_REQUIRED=1` gate), `scripts/site-csp.mjs`; backspacer.dev DNS via `scripts/pages-dns.sh`. Tests W1–W11. Pages must still be enabled on the repo with the custom domain — maintainer step.
 
 - 2026-09-20 — 0.8.0 released: first release as Backspacer; CI honest again (pipefail), Xcode 16.4 toolchain floor.
 - 2026-09-20 — Renamed to Backspacer (ADR-20): app, bundle id `com.antonkulikov.backspacer`, module and test target, log folder, scripts, LICENSE, docs, repository (old URL redirects); tests N1–N2, K1–K6 (K6 guards against the old name creeping back). First release under the name: 0.8.0.

@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Website: https://backspacer.dev — the promo page lives in `site/` and is published by GitHub Pages from `main`; its copy is tested against the catalog so buckets and groups never drift.
+
 ## 0.8.0 — 2026-09-20 (Backspacer)
 - **Renamed to Backspacer.** There is an unrelated *Reclaimer* on the Mac App Store, and the shared name caused confusion. Same app, new name and bundle id: macOS treats it as a new app, so Full Disk Access has to be granted again and project folders re-added; the log moves to `~/Library/Logs/Backspacer/`. The old repository URL redirects. The header carries a tagline under the name.
 - Internal: CI steps fail when the command in a pipe fails (`pipefail`); the folder picker compiles under Xcode 16's Swift 6.0 compiler, which is now the verified toolchain floor.

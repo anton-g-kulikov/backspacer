@@ -31,11 +31,13 @@ test('W1 the page exists with the head every crawler and share card needs', gate
 });
 
 test('W2 every local asset the page references exists under site/', gate, () => {
-  const refs = [...html.matchAll(/(?:src|href|srcset|content)="([^"]+)"/g)].map(m => m[1])
+  const refs = [...html.matchAll(/\b(?:src|href|srcset)="([^"]+)"/g)].map(m => m[1])
     .flatMap(v => v.split(',').map(s => s.trim().split(' ')[0]))
     .filter(v => v && !/^(https?:|mailto:|#|data:)/.test(v));
   assert.ok(refs.length >= 4, 'the page references local assets (icon, screenshots)');
   for (const r of refs) assert.ok(fs.existsSync(path.join(root, 'site', r)), `missing site/${r}`);
+  const og = html.match(/property="og:image" content="https:\/\/backspacer\.dev\/([^"]+)"/);
+  assert.ok(og && fs.existsSync(path.join(root, 'site', og[1])), 'og:image is a site file on the canonical host');
 });
 
 test('W3 download and source links go to the GitHub repo', gate, () => {
@@ -89,6 +91,19 @@ test('W10 the tagline is the one Pearl Jam nod: under the h1, in og:description,
   assert.match(html, /<meta property="og:description" content="I got some if you need it\. [^"]+">/);
   assert.equal((text.match(/I got some if you need it/g) || []).length, 1, 'once in the body');
   assert.doesNotMatch(text, /Pearl Jam|Got Some/, 'the site never names the band or the track');
+});
+
+test('W11 the CSP hashes match the inline style and script blocks', gate, () => {
+  const { createHash } = require('node:crypto');
+  const sha = x => 'sha256-' + createHash('sha256').update(x).digest('base64');
+  const block = tag => html.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))[1];
+  const csp = html.match(/Content-Security-Policy" content="([^"]+)"/)[1];
+  assert.ok(csp.includes(`style-src '${sha(block('style'))}'`), 'style hash (run node scripts/site-csp.mjs)');
+  assert.ok(csp.includes(`script-src '${sha(block('script'))}'`), 'script hash (run node scripts/site-csp.mjs)');
+  assert.equal((html.match(/<style/g) || []).length, 1); assert.equal((html.match(/<script/g) || []).length, 1);
+  assert.doesNotMatch(html, /\bon[a-z]+="/, 'no inline event handlers (CSP would block them)');
+  assert.doesNotMatch(html, /\sstyle="/, 'no style attributes (a hashed style-src blocks them)');
+  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval/);
 });
 
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {

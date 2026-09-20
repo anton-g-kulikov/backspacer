@@ -212,6 +212,34 @@ JS errors, tagged `page:`. About → **Reveal log** selects the file in Finder.
 Because catalog paths and per-item names appear in it, the log reveals folder
 and project names — the About text says so.
 
+## Site
+
+`site/index.html` is the promo page at https://backspacer.dev — one static
+file with inline CSS and one inline script, no build step, no dependencies.
+It mirrors the app: the bucket titles and blurbs are the catalog's verbatim,
+the "what it knows about" grid names catalog groups, and the entry count is
+the catalog's (`W4`, `W5` fail when they drift). The download button links
+to `releases/latest`; a script fetches the latest release from the GitHub
+API to show the tag and DMG size, and fails silently. Screenshots: light
+(the README's window capture, title bar cropped) and dark (captured from
+the page's mock bridge), served by `prefers-color-scheme` inside a CSS
+window frame; `og.png` is the share card.
+
+Security: a Content-Security-Policy meta with `default-src 'none'` and
+sha256 hashes for the one style and one script block — no `unsafe-inline`,
+no `style` attributes, no event handlers. `node scripts/site-csp.mjs`
+rewrites the hashes after an edit; `W11` fails when they are stale.
+
+Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` on pushes
+that touch `site/`, `catalog.json` or the site test. The job runs
+`Tests/web/site.test.js` with `SITE_REQUIRED=1` (a missing page fails, it
+never skips), then uploads `site/` as the Pages artifact. Actions are pinned
+by commit SHA; the job has `contents: read`, `pages: write`, `id-token:
+write` and nothing else. DNS: `scripts/pages-dns.sh` puts GitHub's apex A/AAAA
+set and the `www` CNAME into the Cloudflare zone (DNS-only, so GitHub issues
+the certificate; `.dev` is HSTS-preloaded). The custom domain and "Enforce
+HTTPS" are repository settings, set once by the maintainer.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs `swift test`, the Node logic and accessibility
@@ -236,10 +264,11 @@ catalog.json              knowledge; catalog.schema.json describes it
 web/index.html            UI markup + CSP; boot.js, app.js (DOM + state glue); logic.js pure logic, tested under Node
 Sources/Backspacer/        app
 Tests/BackspacerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
-.github/                  CI workflow, issue/PR templates, CODEOWNERS
+.github/                  CI and Pages workflows, issue/PR templates, CODEOWNERS
 CONTRIBUTING.md           how to propose entries; inbound Apache-2.0 terms
 SECURITY.md               how to report a deletion-safety problem
-scripts/                  build-app.sh, notarize.sh, entitlements.plist
+scripts/                  build-app.sh, notarize.sh, entitlements.plist, pages-dns.sh, site-csp.mjs
+site/                     the promo page (index.html + assets/), published to backspacer.dev by pages.yml
 assets/                   icon sources and the .icns the build embeds
 _meta/                    this file, api-design, architecture-decisions, project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of)
 .claude/                  agent workflow (ignored by git) and launch.json for the UI dev server

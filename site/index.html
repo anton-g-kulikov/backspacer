@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backspacer — get your disk back</title>
+<meta name="description" content="A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you tick.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-qwq6KrRtLtvZbsfjeZFUf0QNKe4uPdV44advPQHgWHk='; script-src 'sha256-C84dnyVYVmBTRdBsZrkCaUCjCnhga4h45AF9iZ5cPUI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<link rel="canonical" href="https://backspacer.dev/">
+<link rel="icon" href="assets/icon-64.png" sizes="64x64" type="image/png">
+<link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Backspacer">
+<meta property="og:title" content="Backspacer — get your disk back">
+<meta property="og:description" content="I got some if you need it. Caches, build output and tooling leftovers, sorted by how safe they are to remove. Free for noncommercial use, notarized, macOS 13+.">
+<meta property="og:url" content="https://backspacer.dev/">
+<meta property="og:image" content="https://backspacer.dev/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Backspacer scanning a Mac: buckets of caches and build output with a Delete per item">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root {
+    color-scheme: light dark;
+    --fg: #1d1d1f; --muted: #515157; --faint: #6e6e73;
+    --bg: #e6ebf2; --card: rgba(255,255,255,.62); --card-strong: rgba(255,255,255,.85); --border: rgba(255,255,255,.75);
+    --shadow: 0 10px 40px rgba(20,30,60,.12), 0 1px 2px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.85);
+    --ink: #0f1115; --ink-fg: #e8ecf2; --ink-muted: #9aa3ad;
+    --accent: #0a84ff; --accent-fg: #fff; --danger: #ff453a;
+    --safe: #30d158; --regen: #ff9f0a; --decide: #bf5af2; --keep: #8e8e93; --locked: #636366;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mesh:
+      radial-gradient(60% 50% at 8% 8%,  rgba(120,170,255,.55) 0%, transparent 70%),
+      radial-gradient(50% 45% at 92% 12%, rgba(255,160,200,.45) 0%, transparent 70%),
+      radial-gradient(55% 50% at 55% 100%, rgba(140,235,190,.45) 0%, transparent 70%),
+      radial-gradient(40% 40% at 90% 80%, rgba(255,205,120,.35) 0%, transparent 70%);
+    --radius: 18px; --gutter: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fg: #f5f5f7; --muted: #b9bcc4; --faint: #8e93a0;
+      --bg: #0f1115; --card: rgba(32,34,40,.6); --card-strong: rgba(48,50,58,.78); --border: rgba(255,255,255,.14);
+      --shadow: 0 10px 40px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12);
+      --mesh:
+        radial-gradient(60% 50% at 8% 8%,  rgba(40,90,220,.45) 0%, transparent 70%),
+        radial-gradient(50% 45% at 92% 12%, rgba(200,70,140,.35) 0%, transparent 70%),
+        radial-gradient(55% 50% at 55% 100%, rgba(30,160,110,.35) 0%, transparent 70%),
+        radial-gradient(40% 40% at 90% 80%, rgba(220,150,40,.25) 0%, transparent 70%);
+    }
+  }
+  @media (prefers-contrast: more) { :root { --muted: var(--fg); --faint: var(--fg); --card: var(--card-strong); } }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  body {
+    margin: 0; font: 17px/1.55 var(--sans); color: var(--fg);
+    background: var(--mesh), var(--bg); background-attachment: fixed;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  code, kbd, pre { font-family: var(--mono); font-size: .92em; }
+  pre { margin: 0; overflow-x: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--ink-fg); line-height: 1.5; }
+  pre .c { color: var(--ink-muted); }
+  pre .y { color: var(--safe); font-weight: 700; }
+  .skip { position: absolute; left: var(--gutter); top: -60px; padding: 8px 12px; background: var(--accent); color: var(--accent-fg); border-radius: 8px; z-index: 10; }
+  .skip:focus { top: var(--gutter); }
+  .wrap { width: min(1080px, 100% - 2 * var(--gutter)); margin-inline: auto; }
+
+  header.top { position: sticky; top: 0; z-index: 5; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 1px solid var(--border); }
+  header.top .wrap { display: flex; align-items: center; gap: 14px; min-height: 56px; }
+  .mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: var(--fg); text-decoration: none; }
+  .mark img { width: 28px; height: 28px; border-radius: 7px; }
+  nav ul { display: flex; gap: 4px 18px; flex-wrap: wrap; list-style: none; margin: 0 0 0 auto; padding: 0; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav a:hover { color: var(--fg); text-decoration: underline; }
+
+  .hero { padding: clamp(40px, 8vw, 96px) 0 24px; }
+  .hero .grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
+  @media (min-width: 900px) { .hero .grid { grid-template-columns: 5fr 7fr; gap: 40px; } }
+  h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
+  h1 .y { font-family: var(--mono); font-weight: 600; font-size: .62em; color: var(--safe); vertical-align: .18em; margin-left: .08em; }
+  .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
+  .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 34ch; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); background: var(--card-strong); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .btn.primary small { font-weight: 500; opacity: .85; font-family: var(--mono); font-size: 13px; }
+  .meta { margin: 14px 0 0; font-size: 14px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; list-style: none; }
+  .shot { margin: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); background: var(--card-strong); }
+  .shot .win { display: flex; gap: 8px; padding: 10px 12px; }
+  .shot .win i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+  .shot .win i:nth-child(2) { background: #febc2e; } .shot .win i:nth-child(3) { background: #28c840; }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  section { padding: 44px 0; }
+  section h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.015em; line-height: 1.15; }
+  section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; }
+
+  .storage { margin: 0 auto; max-width: 720px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
+  .storage .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
+  .storage .row:first-child { border-top: 0; }
+  .storage .ic { width: 30px; height: 30px; border-radius: 8px; background: #8e8e93; color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .storage .ic.dots::after { content: "···"; letter-spacing: 1px; }
+  .storage .ic.dev { background: #6e6e73; font-size: 14px; }
+  .storage .n { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .storage .n.big { color: var(--fg); font-weight: 600; }
+  .story { max-width: 62ch; margin: 22px auto 0; color: var(--muted); }
+
+  .buckets { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); }
+  .bucket { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 18px 18px 16px; }
+  .bucket h3 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+  .bucket.safe { --dot: var(--safe); } .bucket.regen { --dot: var(--regen); } .bucket.decide { --dot: var(--decide); }
+  .bucket.keep { --dot: var(--keep); } .bucket.locked { --dot: var(--locked); }
+  .bucket h3 i { width: 12px; height: 12px; border-radius: 50%; background: var(--dot); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 25%, transparent); }
+  .bucket p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .bucket .tag { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--faint); border: 1px solid rgba(128,128,128,.3); border-radius: 999px; padding: 2px 9px; }
+
+  .groups { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 0; padding: 0; list-style: none; }
+  .groups li { border-radius: 14px; background: var(--card); border: 1px solid var(--border); padding: 14px 16px; }
+  .groups b { display: block; font-size: 15.5px; margin-bottom: 4px; }
+  .groups span { color: var(--muted); font-size: 14.5px; }
+
+  .safety { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin: 0; padding: 0; list-style: none; }
+  .safety li { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); padding: 18px; }
+  .safety b { display: block; margin-bottom: 4px; font-size: 17px; }
+  .safety p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+  .two { display: grid; gap: 22px; grid-template-columns: 1fr; }
+  @media (min-width: 820px) { .two { grid-template-columns: 1fr 1fr; } }
+  .prose p { margin: 0 0 12px; color: var(--muted); }
+  .prose p:last-child { margin-bottom: 0; }
+
+  footer { padding: 34px 0 48px; color: var(--faint); font-size: 14.5px; border-top: 1px solid var(--border); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+  footer a { color: var(--muted); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#main" aria-label="Backspacer, top of page"><img src="assets/icon-64.png" alt="" width="28" height="28">Backspacer</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#safety">Safety</a></li>
+        <li><a href="#source">Source</a></li>
+        <li><a href="https://github.com/anton-g-kulikov/backspacer">GitHub</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap grid">
+      <div>
+        <h1 aria-label="Backspacer">Backspacer<span class="y" aria-hidden="true">(y)</span></h1>
+        <p class="tagline">I got some if you need it.</p>
+        <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you tick.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/anton-g-kulikov/backspacer/releases/latest" id="download">Download for macOS <small id="ver" aria-live="polite"></small></a>
+          <a class="btn" href="https://github.com/anton-g-kulikov/backspacer">Read the source</a>
+        </div>
+        <ul class="meta">
+          <li>macOS 13 or later</li>
+          <li>Apple silicon and Intel</li>
+          <li>Notarized, no Gatekeeper warnings</li>
+          <li>Free for noncommercial use</li>
+        </ul>
+      </div>
+      <figure class="shot" aria-label="The app window">
+        <div class="win" aria-hidden="true"><i></i><i></i><i></i></div>
+        <picture>
+          <source srcset="assets/screenshot-dark.webp" type="image/webp" media="(prefers-color-scheme: dark)">
+          <source srcset="assets/screenshot-dark.png" media="(prefers-color-scheme: dark)">
+          <source srcset="assets/screenshot-light.webp" type="image/webp">
+          <img src="assets/screenshot-light.png" width="1400" height="1127" alt="Backspacer scanning a Mac: a disk meter, then the Safe to delete bucket listing Claude session data, ~/Library/Caches and ~/.cache with sizes and Details, Reveal and Delete buttons on each row" loading="eager" fetchpriority="high">
+        </picture>
+      </figure>
+    </div>
+  </section>
+
+  <section id="why" aria-labelledby="why-h">
+    <div class="wrap">
+      <h2 id="why-h">You know this row.</h2>
+      <p class="sub">System Settings tells you how much, never what. Backspacer grew out of a month of chasing that number on a 245 GB MacBook Air.</p>
+      <div class="storage" role="img" aria-label="macOS storage list: Applications 42.8 GB, Developer 20.2 GB, Documents 63.8 GB, System Data 74.1 GB">
+        <div class="row"><span class="ic dev" aria-hidden="true">A</span><span>Applications</span><span class="n">42.78 GB</span></div>
+        <div class="row"><span class="ic dev" aria-hidden="true">⌘</span><span>Developer</span><span class="n">20.16 GB</span></div>
+        <div class="row"><span class="ic dev" aria-hidden="true">≡</span><span>Documents</span><span class="n">63.83 GB</span></div>
+        <div class="row"><span class="ic dots" aria-hidden="true"></span><span><b>System Data</b></span><span class="n big">74.11 GB</span></div>
+      </div>
+      <p class="story">Most of it was Xcode, simulators, npm, Gradle, Docker, Electron apps and the AI tools' own caches, each one rebuildable, none of them visible from where macOS puts the number. Backspacer is the catalog of everything that chase found, with a Scan button in front of it.</p>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h">Five buckets, one confirmation.</h2>
+      <p class="sub">Every entry is measured, explained, and placed by how safe it is to remove. You tick what goes; the dialog lists every item and its size before anything happens.</p>
+      <div class="buckets">
+        <article class="bucket safe"><h3><i aria-hidden="true"></i>Safe to delete</h3><p>Caches and build output every app rebuilds on its own. No cost.</p><span class="tag">removed for good</span></article>
+        <article class="bucket regen"><h3><i aria-hidden="true"></i>Regenerable</h3><p>Comes back on the next build or install. Costs one slow build.</p><span class="tag">removed for good</span></article>
+        <article class="bucket decide"><h3><i aria-hidden="true"></i>Your call</h3><p>Real data or tooling. Delete only what you no longer use.</p><span class="tag">moved to the Trash</span></article>
+        <article class="bucket keep"><h3><i aria-hidden="true"></i>Keep</h3><p>Needed for current work. Shown so the numbers add up.</p><span class="tag">read-only</span></article>
+        <article class="bucket locked"><h3><i aria-hidden="true"></i>Managed by macOS</h3><p>macOS manages these itself — purged automatically or SIP-protected. Shown for accounting.</p><span class="tag">read-only</span></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="finds" aria-labelledby="finds-h">
+    <div class="wrap">
+      <h2 id="finds-h">What it knows about.</h2>
+      <p class="sub">77 entries in the catalog today, grouped like this. Multi-path entries open a Details list with a Delete per project, per simulator, per model, per app.</p>
+      <ul class="groups">
+        <li data-group="Xcode &amp; simulators"><b>Xcode &amp; simulators</b><span>DerivedData, simulator devices and runtimes, DeviceSupport symbols, archives, preview data</span></li>
+        <li data-group="Project build output"><b>Project build output</b><span>node_modules, Pods, .next, Android and iOS build folders, .NET bin/ and obj/ across your project folders</span></li>
+        <li data-group="Toolchain caches"><b>Toolchain caches</b><span>npm, Yarn, pnpm, Bun, Gradle, Maven, NuGet, CocoaPods, Cargo, Go, pip, conda, pub</span></li>
+        <li data-group="Caches"><b>Caches</b><span>~/Library/Caches and ~/.cache per app, Electron web caches, Homebrew downloads and orphans, logs, Trash</span></li>
+        <li data-group="Android"><b>Android</b><span>Emulator system images, virtual devices, NDK, SDK sources</span></li>
+        <li data-group="Regrowth sources"><b>Regrowth sources</b><span>The things that refill a disk: local VM images, agent session data, a staged macOS update</span></li>
+        <li data-group="AI tool history"><b>AI tool history</b><span>Claude Code, Codex, Gemini CLI, Cursor and Antigravity session data</span></li>
+        <li data-group="App data"><b>App data</b><span>iPhone backups per device, Ollama models per model, Notion, Steam, Spotify, Safari, Telegram</span></li>
+        <li data-group="VS Code"><b>VS Code</b><span>Caches, workspace storage per project, dictation models</span></li>
+        <li data-group="Virtual machines"><b>Virtual machines</b><span>Parallels and UTM, measured and explained, deleted from their own apps</span></li>
+        <li data-group="Your files"><b>Your files</b><span>Screenshots and Downloads: measured, never deleted by the app</span></li>
+        <li data-group="Managed by macOS"><b>Managed by macOS</b><span>Time Machine local snapshots, Apple Intelligence models, developer documentation</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="safety" aria-labelledby="safety-h">
+    <div class="wrap">
+      <h2 id="safety-h">Built to be trusted with a disk.</h2>
+      <p class="sub">An app that deletes folders has to earn it. The rules are in the source, and the test suite runs the safety gate over every path in the shipped catalog.</p>
+      <ul class="safety">
+        <li><b>The page never names a path.</b><p>Every disk operation takes a catalog entry id. The Swift side resolves it from its own copy of the catalog, so a bug or injection in the UI cannot delete anything the catalog doesn't already describe.</p></li>
+        <li><b>A second gate on every path.</b><p>Home, Documents, Desktop, Pictures, Mail, Messages, Keychains, iCloud Drive, .ssh and anything outside the allowed roots are refused at any depth, after symlinks are resolved.</p></li>
+        <li><b>Your call goes to the Trash.</b><p>Real data is moved to the Trash so Finder can put it back. Caches and build output are removed for good, because parked in the Trash they would reclaim nothing.</p></li>
+        <li><b>Nothing runs as root without the system dialog.</b><p>Admin items go through macOS's own password prompt. The app never sees a password and there is no helper tool to trust.</p></li>
+        <li><b>The threshold hides, it doesn't just filter.</b><p>Entries under the size you choose leave the list and can't be selected until you lower it again.</p></li>
+        <li><b>A plain-text log of what it did.</b><p>Every scan and delete, the exact commands, failures. About → Reveal log. Nothing is ever sent anywhere.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="source" aria-labelledby="source-h">
+    <div class="wrap two">
+      <div class="prose">
+        <h2 id="source-h">Read it before you trust it.</h2>
+        <p>The source is public so you can check what the app does before handing it your disk, build it yourself, and propose catalog entries. The UI runs in a plain browser with a mock bridge; the app is a Swift package with no dependencies.</p>
+        <p>Backspacer is free for noncommercial use under the <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm Noncommercial License 1.0.0</a>: use it, share it, read and modify the source. Commercial use needs a separate license from the author. The name and icon aren't licensed, so a modified build must be renamed. Full terms in <a href="https://github.com/anton-g-kulikov/backspacer/blob/main/LICENSE">LICENSE</a>; pull requests are accepted under Apache-2.0.</p>
+        <p>The most useful things you can send are a bug report with the log attached, and a catalog entry: what the folder is, where it lives, which bucket and why, what brings it back. The <a href="https://github.com/anton-g-kulikov/backspacer/blob/main/CONTRIBUTING.md">issue templates ask exactly those questions</a>.</p>
+      </div>
+      <div>
+        <pre aria-label="Terminal transcript"><span class="c"># build the app from source (Xcode 16 or later)</span>
+git clone https://github.com/anton-g-kulikov/backspacer.git
+cd backspacer
+scripts/build-app.sh
+open build/Backspacer.app
+
+<span class="c"># or just try the UI, no Xcode needed</span>
+python3 -m http.server 8765
+open http://localhost:8765/web/index.html
+
+<span class="c"># the only question it ever asks</span>
+Delete 3 items, about 21.4 GB? (y/n) <span class="y">y</span></pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Anton Kulikov</span>
+    <a href="https://github.com/anton-g-kulikov/backspacer">GitHub</a>
+    <a href="https://github.com/anton-g-kulikov/backspacer/issues">Issues</a>
+    <a href="mailto:anton.g.kulikov@gmail.com">Support</a>
+    <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a>
+  </div>
+</footer>
+
+<script>
+// Version badge on the download button, from the latest GitHub release. Fails quietly: the
+// link itself always points at releases/latest, so the button works without this.
+(async () => {
+  try {
+    const r = await fetch('https://api.github.com/repos/anton-g-kulikov/backspacer/releases/latest', { headers: { Accept: 'application/vnd.github+json' } });
+    if (!r.ok) return;
+    const rel = await r.json();
+    const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
+    const mb = dmg ? (dmg.size / 1e6).toFixed(1) + ' MB' : '';
+    document.getElementById('ver').textContent = [rel.tag_name, mb].filter(Boolean).join(' · ');
+  } catch {}
+})();
+</script>
+</body>
+</html>

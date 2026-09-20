@@ -233,6 +233,22 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band |
 | K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
+### Site — `Tests/web/site.test.js` (static checks over `site/index.html` and `pages.yml`)
+The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED=1`, which the Pages workflow sets.
+| # | Case | Expect |
+|---|---|---|
+| W1 | head | `lang`, charset, viewport, a `Backspacer…` title, a description ≥ 60 chars, `og:title/description/image/url`, `twitter:card`, an icon, a CSP starting `default-src 'none'` |
+| W2 | assets | every local `src`/`href`/`srcset` resolves under `site/`; `og:image` is a site file on the canonical host |
+| W3 | links | download → `releases/latest`, source → the repo, the version badge fetches `releases/latest` from the API |
+| W4 | catalog copy | every bucket title and blurb from `catalog.json` appears verbatim |
+| W5 | groups | every `data-group` names a real catalog group; the entry count in the copy equals `entries.length` |
+| W6 | license (ADR-14) | never "open source"; "free for noncommercial use"; links to the PolyForm text and `LICENSE` |
+| W7 | accessibility | one `h1`, skip link, `main`/`nav` landmarks, `alt` on every image, a name or state on every button, `:focus-visible`, reduced-motion and dark-scheme media queries |
+| W8 | wordmark | `<h1 aria-label="Backspacer">Backspacer<span aria-hidden>(y)</span>`; a `(y/n)` prompt in the copy; the old name appears nowhere |
+| W10 | tagline | "I got some if you need it." once under the `h1` and in `og:description`; the band and track are never named |
+| W11 | CSP | the sha256 hashes match the single `<style>` and `<script>` blocks; no `unsafe-*`, no event handlers, no `style` attributes |
+| W9 | workflow | `pages.yml`: pushes to `main` on `site/**`, minimal permissions, SHA-pinned actions, uploads `site`, runs the site tests with `SITE_REQUIRED: 1` |
+
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
@@ -258,6 +274,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J16 | passing |
 | Web accessibility (node) | A1–A8 | passing |
+| Site (node) | W1–W11 | passing |
 | Brand (node) | K1–K7 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |
