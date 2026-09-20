@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Fixed: links in About (support, Buy me a book, the update check's Download) opened inside the app window — or, for the DMG, not at all — since 0.8.0. They go to your browser again.
+
 ## 0.9.1 — 2026-09-20
 - The size filter now applies inside Details too: items below the threshold are folded into one last row ("12 smaller items, 340 MB — below 100 MB") that reveals them on click; totals still add up. The filter's default is 10 MB, the slider's first stop.
 - Terminal: the tagline no longer truncates at the default window width.

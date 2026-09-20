@@ -265,6 +265,12 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Y6 | notarization | credentials come from `NOTARY_*` env (the three secrets), never `--keychain-profile` in CI; `notarize.sh` builds `AUTH` from the env when set, else from the profile, and never echoes the password |
 | Y7 | artefact | DMG hashed with `shasum -a 256`, the hash in the notes, the DMG as the asset, Gatekeeper asked first, `attest-build-provenance` on the DMG |
 
+### Navigation delegate — `Tests/BackspacerTests/NavigationDelegateTests.swift`
+| # | Case | Expect |
+|---|---|---|
+| V1 | policy selector | `AppDelegate` responds to `webView:decidePolicyForNavigationAction:decisionHandler:` — under Swift 6 a completion-handler type that isn't `@MainActor @Sendable` "nearly matches", compiles, and is never called (shipped in 0.8.0–0.9.1: links opened inside the window) |
+| V2 | the other callbacks | `webViewWebContentProcessDidTerminate:` on the app delegate and `userContentController:didReceiveScriptMessage:` on the bridge are real ObjC selectors |
+
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
 |---|---|---|
@@ -317,6 +323,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | BrandTests | N1–N3 | passing |
+| NavigationDelegateTests | V1–V2 | passing |
 | UpdateCheckTests | U1–U4 | passing |
 | WindowDragTests | G1 | passing |
 | ContextMenuTests | X1, X2, X5 | passing |

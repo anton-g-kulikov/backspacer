@@ -118,9 +118,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
         webView.evaluateJavaScript("window.__setTheme(\(id.debugDescription))", completionHandler: nil)
     }
 
-    /// Only the bundled page loads inside the window; mailto:/https: links (About panel) go to the system.
-    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    /// Only the bundled page loads inside the window; mailto:/https: links (About panel, the update
+    /// check's Download) go to the system. The handler's type must match the protocol exactly —
+    /// `@MainActor @Sendable` under Swift 6 — or the compiler silently treats this as an unrelated
+    /// method and WebKit never calls it (test V1 pins the selector).
+    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         if let url = action.request.url, !url.isFileURL {
+            Diagnostics.standard.log(.info, "opening externally: \(url.absoluteString.prefix(200))")
             NSWorkspace.shared.open(url)
             decisionHandler(.cancel)
         } else {
