@@ -76,6 +76,24 @@ animation and transition and replaces the scan-verb ticker with a static
 "Scanning…". Static checks A1–A8 (A7 computes the ratios from the tokens);
 the browser's accessibility tree is the live check.
 
+Screen readers (audit of 2026-09-20, against the app's AX tree and the page's
+accessibility tree): every row action names its row — "Details for X",
+"Reveal X", "Delete X" on bucket rows, project rows and items — because a
+rotor lists dozens of otherwise identical buttons. Each bucket is a named
+`region` (`aria-labelledby` the heading button), so a user can jump bucket
+to bucket; the heading is the title alone, the blurb is a sibling `<small>`
+the button is `aria-describedby`; the disclosure arrow and the Terminal
+`//` prefix are CSS content with empty alternative text (`content: "▾" / ""`),
+which VoiceOver would otherwise read as "black down-pointing small
+triangle". The Look and view segments are `role="group"` with names. The
+project age is visible text prefixed by a visually-hidden "Last touched"
+(ARIA prohibits naming a generic span). `Tests/web/axe.test.js` runs
+axe-core over the page as jsdom renders it with the mock bridge, in every
+state a user reaches (first paint, scanned, buckets and Details open, the
+by-project view, the confirmation and About dialogs), and fails on any
+violation; contrast is excluded there (no layout) because A7 already
+computes it. The release checklist keeps a real VoiceOver pass.
+
 ## Project folders
 
 Catalog globs that look for build output use `"root": "$PROJECTS"` instead of
@@ -292,8 +310,9 @@ update whose code signature or Team ID differs from the running app's.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs `swift test`, the Node logic and accessibility
-tests, a catalog/schema parse plus `plutil -lint`, and a universal release
+`.github/workflows/ci.yml` runs `swift test`, `npm ci` (axe-core and jsdom,
+test-only — the app has no dependencies), the Node logic and accessibility
+tests including the axe suite, a catalog/schema parse plus `plutil -lint`, and a universal release
 build on a macOS 15 runner with the newest Xcode 16 for every push to `main`
 and every pull request (tags go to `release.yml`, which runs the same tests first), then assembles the app ad-hoc from that same
 universal build (`UNIVERSAL=1`) and runs `codesign --verify --deep --strict` — since Sparkle is embedded, that is the check that a revision bump has not broken the inside-out signing of its XPC services and framework (Y9); a break fails the push, not the next release. The
@@ -335,6 +354,7 @@ catalog.json              knowledge; catalog.schema.json describes it
 web/index.html            UI markup + CSP; boot.js, app.js (DOM + state glue); logic.js pure logic, tested under Node
 Sources/Backspacer/        app
 Tests/BackspacerTests/     Swift Testing suites (Support/: fixture, MiniSchema validator); Tests/test-documentation.md owns test intent
+Tests/web/                 Node suites; package.json + package-lock.json pin axe-core and jsdom for axe.test.js (test-only, `npm ci`)
 .github/                  CI and Pages workflows, issue/PR templates, CODEOWNERS
 CONTRIBUTING.md           how to propose entries; inbound Apache-2.0 terms
 SECURITY.md               how to report a deletion-safety problem

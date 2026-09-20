@@ -31,11 +31,9 @@ issues asking for Linux/Windows, referrers from Linux/Windows forums in the
 repository traffic, Search Console queries with "linux" or "windows".
 
 
-From the 2026-09-20 review: in-app updates (Sparkle 2 or a "Check for updates"
-against the GitHub releases API); Homebrew cask; a tag-triggered release
-workflow (temp keychain, notarytool, DMG upload, SLSA provenance, SHA-256 in
-the notes); `os.Logger` alongside the file log; axe-core in the Node suite and
-a VoiceOver pass on the release checklist; localization scaffolding.
+From the 2026-09-20 review, still open: `os.Logger` alongside the file log;
+localization scaffolding. (In-app updates, the Homebrew cask, the release
+workflow and the accessibility audit are done.)
 
 From the 0.1.0 README:
 
@@ -45,6 +43,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Accessibility audit (A21–A28, ADR-23): axe-core over the rendered page in every state, in CI (`npm ci`; first and only test dependencies); screen-reader pass over the app's AX tree and the page's accessibility tree — row actions name their row, buckets are named regions, headings are titles alone, the arrow is silent, segments are groups, the project age is text; VoiceOver step on the release checklist. Unpushed, rides the next release.
 - 2026-09-20 — 1.1.0 released: the by-project view.
 - 2026-09-20 — By-project view (PJ1–PJ4, J20–J21, A19): `projects`/`revealProject` ops, `groupByProject`/`ago`, toggle + card, per-project delete through per-item `delete`.
 - 2026-09-20 — Feed seam fixed: the release run's site job fetches this tag's appcast (`releases/download/<tag>/`), not "latest", which lagged behind `gh release create` on 1.0.3 and briefly served 1.0.2; the appcast log line reads the element form. Site screenshots are the maintainer's real window captures (light, dark, Terminal), no drawn frame; README image likewise.

@@ -20,8 +20,9 @@ Thanks for looking. Two kinds of contribution help most:
 
 ## Before you open a pull request
 
-- `swift test` and `node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'`
-  pass (CI runs exactly these). The Swift suites include the safety gate over
+- `swift test` and `npm ci && node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/axe.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'`
+  pass (CI runs exactly these; `npm ci` fetches axe-core and jsdom for the
+  rendered accessibility suite — test-only, the app has no dependencies). The Swift suites include the safety gate over
   every catalog path and the schema — a rejected entry is the test telling you
   something. `Tests/test-documentation.md` says what each suite proves.
 - To try the app: `BUNDLE_ID=com.antonkulikov.backspacer.dev scripts/build-app.sh && open -n build/Backspacer.app`

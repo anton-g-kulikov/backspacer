@@ -274,3 +274,19 @@ Not scheduled: the decision fixes the shape so that catalog and site work
 done now doesn't have to be undone; development starts only after the
 maintainer validates demand (see the roadmap entry in `project-task-list.md`).
 The design is in `_meta/multi-platform.md`.
+
+## ADR-23 — Test-only npm dependencies, none for the app (decided 2026-09-20)
+The Node suites were dependency-free by design: `node --test` over the
+sources, nothing to install, nothing to audit. Running axe-core over the
+page as it renders needs a DOM, and jsdom is the one that axe supports; a
+vendored copy of either would be a 500 KB blob nobody reviews.
+
+Chosen: a `package.json` with **devDependencies only** (axe-core, jsdom),
+pinned by `package-lock.json`, installed with `npm ci` in CI and by
+contributors. The app itself still has no dependencies beyond Sparkle
+(ADR-21); `web/` ships nothing from `node_modules`, and the CSP (`script-src
+'self'`) would refuse it anyway. The static suites keep running without an
+install — only `axe.test.js` requires one — so a checkout without Node
+packages still proves most of what CI proves. Rejected: a headless WebKit
+run of axe inside the real app (needs a debug hook in the bridge and a
+booted app on CI's runner for a check the DOM already answers).

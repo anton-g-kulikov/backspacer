@@ -31,6 +31,11 @@ names every offending file.
    a `## X.Y.Z — date` section (the workflow refuses a tag without one).
 2. Smoke-test a local build once: `scripts/build-app.sh && open -n build/Backspacer.app`
    — scans, theme switch, one delete with confirm/cancel.
+   VoiceOver (⌘F5, then VO = Control+Option): VO+U opens the rotor — Headings lists
+   the buckets, Landmarks lists them as regions; Tab through one row and hear "Details
+   for …", "Reveal …", "Delete …"; Scan announces "Scanning" and "Scan complete";
+   a delete announces the label and the size. ⌘F5 again to turn it off.
+   The node suites need `npm ci` once per checkout (axe-core, jsdom — test-only).
 3. Tag the *final* commit and push it:
    `git tag -a vX.Y.Z -m "Backspacer X.Y.Z" && git push origin main --tags`.
    An amend after tagging makes the version read `X.Y.Z-1-g…`; re-tag with `git tag -f -a`.

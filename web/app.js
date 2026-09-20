@@ -23,7 +23,10 @@ function mockBridge() {
     async call(op, args = {}) {
       await new Promise(r => setTimeout(r, op === 'size' ? rnd(80, 400) : 60));
       switch (op) {
-        case 'catalog': catalog ??= await (await fetch('../catalog.json')).json(); return catalog;
+        case 'catalog': {   // the Mac host filters to macOS entries (ADR-22); the mock does the same
+          if (!catalog) { catalog = await (await fetch('../catalog.json')).json(); catalog.entries = catalog.entries.filter(e => !e.platforms || e.platforms.includes('macos')); }
+          return catalog;
+        }
         case 'disk': { const size = 245e9, freed = [...sizes.values()].reduce((a, b) => a + (b.freed || 0), 0); return { size, used: 193e9 - freed, free: 52e9 + freed }; }
         case 'fdaStatus': return { granted: false };
         case 'size': {
@@ -207,11 +210,12 @@ function render() {
     const meta = state.catalog.buckets[b];
     const collapsed = ['keep', 'locked'].includes(b);
     const sec = document.createElement('section'); sec.className = 'bucket' + (collapsed ? ' collapsed' : ''); sec.dataset.bucket = b;
+    sec.setAttribute('aria-labelledby', `bucket-h-${b}`);   // a named region: screen readers can jump bucket to bucket
     const anyDel = entries.some(deletable);
     sec.innerHTML = `
       <div class="bucket-head">
         <span class="dot" style="background:var(--${b})"></span>
-        <h2><button type="button" aria-expanded="${!collapsed}" aria-controls="bucket-${b}">${meta.title}</button><small>${meta.blurb}</small></h2>
+        <div class="title"><h2><button type="button" id="bucket-h-${b}" aria-expanded="${!collapsed}" aria-controls="bucket-${b}" aria-describedby="bucket-blurb-${b}">${meta.title}</button></h2><small id="bucket-blurb-${b}">${meta.blurb}</small></div>
         <span class="total" data-total="${b}" style="--c:var(--${b})">—</span>
         ${anyDel ? `<label class="sel"><input type="checkbox" data-selall="${b}" aria-label="Select all in ${esc(meta.title)}">all</label>` : '<span></span>'}
       </div>
@@ -234,9 +238,9 @@ function render() {
           </div>
           <span class="size pending" data-size="${e.id}">…</span>
           <div class="actions">
-            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}" aria-expanded="false" aria-controls="info-${e.id}">Details</button>` : '<span></span>'}
-            ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}">Reveal</button>` : '<span></span>'}
-            ${canDel ? `<button class="btn small danger" data-del="${e.id}">Delete</button>` : '<span></span>'}
+            ${hasInfo(e) ? `<button class="btn small" data-info="${e.id}" aria-expanded="false" aria-controls="info-${e.id}" aria-label="Details for ${esc(e.label)}">Details</button>` : '<span></span>'}
+            ${(e.path || e.paths) ? `<button class="btn small" data-reveal="${e.id}" aria-label="Reveal ${esc(e.label)}">Reveal</button>` : '<span></span>'}
+            ${canDel ? `<button class="btn small danger" data-del="${e.id}" aria-label="Delete ${esc(e.label)}">Delete</button>` : '<span></span>'}
           </div>
           <div class="info-out" data-infoout="${e.id}" id="info-${e.id}" hidden></div>
         </div>`);
@@ -375,7 +379,7 @@ function renderProjects() {
   const now = Math.floor(Date.now() / 1000);
   $('#projectsTotal').textContent = fmt(groups.reduce((a, g) => a + g.bytes, 0));
   if (!groups.length) { body.innerHTML = `<div class="empty">No build output ${fmt(minBytes())} or larger in your project folders${state.roots.length ? '' : ' — add a folder above'}.</div>`; return; }
-  body.innerHTML = groups.map(p => {
+  body.innerHTML = groups.map((p, i) => {
     const stale = p.touched != null && now - p.touched > 180 * 86400;
     const what = p.items.map(it => `${esc(it.name)} ${fmt(it.bytes)}`).join(' · ');
     const canDel = p.items.some(it => itemDeletable(entry(it.entryId)));
@@ -386,18 +390,18 @@ function renderProjects() {
         <div class="name">${esc(p.display)}</div>
         <div class="what" title="${what}">${what}</div>
       </div>
-      <span class="age${stale ? ' stale' : ''}" aria-label="Last touched ${esc(ago(p.touched, now))}" title="${p.source === 'git' ? 'Last commit' : p.source === 'mtime' ? 'Newest source file' : 'Unknown'}">${esc(ago(p.touched, now))}</span>
+      <span class="age${stale ? ' stale' : ''}" title="${p.source === 'git' ? 'Last commit' : p.source === 'mtime' ? 'Newest source file' : 'Unknown'}"><span class="sr-only">Last touched </span>${esc(ago(p.touched, now))}</span>
       <div class="acts">
         <span class="size">${fmt(p.bytes)}</span>
-        <button class="btn small" data-pitems="${esc(p.path)}" aria-expanded="false">Details</button>
-        ${p.path ? `<button class="btn small" data-revealproject="${esc(p.path)}">Reveal</button>` : ''}
-        ${canDel ? `<button class="btn small danger" data-delproject="${esc(p.path)}">Delete</button>` : ''}
+        <button class="btn small" data-pitems="${esc(p.path)}" aria-expanded="false" aria-controls="pitems-${i}" aria-label="Details for ${esc(p.display)}">Details</button>
+        ${p.path ? `<button class="btn small" data-revealproject="${esc(p.path)}" aria-label="Reveal ${esc(p.display)}">Reveal</button>` : ''}
+        ${canDel ? `<button class="btn small danger" data-delproject="${esc(p.path)}" aria-label="Delete ${esc(p.display)}">Delete</button>` : ''}
       </div>
-      <div class="pitems" data-pitemsof="${esc(p.path)}" hidden>${p.items.map(it => `
+      <div class="pitems" data-pitemsof="${esc(p.path)}" id="pitems-${i}" hidden>${p.items.map(it => `
         <div class="item">
           <span class="ipath" title="${esc(it.path)}">${esc(it.label)} — ${esc(it.path.startsWith(p.path + '/') ? it.path.slice(p.path.length + 1) : it.path)}</span>
           <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
-          ${itemDeletable(entry(it.entryId)) ? `<button class="btn small danger" data-delitem="${it.entryId}" data-path="${esc(it.path)}">Delete</button>` : '<span></span>'}
+          ${itemDeletable(entry(it.entryId)) ? `<button class="btn small danger" data-delitem="${it.entryId}" data-path="${esc(it.path)}" aria-label="Delete ${esc(it.path)}">Delete</button>` : '<span></span>'}
         </div>`).join('')}</div>
     </div>`;
   }).join('');
@@ -506,7 +510,7 @@ function renderItems(id) {
     <div class="item" data-item="${esc(itemId(it))}">
       <span class="ipath" title="${esc(it.path || it.key)}">${esc(show(it))}</span>
       <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
-      ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(itemId(it))}">Delete</button>` : '<span></span>'}
+      ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(itemId(it))}" aria-label="Delete ${esc(show(it))}">Delete</button>` : '<span></span>'}
     </div>`;
   const more = hidden.length ? `
     <div class="item more">

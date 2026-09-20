@@ -135,7 +135,7 @@ defaults write com.antonkulikov.backspacer WebInspector -bool YES
 
 ```bash
 swift test                              # Swift suites
-node --test 'Tests/web/*.test.js'       # page logic, accessibility, site
+npm ci && npm test                      # page logic, accessibility (static + axe-core), site
 ```
 
 What they cover is in `Tests/test-documentation.md`.

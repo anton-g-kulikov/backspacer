@@ -17,3 +17,5 @@ _meta/marketing/
 
 # fetched into the Pages artifact by pages.yml from the latest release; never committed
 site/appcast.xml
+
+node_modules/

@@ -187,7 +187,7 @@ test('A18 Glass: the list scrolls under a frosted header and footer; the overlap
 
 test('A19 the by-project view: a toggle in the Project folders island, one card, rows per project with age and their own Reveal/Delete', () => {
   assert.match(html, /<div class="seg" id="projView"[^>]*>\s*<button data-view="tool" aria-pressed="true">By tool<\/button><button data-view="project" aria-pressed="false">By project<\/button>/);
-  assert.match(html, /<section class="bucket projects" id="projects" hidden>/);
+  assert.match(html, /<section class="bucket projects" id="projects"[^>]* hidden>/);
   assert.match(app, /bridge\.call\('projects'\)/);
   assert.match(app, /groupByProject\(state\.projects, projectEntries\(\), state\.items\)/);
   assert.match(app, /data-delproject="\$\{esc\(p\.path\)\}"/, 'per-project delete carries the project path as the key');
@@ -196,11 +196,39 @@ test('A19 the by-project view: a toggle in the Project folders island, one card,
   assert.match(app, /bridge\.call\('delete', \{ id: it\.entryId, item: it\.path \}\)/, 'per-project delete is the existing per-item delete, one validated call per item');
   assert.match(app, /prefSet', \{ key: 'projectView'/);
   assert.match(app, /then\(r => setProjectView\(r\.value \|\| 'tool', false\)\)\.catch\(\(\) => setProjectView\('tool', false\)\)/, 'the default side is highlighted too, not only a stored one');
-  assert.match(app, /aria-label="Last touched \$\{[^}]+\}"/, 'the age has an accessible name');
+  assert.match(app, /<span class="sr-only">Last touched <\/span>\$\{esc\(ago\(p\.touched, now\)\)\}/, 'the age reads "Last touched …" (visible text prefixed, not aria-label on a span — ARIA prohibits naming a generic)');
 });
 
 test('A20 in the by-project view the project entries leave the buckets and live in the card only', () => {
   assert.match(app, /const visible = id => isVisible\(state\.size\.get\(id\), minBytes\(\)\) && !\(state\.projectView === 'project' && isProjectEntry\(id\)\)/, 'rows, select-all and bucket badges all follow visible()');
   assert.match(app, /const projectBytes = state\.projectView === 'project' \?/, 'the tagline still counts the bytes the card took over');
   assert.match(app, /if \(state\.catalog\) updateTotals\(\);\s*\/\/ applyThreshold hides or restores/);
+});
+
+// ── screen-reader pass, 2026-09-20 (the app's AX tree and the page's accessibility tree) ──
+test('A26 every row action names its row: a screen reader lists dozens of Details / Reveal / Delete buttons', () => {
+  // bucket rows
+  assert.match(app, /data-info="\$\{e\.id\}" aria-expanded="false" aria-controls="info-\$\{e\.id\}" aria-label="Details for \$\{esc\(e\.label\)\}"/);
+  assert.match(app, /data-reveal="\$\{e\.id\}" aria-label="Reveal \$\{esc\(e\.label\)\}"/);
+  assert.match(app, /data-del="\$\{e\.id\}" aria-label="Delete \$\{esc\(e\.label\)\}"/);
+  // project rows and their items
+  assert.match(app, /data-pitems="\$\{esc\(p\.path\)\}" aria-expanded="false" aria-controls="pitems-\$\{i\}" aria-label="Details for \$\{esc\(p\.display\)\}"/);
+  assert.match(app, /data-revealproject="\$\{esc\(p\.path\)\}" aria-label="Reveal \$\{esc\(p\.display\)\}"/);
+  assert.match(app, /data-delproject="\$\{esc\(p\.path\)\}" aria-label="Delete \$\{esc\(p\.display\)\}"/);
+  assert.match(app, /<div class="pitems" data-pitemsof="\$\{esc\(p\.path\)\}" id="pitems-\$\{i\}" hidden>/, 'the project Details button controls a panel with an id');
+  // items in both kinds of Details panel
+  assert.equal((app.match(/data-delitem="[^"]+" data-path="[^"]+" aria-label="Delete \$\{esc\([^}]+\)\}"/g) || []).length, 2, 'bucket items and project items');
+});
+
+test('A27 buckets are named regions; the heading is the title alone and the blurb describes the button; the arrow is silent', () => {
+  assert.match(app, /<section class="bucket[^"]*" aria-labelledby="bucket-h-\$\{b\}"|sec\.setAttribute\('aria-labelledby', `bucket-h-\$\{b\}`\)/);
+  assert.match(app, /<h2><button type="button" id="bucket-h-\$\{b\}" aria-expanded="\$\{!collapsed\}" aria-controls="bucket-\$\{b\}" aria-describedby="bucket-blurb-\$\{b\}">\$\{meta\.title\}<\/button><\/h2><small id="bucket-blurb-\$\{b\}">/, 'the blurb is a sibling of the h2, not inside it (a heading that reads "Safe to deleteCaches and build output…")');
+  assert.match(html, /<section class="bucket projects" id="projects" aria-labelledby="projects-h" hidden>/);
+  assert.match(html, /<h2><button type="button" id="projects-h" aria-expanded="true" aria-controls="projects-body" aria-describedby="projects-blurb">Projects<\/button><\/h2><small id="projects-blurb">/);
+  assert.match(html, /\.bucket-head h2 button::before \{ content: "▾" \/ "";/, 'CSS alternative text: VoiceOver would otherwise read "black down-pointing small triangle"');
+});
+
+test('A28 the two segmented controls are groups with names, not tooltips on a div', () => {
+  assert.match(html, /<div class="seg" id="theme" role="group" aria-label="Look" title="/);
+  assert.match(html, /<div class="seg" id="projView" role="group" aria-label="Build output view" title="/);
 });

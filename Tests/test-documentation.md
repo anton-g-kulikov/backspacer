@@ -236,7 +236,20 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A17 | About dialog | `<dialog id="about" aria-labelledby="aboutTitle">` with a labelled close button; icon → name → version → status → Check for updates → opt-out → help/log → License/GitHub/Buy me a book; no About tab in the footer; styled in both themes; `__openAbout` uses `showModal` (Escape closes) |
 | A18 | Glass frosted bars | `header`/`footer` are absolutely positioned over the list with a translucent `--band` fill and a backdrop blur; `main` pads by `--header-h`/`--footer-h`, which `syncBars` sets from the bars' measured heights through `ResizeObserver` (stacked header, open Log panel); Terminal keeps the bars in flow |
 | A20 | no double counting | in the by-project view `visible()` excludes the `$PROJECTS` entries (rows, group label, select-all, bucket badges); the tagline adds the card's bytes so it reads the same in both views |
-| A19 | by-project view | the `#projView` segment in the Project folders island (`aria-pressed`), the `#projects` card, rows with an accessible age, per-project Reveal via `revealProject` and Delete as the existing per-item `delete` per item; the view is a `projectView` preference |
+| A19 | by-project view | the `#projView` segment in the Project folders island (`aria-pressed`), the `#projects` card, rows whose age reads "Last touched …" (visually-hidden prefix, not `aria-label` on a span), per-project Reveal via `revealProject` and Delete as the existing per-item `delete` per item; the view is a `projectView` preference |
+| A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
+| A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
+| A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+
+### Web accessibility, rendered — `Tests/web/axe.test.js` (axe-core over jsdom; `npm ci` first)
+jsdom loads `web/index.html` with the mock bridge (the same one a browser gets; its catalog is filtered to macOS entries like the host's), `fetch`/`matchMedia`/`ResizeObserver` stubbed and the mock's latency compressed; each case drives the page into a state and asserts axe reports no violations. `color-contrast` is disabled (jsdom has no layout; A7 computes it). Rules and tags are axe's defaults (WCAG 2.x A/AA + best practices).
+| # | Case | Expect |
+|---|---|---|
+| A21 | first paint and after a scan | zero violations before Scan and after every size has landed (`aria-busy="false"`, no `.pending`) |
+| A22 | everything open | every collapsed bucket opened, one Details panel open, the Log panel open — zero violations |
+| A23 | by-project view | the `#projects` card shown after a scan — zero violations |
+| A24 | dialogs | the confirmation dialog while open (a visible row ticked, Delete selected), then About — zero violations each |
+| A25 | the harness sees | an `<img>` without alt and an empty `<button>` injected into the page produce `image-alt` and `button-name` — a guard against an axe run that checks nothing |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; the Log tab carries `aria-expanded`; About is a `<dialog>` (A17); theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -338,6 +351,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 ## Manual verification (release checklist covers these)
 
 - Signed app launches, scans, and the confirmation dialog lists the right items.
+- VoiceOver (⌘F5): headings and regions rotor list the buckets by name; a row's Details / Reveal / Delete name the row; the scan start and end, and each delete, are announced.
 - Delete of one safe entry frees space and the row greys out.
 - Admin entry prompts the macOS password dialog; cancel leaves the item untouched.
 - Full Disk Access banner opens the right System Settings pane.
@@ -365,7 +379,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J21 | passing |
-| Web accessibility (node) | A1–A20 | passing |
+| Web accessibility (node) | A1–A20, A26–A28 | passing |
+| Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |
 | Brand (node) | K1–K8 | passing |

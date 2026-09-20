@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.1.0 — 2026-09-20
+## Unreleased
+- Screen readers: every row's Details, Reveal and Delete buttons name the row ("Delete Xcode DerivedData"), in the buckets, the Projects card and their item lists; each bucket is a named region a screen reader can jump to; the bucket heading is its title alone, with the blurb as its description; the disclosure arrow is no longer read aloud; the Look and By tool / By project switches are named groups.
+- By tool | By project: the default side is highlighted at load.
+- Internal: axe-core runs over the rendered page in every state in CI (`Tests/web/axe.test.js`; `npm ci` fetches the two test-only dependencies); the browser preview's mock hides Linux/Windows-only entries like the app does.
 - By project: the Project folders island can show build output per project — each project under your folders with its node_modules, Pods, .next and build folders summed, and when you last touched it (last commit, or the newest source file), stalest first. Reveal the folder or delete its build output in one go; source files are never touched. In that view the "Project build output" rows move out of the buckets into the card, so nothing is counted twice.
 
 ## 1.0.3 — 2026-09-20

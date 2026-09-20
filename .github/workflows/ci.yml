@@ -32,8 +32,10 @@ jobs:
         run: swift --version && xcodebuild -version
       - name: Tests
         run: swift test 2>&1 | tail -30
+      - name: Test dependencies (axe-core, jsdom — nothing ships)
+        run: npm ci --no-fund --no-audit
       - name: Web logic, accessibility and brand tests (node)
-        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'
+        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/axe.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'
       - name: Catalog parses and validates
         run: |
           python3 -c "import json; json.load(open('catalog.json')); json.load(open('catalog.schema.json'))"

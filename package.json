@@ -1,0 +1,13 @@
+{
+  "name": "backspacer-tests",
+  "private": true,
+  "description": "Node test dependencies only — the app itself has none. Run: npm ci && npm test",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test 'Tests/web/*.test.js'"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.3",
+    "jsdom": "^26.1.0"
+  }
+}
