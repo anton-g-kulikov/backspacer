@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-ty9XjSUZ4gvATkCzb+NA9AKSUYzzPwLI4RaLKrkP8JU=' 'sha256-Ixjc8/p8gkfbQQmHigKZYKzj0CFCV/6IBa/4y3h5GoM='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-0bxPRhqmM+roUz2b2qJr4VGMUnvdfCK7tgg/1QlUTss=' 'sha256-Ixjc8/p8gkfbQQmHigKZYKzj0CFCV/6IBa/4y3h5GoM='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -118,6 +118,12 @@
 
   .hero { padding: clamp(40px, 7vw, 80px) 0 8px; }
   .hero-copy { max-width: 46rem; }
+  @media (min-width: 900px) {
+    .hero-copy { margin-inline: auto; text-align: center; }
+    .hero .lede { margin-inline: auto; }
+    .hero .cta, .hero .meta { justify-content: center; }
+    .hero .brew { margin-inline: auto; text-align: left; }
+  }
   h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
   .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
   .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 40ch; }
@@ -144,8 +150,17 @@
   section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; text-wrap: pretty; }
   h1, .tagline, .lede, .story, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
 
-  .vs { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: start; }
-  @media (min-width: 900px) { .vs { grid-template-columns: 2fr 3fr; gap: 28px; } }
+  .vs { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: stretch; }
+  @media (min-width: 900px) { .vs { grid-template-columns: 1fr 1fr; gap: 28px; } }
+  .panel { display: flex; flex-direction: column; }
+  /* The app panel is a findings crop (no window chrome) that fades out mid-list; the Storage
+     rows spread to match its height so the two numbers sit side by side. */
+  .vs .shot.findings { flex: 1; display: flex; flex-direction: column; }
+  .vs .shot.findings picture { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+  .vs .shot.findings img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+  .vs .shot.findings picture::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%; background: linear-gradient(to bottom, transparent, var(--card-strong)); pointer-events: none; }
+  @media (max-width: 899px) { .vs .shot.findings picture { aspect-ratio: 1400 / 760; } }
+  @media (min-width: 900px) { .vs .shot.findings { min-height: 310px; } .vs .storage { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; } }
   .panel .label { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
   .storage { margin: 0; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
   .storage .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
@@ -340,15 +355,14 @@ brew install --cask backspacer</code></pre>
         </div>
         <div class="panel">
           <p class="label">What Backspacer shows you</p>
-          <figure class="shot" aria-label="The app window">
-            <div class="win" aria-hidden="true"><i></i><i></i><i></i></div>
+          <figure class="shot findings">
             <picture>
-          <source srcset="assets/screenshot-terminal.webp" type="image/webp" media="not all" data-skin="terminal">
-          <source srcset="assets/screenshot-terminal.png" media="not all" data-skin="terminal">
-          <source srcset="assets/screenshot-dark.webp" type="image/webp" media="(prefers-color-scheme: dark)">
-          <source srcset="assets/screenshot-dark.png" media="(prefers-color-scheme: dark)">
-          <source srcset="assets/screenshot-light.webp" type="image/webp">
-          <img src="assets/screenshot-light.png" width="1400" height="1100" alt="Backspacer scanning a Mac: the icon and tagline with 100.5 GB of space found, a disk meter, then the Safe to delete bucket listing Claude session data, ~/Library/Caches and ~/.cache with sizes and Details, Reveal and Delete buttons on each row" loading="eager" fetchpriority="high">
+              <source srcset="assets/screenshot-terminal-findings.webp" type="image/webp" media="not all" data-skin="terminal">
+              <source srcset="assets/screenshot-terminal-findings.png" media="not all" data-skin="terminal">
+              <source srcset="assets/screenshot-dark-findings.webp" type="image/webp" media="(prefers-color-scheme: dark)">
+              <source srcset="assets/screenshot-dark-findings.png" media="(prefers-color-scheme: dark)">
+              <source srcset="assets/screenshot-light-findings.webp" type="image/webp">
+              <img src="assets/screenshot-light-findings.png" width="1400" height="760" alt="Backspacer's Safe to delete bucket: 75.1 GB found, with rows for Claude session data, ~/Library/Caches, ~/.cache and the Trash, each with its size and Details, Reveal and Delete buttons" loading="lazy">
             </picture>
           </figure>
         </div>
