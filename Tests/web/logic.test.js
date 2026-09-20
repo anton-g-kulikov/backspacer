@@ -170,7 +170,7 @@ test('J17 taglineText: the reclaimable total sits inside the tagline as an aside
   const { taglineText, RECLAIMABLE } = require('../../web/logic.js');
   assert.equal(taglineText(0), 'I got some if you need it', 'nothing measured yet: the plain line');
   assert.equal(taglineText(undefined), 'I got some if you need it');
-  assert.equal(taglineText(35.9e9), 'I got some — 35.9 GB reclaimable — if you need it');
-  assert.equal(taglineText(689e6), 'I got some — 689 MB reclaimable — if you need it');
+  assert.equal(taglineText(35.9e9), 'I got some [35.9 GB reclaimable] if you need it');
+  assert.equal(taglineText(689e6), 'I got some [689 MB reclaimable] if you need it');
   assert.deepEqual(RECLAIMABLE, ['safe', 'regen', 'decide'], 'Keep and Managed by macOS never count');
 });
