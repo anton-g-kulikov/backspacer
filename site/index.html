@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-rZnE3PLL1pjji9UyTMYOfC2dab8k8E9TkmbaWdmFIAw=' 'sha256-eg/EywkzgHcywoJKZCXIzrIM4Bsr/q86i5sn/Zj4SQk='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-LsuAU966goveLdstNH6QTn+ZvnG3J97OAc0MDKnJFno=' 'sha256-lGsir0rovzvSRdwzITPmRProdujmq/jjvVIVxs/l9vU='; script-src 'sha256-nXreUbphuyKY4RJ1mqfnANKpbo9EMb9wTqRfEzamAiM='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png?v=2" sizes="512x512" type="image/png">
@@ -103,6 +103,11 @@
   .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .btn.primary small { font-weight: 500; opacity: .85; font-family: var(--mono); font-size: 13px; }
   .notes { font-size: 14px; color: var(--muted); }
+  .brew { margin: 14px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14.5px; color: var(--muted); }
+  .brew code { font-size: 13.5px; padding: 6px 10px; border-radius: 8px; background: var(--card-strong); border: 1px solid var(--border); color: var(--fg); user-select: all; }
+  .brew .copy { border: 1px solid var(--border); background: var(--card); color: var(--muted); font: 600 12.5px var(--sans); padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+  .brew .copy:hover { color: var(--fg); }
+  .brew .copied { font-size: 12.5px; color: var(--safe); min-width: 4em; }
   .meta { margin: 14px 0 0; font-size: 14px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; list-style: none; }
   .shot { margin: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); background: var(--card-strong); }
   .shot .win { display: flex; gap: 8px; padding: 10px 12px; }
@@ -189,6 +194,9 @@
   [data-skin="terminal"] .btn:hover { color: var(--accent); } [data-skin="terminal"] .btn:hover::before, [data-skin="terminal"] .btn:hover::after { color: var(--fg); }
   [data-skin="terminal"] .btn.primary { color: var(--accent); font-weight: 700; } [data-skin="terminal"] .btn.primary::before, [data-skin="terminal"] .btn.primary::after { color: var(--accent); }
   [data-skin="terminal"] .btn.primary small { color: var(--muted); }
+  [data-skin="terminal"] .brew code { border-radius: 0; background: var(--card); color: var(--accent); }
+  [data-skin="terminal"] .brew .copy { border: 0; background: none; border-radius: 0; padding: 0 2px; }
+  [data-skin="terminal"] .brew .copy::before { content: "["; color: var(--faint); } [data-skin="terminal"] .brew .copy::after { content: "]"; color: var(--faint); }
   [data-skin="terminal"] .shot { border-radius: 4px; }
   [data-skin="terminal"] .shot .win { display: none; }
   [data-skin="terminal"] .storage, [data-skin="terminal"] .bucket, [data-skin="terminal"] .groups li, [data-skin="terminal"] .safety li { border-radius: 4px; }
@@ -222,6 +230,12 @@
   document.addEventListener('DOMContentLoaded', async () => {
     apply(document.documentElement.dataset.skin);
     document.querySelector('.skins').addEventListener('click', e => { const t = e.target.dataset.skin; if (t) store(apply(t)); });
+    for (const b of document.querySelectorAll('button.copy')) b.addEventListener('click', async () => {
+      const code = document.getElementById(b.dataset.copy), out = b.nextElementSibling;
+      try { await navigator.clipboard.writeText(code.textContent); out.textContent = 'copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(code); getSelection().removeAllRanges(); getSelection().addRange(r); out.textContent = 'selected — press ⌘C'; }
+      setTimeout(() => { out.textContent = ''; }, 2000);
+    });
     // The download button: from the latest GitHub release, point it straight at the DMG and show
     // the tag and size. Fails quietly: without this it opens the release page, which also works.
     try {
@@ -266,6 +280,7 @@
           <a class="btn" href="https://github.com/anton-g-kulikov/backspacer">Read the source</a>
           <a class="notes" href="https://github.com/anton-g-kulikov/backspacer/releases/latest">Release notes</a>
         </div>
+        <p class="brew">or <code id="brew">brew tap anton-g-kulikov/tap &amp;&amp; brew install --cask backspacer</code><button type="button" class="copy" data-copy="brew" aria-label="Copy the Homebrew command">Copy</button><span class="copied" role="status" aria-live="polite"></span></p>
         <ul class="meta">
           <li>macOS 13 or later</li>
           <li>Apple silicon and Intel</li>

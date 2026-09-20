@@ -225,7 +225,10 @@ the catalog's (`W4`, `W5` fail when they drift). The download button is
 the GitHub API, points the button straight at the DMG asset (only a
 `github.com/anton-g-kulikov/backspacer/…` URL is accepted) and shows the
 tag and size — without JS or when the API is rate-limited the button opens
-the release page. "Release notes" is a separate link. Screenshots: light
+the release page. "Release notes" is a separate link. Under the buttons, the Homebrew
+command (`brew tap anton-g-kulikov/tap && brew install --cask backspacer`,
+two steps because Homebrew 7 no longer taps on the fly) with a Copy button;
+W13 keeps it identical to the README's. Screenshots: light
 (the README's window capture, title bar cropped) and dark (captured from
 the page's mock bridge), served by `prefers-color-scheme` inside a CSS
 window frame; `og.png` is the share card.

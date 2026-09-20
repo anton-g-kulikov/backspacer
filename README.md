@@ -13,6 +13,11 @@ deletes only what you tick — after a confirmation that lists every item.
 
 **[backspacer.dev](https://backspacer.dev)** · **[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
 Open the DMG, drag Backspacer to Applications. Notarized; no Gatekeeper warnings.
+Or with Homebrew:
+
+```bash
+brew tap anton-g-kulikov/tap && brew install --cask backspacer
+```
 
 ![Backspacer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
 

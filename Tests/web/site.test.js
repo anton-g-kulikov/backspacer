@@ -125,6 +125,17 @@ test('W12 look switcher: Glass / Terminal like the app, persisted, applied befor
   assert.match(html, /<source[^>]*data-skin="terminal"/, 'a terminal screenshot source the script can enable');
 });
 
+test('W13 Homebrew: the exact install command, once, in a <code>, with a copy button and matching the README', gate, () => {
+  const cmd = 'brew tap anton-g-kulikov/tap && brew install --cask backspacer';   // Homebrew 7 needs the explicit tap
+  assert.ok(html.includes(`<code id="brew">${cmd.replace('&&', '&amp;&amp;')}</code>`), 'the command in a <code>');
+  assert.equal((text.match(/brew tap/g) || []).length, 1, 'one command on the page');
+  assert.ok(unesc(text).includes(cmd), 'renders unescaped');
+  assert.match(html, /<button type="button" class="copy" data-copy="brew" aria-label="Copy the Homebrew command">/);
+  assert.match(html, /navigator\.clipboard\.writeText/, 'the copy button uses the clipboard API');
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+  assert.ok(readme.includes(cmd), 'README documents the same command');
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);
