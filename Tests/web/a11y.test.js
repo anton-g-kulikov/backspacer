@@ -195,6 +195,7 @@ test('A19 the by-project view: a toggle in the Project folders island, one card,
   assert.match(app, /bridge\.call\('revealProject', \{ path/, 'reveal goes through a validated op, not a page-named path');
   assert.match(app, /bridge\.call\('delete', \{ id: it\.entryId, item: it\.path \}\)/, 'per-project delete is the existing per-item delete, one validated call per item');
   assert.match(app, /prefSet', \{ key: 'projectView'/);
+  assert.match(app, /then\(r => setProjectView\(r\.value \|\| 'tool', false\)\)\.catch\(\(\) => setProjectView\('tool', false\)\)/, 'the default side is highlighted too, not only a stored one');
   assert.match(app, /aria-label="Last touched \$\{[^}]+\}"/, 'the age has an accessible name');
 });
 

@@ -168,7 +168,7 @@ async function init() {
   if (q) window.__setTheme(q);
   else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
-  bridge.call('prefGet', { key: 'projectView' }).then(r => { if (r.value) setProjectView(r.value, false); }).catch(() => {});
+  bridge.call('prefGet', { key: 'projectView' }).then(r => setProjectView(r.value || 'tool', false)).catch(() => setProjectView('tool', false));
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   bridge.call('logPath').then(r => { $('#logPath').textContent = r.path.replace(/^\/Users\/[^/]+/, '~'); }).catch(() => {});
   $('#revealLog').onclick = () => bridge.call('revealLog').catch(err => log(err.message, 'err'));
