@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 — 2026-09-20
+- About: the update controls sit on one aligned line with room between them.
+- Internal: the release run now redeploys the site itself so `backspacer.dev/appcast.xml` follows every release (a release created by the workflow never triggers the site on its own).
+
 ## 1.0.0 — 2026-09-20
 - In-app updates (Sparkle 2): Backspacer checks once a day, downloads a new version in the background and asks before installing and relaunching — never on its own. About → "Check for updates automatically" turns the check off; Check for Updates… in the app menu runs it now. Updates are verified against a key built into the app, on top of notarization. Users on 0.9.x install this one by hand; from here on it's in-app.
 - Header: the theme switch and size slider stay put while the scan runs and when the counter appears.
