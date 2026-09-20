@@ -99,3 +99,10 @@ test('A10 the header drags the window; selection only starts on selectable text'
   assert.match(app, /SELECTABLE_OR_INTERACTIVE = '[^']*input[^']*'/, 'controls keep their default mouse-down');
   assert.match(app, /e\.preventDefault\(\);\s*\/\/ no selection sweep/);
 });
+
+test('A11 right-click names the row or item by selector only; the bridge resolves the path', () => {
+  assert.match(app, /addEventListener\('contextmenu'/);
+  assert.match(app, /bridge\.call\('contextTarget', \{ id[^}]*item[^}]*\}\)/);
+  assert.match(app, /<div class="item" data-item="\$\{esc\(itemId\(it\)\)\}">/, 'Details items carry their selector');
+  assert.doesNotMatch(app, /contextTarget', \{[^}]*path:/, 'never a path from the page (ADR-10)');
+});

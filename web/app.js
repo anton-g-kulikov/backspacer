@@ -328,6 +328,14 @@ document.addEventListener('mousedown', e => {
   if (e.target.closest('header')) bridge.call('dragWindow').catch(() => {});
 });
 
+// Right-click: tell the bridge which row (entry id) or Details item (its selector) is under the
+// pointer, before WebKit asks for the menu; the native menu then offers a path action for it.
+document.addEventListener('contextmenu', e => {
+  const row = e.target.closest('.row[data-id]'); if (!row) return;
+  const item = e.target.closest('.item[data-item]');
+  bridge.call('contextTarget', { id: row.dataset.id, item: item ? item.dataset.item : null }).catch(() => {});
+});
+
 document.addEventListener('click', async e => {
   const head = e.target.closest('.bucket-head');
   if (head && !e.target.closest('.sel')) {
@@ -361,7 +369,7 @@ function renderItems(id) {
   const show = itemName;
   const canDel = itemDeletable(e);
   out.innerHTML = items.map(it => `
-    <div class="item">
+    <div class="item" data-item="${esc(itemId(it))}">
       <span class="ipath" title="${esc(it.path || it.key)}">${esc(show(it))}</span>
       <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
       ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(itemId(it))}">Delete</button>` : '<span></span>'}

@@ -37,7 +37,8 @@ final class Bridge: NSObject, @unchecked Sendable {
          pathPrefix: String? = nil,
          trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
          shell: CommandRunner = SystemShell(),
-         diagnostics: Diagnostics = .standard) {
+         diagnostics: Diagnostics = .standard,
+         opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
@@ -46,6 +47,7 @@ final class Bridge: NSObject, @unchecked Sendable {
         self.trasher = trasher
         self.shell = shell
         self.diagnostics = diagnostics
+        self.opener = opener
     }
 
     func catalogEntry(_ id: String) -> Catalog.Entry? { catalog.entry(id) }
@@ -106,6 +108,12 @@ final class Bridge: NSObject, @unchecked Sendable {
     }
 
     /// Runs one request on the background queue and replies.
+    /// A native caller (the context menu) running an op without a page reply; errors go to the log.
+    func perform(op: String, args: [String: Any]) {
+        guard let raw = try? JSONSerialization.data(withJSONObject: ["id": -1, "op": op, "args": args]) else { return }
+        dispatchRequest(raw)
+    }
+
     private func dispatchRequest(_ raw: Data) {
         queue.async { [weak self] in
             guard let self,
@@ -114,9 +122,9 @@ final class Bridge: NSObject, @unchecked Sendable {
             let args = body["args"] as? [String: Any] ?? [:]
             do {
                 let payload = try self.handle(op: op, args: args)
-                self.reply(id, ok: true, payload: payload)
+                if id >= 0 { self.reply(id, ok: true, payload: payload) }
             } catch {
-                self.reply(id, ok: false, payload: ["error": error.localizedDescription])
+                if id >= 0 { self.reply(id, ok: false, payload: ["error": error.localizedDescription]) }
             }
         }
     }
@@ -139,7 +147,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget"]
 
     // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
 
@@ -180,6 +188,8 @@ final class Bridge: NSObject, @unchecked Sendable {
         case "info":      return try info(entry(args))
         case "delete":    return try delete(entry(args), item: args["item"] as? String)
         case "reveal":    return try reveal(entry(args))
+        case "open":      return try open(entry(args), item: args["item"] as? String, with: args["with"] as? String)
+        case "contextTarget": return ["ok": true]   // noted on the main thread before it was queued (see the message handler)
         case "appInfo":   return ["version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "dev",
                                   "build": Bundle.main.infoDictionary?["CFBundleVersion"] ?? "local"]
         case "prefGet":   return ["value": defaults.string(forKey: try prefKey(args)).map { $0 as Any } ?? NSNull()]
@@ -508,6 +518,33 @@ final class Bridge: NSObject, @unchecked Sendable {
         return ["ok": true]
     }
 
+    /// Apps the page may ask to open a path with. Anything else is refused by name.
+    enum Opener: String, Sendable { case terminal }
+    private let opener: @Sendable (URL, Opener) -> Void
+    static let systemOpener: @Sendable (URL, Opener) -> Void = { url, with in
+        DispatchQueue.main.async {
+            switch with {
+            case .terminal: NSWorkspace.shared.open([url], withApplicationAt: URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"), configuration: NSWorkspace.OpenConfiguration())
+            }
+        }
+    }
+
+    /// The context menu's path action: the row's first path, or one of its Details items — the
+    /// selector must be one the entry resolves to right now, never a path taken from the page.
+    private func open(_ e: Catalog.Entry, item: String?, with: String?) throws -> [String: Any] {
+        guard let with = with.flatMap(Opener.init(rawValue:)) else { throw BridgeError.failed("Unknown app to open with.") }
+        let path: String
+        if let item {
+            guard resolveItems(e).contains(item) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(item)") }
+            path = item
+        } else {
+            guard let first = resolvePaths(e).first else { throw BridgeError.failed("Nothing there to open.") }
+            path = first
+        }
+        opener(URL(fileURLWithPath: path), with)
+        return ["path": path]
+    }
+
     // MARK: Path resolution
 
     private func resolvePaths(_ e: Catalog.Entry) -> [String] {
@@ -638,6 +675,11 @@ extension Bridge: WKScriptMessageHandler {
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         // The body is a non-Sendable [String: Any]; re-encode it so the hand-off to the queue is a Data.
         guard let body = message.body as? [String: Any], let raw = try? JSONSerialization.data(withJSONObject: body) else { return }
+        // A right-click's target is noted here, on the main thread, before the request is queued:
+        // WebKit delivers this message ahead of the context-menu request, so the menu finds it.
+        if body["op"] as? String == "contextTarget", let args = body["args"] as? [String: Any], let id = args["id"] as? String {
+            (webView as? PageView)?.contextTarget = PageView.ContextTarget(id: id, item: args["item"] as? String, at: Date())
+        }
         dispatchRequest(raw)
     }
 }

@@ -41,6 +41,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Context menu for paths: WebKit menu trimmed to Search · Copy, Services declined (system-filled, unprunable), New Terminal at Folder via `contextTarget` + `open` ops (X1, X2, X5, O1–O3, A11).
 - 2026-09-20 — Reclaimable counter inside the tagline (J17, K7): sum of the safe/regen/decide badges, live. The 0.2.0 "Reclaim XX GB" header total returns in this form, phrased as an offer rather than a target.
 - 2026-09-20 — Window drag from the header (`dragWindow` op, G1) and no selection sweep from non-selectable areas (A10); themed scrollbar, not hidden (A9). Verified with a paced synthetic drag on a `.dev`-bundle-id build.
 - 2026-09-20 — backspacer.dev live: Pages enabled (Actions source), custom domain bound, certificate approved, HTTPS enforced, `www` and `http://` redirect, domain verified on the maintainer's account (TXT `_github-pages-challenge-anton-g-kulikov`, kept in the zone). The (y) wordmark device dropped from the site to match the app; README no longer mentions the old name; tagline aside in brackets (J17).

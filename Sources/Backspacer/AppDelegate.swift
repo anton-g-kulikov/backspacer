@@ -32,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
         config.userContentController.addUserScript(WKUserScript(
             source: "document.documentElement.style.setProperty('--titlebar', '\(titlebar)px')",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        webView = WKWebView(frame: .zero, configuration: config)
+        webView = PageView(frame: .zero, configuration: config)
+        (webView as? PageView)?.bridge = bridge
         webView.underPageBackgroundColor = .windowBackgroundColor
         // Right-click → Inspect Element: on for debug builds, or `defaults write com.antonkulikov.backspacer
         // WebInspector -bool YES` for a release build when a user is helping debug the page (R20).
