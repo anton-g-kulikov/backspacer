@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backspacer — get your disk space back</title>
-<meta name="description" content="Finds the caches, build output and tooling leftovers eating a developer's Mac, sorts them by how safe they are to remove, and deletes only what you tick.">
+<meta name="description" content="Finds the caches, build output and tooling leftovers eating a developer's Mac, sorts them by how safe they are to remove, and deletes only what you select.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
@@ -33,7 +33,7 @@
   "@type": "SoftwareApplication",
   "name": "Backspacer",
   "url": "https://backspacer.dev/",
-  "description": "Finds the caches, build output and tooling leftovers eating a developer's Mac, sorts them by how safe they are to remove, and deletes only what you tick.",
+  "description": "Finds the caches, build output and tooling leftovers eating a developer's Mac, sorts them by how safe they are to remove, and deletes only what you select.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 13 or later",
   "downloadUrl": "https://github.com/anton-g-kulikov/backspacer/releases/latest",
@@ -330,7 +330,7 @@
       <div class="hero-copy">
         <h1>Backspacer</h1>
         <p class="tagline">I got some if you need it.</p>
-        <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you tick.</p>
+        <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you select.</p>
         <div class="cta">
           <a class="btn primary" href="https://github.com/anton-g-kulikov/backspacer/releases/latest" id="download" download>Download for macOS <small id="ver" aria-live="polite"></small></a>
           <a class="btn" href="https://github.com/anton-g-kulikov/backspacer">Read the source</a>
@@ -382,7 +382,7 @@ brew install --cask backspacer</code></pre>
   <section id="how" aria-labelledby="how-h">
     <div class="wrap">
       <h2 id="how-h">Five buckets, one confirmation.</h2>
-      <p class="sub">Every entry is measured, explained, and placed by how safe it is to remove. You tick what goes; the dialog lists every item and its size before anything happens.</p>
+      <p class="sub">Every entry is measured, explained, and placed by how safe it is to remove. You pick what goes; the dialog lists every item and its size before anything happens.</p>
       <div class="buckets">
         <article class="bucket safe"><h3><i aria-hidden="true"></i>Safe to delete</h3><p>Caches and build output every app rebuilds on its own. No cost.</p><span class="tag">removed for good</span></article>
         <article class="bucket regen"><h3><i aria-hidden="true"></i>Regenerable</h3><p>Comes back on the next build or install. Costs one slow build.</p><span class="tag">removed for good</span></article>

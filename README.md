@@ -9,7 +9,7 @@
 
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and
-deletes only what you tick — after a confirmation that lists every item.
+deletes only what you select — after a confirmation that lists every item.
 
 **[backspacer.dev](https://backspacer.dev)** · **[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
 Open the DMG, drag Backspacer to Applications. Notarized; no Gatekeeper warnings.
