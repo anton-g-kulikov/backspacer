@@ -46,6 +46,8 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Feed seam fixed: the release run's site job fetches this tag's appcast (`releases/download/<tag>/`), not "latest", which lagged behind `gh release create` on 1.0.3 and briefly served 1.0.2; the appcast log line reads the element form. Site screenshots are the maintainer's real window captures (light, dark, Terminal), no drawn frame; README image likewise.
+
 - 2026-09-20 — 1.0.3 released: Glass frosted bars (list scrolls under header/footer), aligned edges, drag strip; catalog platform-awareness (ADR-22 step 1) rides along.
 - 2026-09-20 — Sparkle signing guard: already covered by CI's package step (deep-strict verify of the ad-hoc bundle on every push); pinned by Y9 and documented rather than duplicated.
 - 2026-09-20 — Site: "Updates itself" in the download meta line (W19); the 0.9.x footnote was added and then dropped the same day — three users, all known.
