@@ -38,9 +38,7 @@ final class Bridge: NSObject, @unchecked Sendable {
          trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
          shell: CommandRunner = SystemShell(),
          diagnostics: Diagnostics = .standard,
-         opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener,
-         appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev",
-         fetch: @escaping @Sendable (URL) throws -> Data = Updates.systemFetch) {
+         opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener) {
         self.catalog = catalog
         self.home = home
         self.tildeHome = tildeHome
@@ -50,8 +48,6 @@ final class Bridge: NSObject, @unchecked Sendable {
         self.shell = shell
         self.diagnostics = diagnostics
         self.opener = opener
-        self.appVersion = appVersion
-        self.fetch = fetch
     }
 
     func catalogEntry(_ id: String) -> Catalog.Entry? { catalog.entry(id) }
@@ -151,7 +147,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget", "autoCheckUpdate"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget", "checkUpdate"]
 
     // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
 
@@ -193,31 +189,20 @@ final class Bridge: NSObject, @unchecked Sendable {
         case "delete":    return try delete(entry(args), item: args["item"] as? String)
         case "reveal":    return try reveal(entry(args))
         case "open":      return try open(entry(args), item: args["item"] as? String, with: args["with"] as? String)
-        case "autoCheckUpdate":
-            // The quiet check the page runs after the first scan of a session: at most one request a
-            // day, off with one switch, and never an error the user has to dismiss.
-            guard defaults.string(forKey: "ui.autoUpdateCheck") != "0" else { return ["skipped": "off"] }
-            if let last = defaults.object(forKey: "update.lastCheck") as? Date, Date().timeIntervalSince(last) < 24 * 3600 { return ["skipped": "recent"] }
-            defaults.set(Date(), forKey: "update.lastCheck")
-            do {
-                let release = try Updates.parse(try fetch(Updates.latestURL))
-                let newer = Updates.isNewer(release.version, than: appVersion)
-                diagnostics.log(.info, "update check (automatic): running \(appVersion), latest \(release.version)\(newer ? " (newer)" : "")")
-                return ["current": appVersion, "latest": release.version, "newer": newer, "url": release.dmg ?? release.page]
-            } catch {
-                diagnostics.log(.info, "update check (automatic) failed: \(error.localizedDescription)")
-                return ["skipped": "failed"]
-            }
         case "checkUpdate":
-            let release = try Updates.parse(try fetch(Updates.latestURL))
-            let newer = Updates.isNewer(release.version, than: appVersion)
-            diagnostics.log(.info, "update check: running \(appVersion), latest \(release.version)\(newer ? " (newer)" : "")")
-            return ["current": appVersion, "latest": release.version, "newer": newer, "url": release.dmg ?? release.page]
+            // Sparkle owns updates (ADR-21). Without an updater (a dev build) the page is told so.
+            guard hasUpdater else { return ["skipped": "unconfigured"] }
+            Task { @MainActor in self.updater?.checkForUpdates() }
+            return ["ok": true]
         case "contextTarget": return ["ok": true]   // noted on the main thread before it was queued (see the message handler)
         case "appInfo":   return ["version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "dev",
                                   "build": Bundle.main.infoDictionary?["CFBundleVersion"] ?? "local"]
         case "prefGet":   return ["value": defaults.string(forKey: try prefKey(args)).map { $0 as Any } ?? NSNull()]
-        case "prefSet":   defaults.set(try prefValue(args), forKey: try prefKey(args)); return ["ok": true]
+        case "prefSet":
+            let key = try prefKey(args), value = try prefValue(args)
+            defaults.set(value, forKey: key)
+            if key == "ui.autoUpdateCheck" { Task { @MainActor in self.updater?.setAutomaticChecks(Updater.automaticChecks(pref: value)) } }
+            return ["ok": true]
         case "projectRoots":      return rootsReply()
         case "addProjectRoot":    if let p = chooseFolder() { try addProjectRoot(path: p) }; return rootsReply()
         case "removeProjectRoot": try removeProjectRoot(path: args["path"] as? String ?? ""); return rootsReply()
@@ -545,8 +530,9 @@ final class Bridge: NSObject, @unchecked Sendable {
     /// Apps the page may ask to open a path with. Anything else is refused by name.
     enum Opener: String, Sendable { case terminal }
     private let opener: @Sendable (URL, Opener) -> Void
-    private let appVersion: String
-    private let fetch: @Sendable (URL) throws -> Data
+    /// The Sparkle wrapper, attached by the app delegate on distribution builds; nil in dev builds.
+    @MainActor weak var updater: Updater? { didSet { hasUpdater = updater != nil } }
+    private nonisolated(unsafe) var hasUpdater = false   // read from the queue; written once at launch
     static let systemOpener: @Sendable (URL, Opener) -> Void = { url, with in
         DispatchQueue.main.async {
             switch with {

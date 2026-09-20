@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
     private var window: NSWindow!
     private var webView: WKWebView!
     private var bridge: Bridge!
+    private var updater: Updater?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let info = Bundle.main.infoDictionary ?? [:]
@@ -34,6 +35,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = PageView(frame: .zero, configuration: config)
         (webView as? PageView)?.bridge = bridge
+        // Sparkle (ADR-21): only a build with a feed and a public key gets an updater.
+        if Updater.isConfigured(info: Bundle.main.infoDictionary ?? [:]) {
+            let u = Updater(diagnostics: Diagnostics.standard, automaticChecks: Updater.automaticChecks(pref: UserDefaults.standard.string(forKey: "ui.autoUpdateCheck")))
+            u.announce = { [weak self] version in
+                self?.webView.evaluateJavaScript("window.__updateFound && window.__updateFound(\(version.debugDescription))", completionHandler: nil)
+            }
+            updater = u
+            bridge.updater = u
+        } else {
+            Diagnostics.standard.log(.info, "updater: not configured (no feed/key in this build)")
+        }
         webView.underPageBackgroundColor = .windowBackgroundColor
         // Right-click → Inspect Element: on for debug builds, or `defaults write com.antonkulikov.backspacer
         // WebInspector -bool YES` for a release build when a user is helping debug the page (R20).
@@ -110,7 +122,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
 
     /// View ▸ Glass / Terminal. The page stores the choice through the bridge (UserDefaults "ui.theme").
     @objc private func checkForUpdates(_ sender: Any?) {
-        webView.evaluateJavaScript("window.__openAbout && window.__openAbout(); window.__checkUpdates()", completionHandler: nil)
+        // The app menu's item is Sparkle's own check (it shows its own UI); About mirrors the state.
+        if let updater { updater.checkForUpdates() } else { webView.evaluateJavaScript("window.__openAbout && window.__openAbout(); window.__checkUpdates()", completionHandler: nil) }
     }
 
     @objc private func setTheme(_ sender: NSMenuItem) {

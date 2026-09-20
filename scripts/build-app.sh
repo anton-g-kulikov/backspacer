@@ -42,12 +42,13 @@ cp catalog.json "$APP/Contents/Resources/catalog.json"
 [ -f assets/AppIcon.icns ] && cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 chmod -R u+rwX,go+rX "$APP"   # sources may be 0600; other accounts must be able to read the bundle
 
-# Distribution builds get the feed and the EdDSA public key (SPARKLE_PUBLIC_KEY, printed once by
-# Sparkle's generate_keys); a dev build has no feed, so the updater stays off and needs no key.
+# Distribution builds get the feed and the EdDSA public key (the public half of the key
+# generate_keys made on the maintainer's Mac on 2026-09-20; the private half is the SPARKLE_ED_KEY
+# secret); a dev build has no feed, so the updater stays off.
+SPARKLE_PUBLIC_KEY="${SPARKLE_PUBLIC_KEY:-G9NRhve1sRCN4lNI0Gh58KjsTR3kWfFsJrP5ugnHhHM=}"
 if [ -n "${IDENTITY:-}" ]; then
   SPARKLE_KEYS="  <key>SUFeedURL</key><string>https://backspacer.dev/appcast.xml</string>
   <key>SUPublicEDKey</key><string>$SPARKLE_PUBLIC_KEY</string>"
-  [ -n "${SPARKLE_PUBLIC_KEY:-}" ] || { echo "SPARKLE_PUBLIC_KEY is not set (the public half from generate_keys)"; exit 1; }
 else
   SPARKLE_KEYS=""
 fi

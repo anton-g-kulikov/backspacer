@@ -142,11 +142,12 @@ test('A15 the size filter defaults to 10 MB (the slider\'s first stop) unless a 
   assert.match(html, /<b id="thrLbl">10 MB<\/b>/);
 });
 
-test('A16 a quiet automatic update check after the first scan, with a footer notice and an opt-out', () => {
+test('A16 Sparkle drives the notice: the page shows what the updater found and routes both controls to it', () => {
   assert.match(html, /<div class="tabs">\s*<button data-panel="log"[^>]*>Log<\/button>\s*<span class="notice" id="updNotice" hidden><\/span>\s*<button data-panel="about"/, 'the notice sits between Log and About');
   assert.match(html, /<label class="opt"><input type="checkbox" id="autoUpd" checked> Check for updates automatically<\/label>/);
-  assert.match(app, /bridge\.call\('autoCheckUpdate'\)/);
-  assert.match(app, /if \(!state\.autoChecked\) \{ state\.autoChecked = true; autoCheckUpdates\(\); \}/, 'once per session, after the scan finishes');
-  assert.doesNotMatch(app, /init\(\)[\s\S]{0,400}autoCheckUpdate/, 'not at launch');
+  assert.match(app, /window\.__updateFound = /, 'Sparkle → page: a newer version was found');
+  assert.match(app, /bridge\.call\('checkUpdate'\)/, 'page → Sparkle: the manual check');
   assert.match(app, /prefSet', \{ key: 'autoUpdateCheck'/);
+  assert.doesNotMatch(app, /autoCheckUpdate/, 'the page no longer polls');
+  assert.doesNotMatch(app, /api\.github\.com/);
 });
