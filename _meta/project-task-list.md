@@ -51,7 +51,7 @@ From the 0.1.0 README:
 ## Done
 
 - 2026-09-20 — Sparkle signing guard: already covered by CI's package step (deep-strict verify of the ad-hoc bundle on every push); pinned by Y9 and documented rather than duplicated.
-- 2026-09-20 — Site: "Updates itself from 1.0" in the download meta line and a one-line note for 0.9.x users (W19).
+- 2026-09-20 — Site: "Updates itself" in the download meta line (W19); the 0.9.x footnote was added and then dropped the same day — three users, all known.
 
 - 2026-09-20 — ADR-22 step 1 complete: platform-aware catalog (schema `platforms` + `os` overrides, 40 portable entries, ten Linux/Windows-only entries), host filter on the Mac (C16), invariants X1–X7. No visible change on macOS. Hosts remain unscheduled.
 

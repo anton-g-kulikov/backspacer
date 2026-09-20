@@ -318,7 +318,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | W14 | SEO | `robots.txt` allowing all with the sitemap URL, `sitemap.xml` listing the page, `404.html` (noindex, links home), JSON-LD `SoftwareApplication` (macOS, free offer, download URL, license, no hardcoded version), a search-phrase kicker above the brand H1, Twitter card tags, description 120–158 chars, title ≤ 60 |
 | W15 | reveal hero | the hero holds the System Data row and a findings card (≥ 6 `frow` rows with bucket class and a size, a header total, three `ftotals`), no image; the old `.vs` grid is gone; the real screenshot is a full-width `figure.shot.app` with a caption inside `#how` |
 | W18 | appcast on the site | `pages.yml` triggers on `release: published`, fetches `releases/latest/download/appcast.xml` into `site/`, validates it with `xmllint` and checks for a Sparkle enclosure; a release event without it fails; `.gitignore` keeps `site/appcast.xml` out of main |
-| W19 | 0.9.x note | the meta line says "Updates itself from 1.0"; one `p.upgrade` after it tells 0.9.x users to install once by hand |
+| W19 | updates | the meta line says "Updates itself"; no upgrade footnote (the 0.9.x note was dropped: three users, all in the room) |
 | W12 | look switcher | a `role="group"` "Look" with Glass / Terminal buttons carrying `aria-pressed`; `css-glass` and `css-terminal` sheets, the latter scoped to `:root[data-skin="terminal"]`; the script sits in `<head>` and reads `localStorage` (guarded) or `?theme=` before first paint; a terminal screenshot `<source>` the script enables |
 | W9 | workflow | `pages.yml`: pushes to `main` on `site/**`, minimal permissions, SHA-pinned actions, uploads `site`, runs the site tests with `SITE_REQUIRED: 1` |
 
