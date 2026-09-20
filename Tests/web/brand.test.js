@@ -69,7 +69,7 @@ test('K7 the tagline sits under the wordmark', () => {
   assert.match(html, /\.brand \.text \{ display: flex; flex-direction: column;/, 'stacked: name row, then tagline');
   assert.doesNotMatch(html, /Pearl Jam|Got Some/, 'the line is a wink, not an attribution');
   const app = read('web/app.js');
-  assert.match(app, /function updateTotals\(\) \{[\s\S]*?\$\('\.tagline'\)\.textContent = taglineText\(RECLAIMABLE\.reduce\(\(a, b\) => a \+ bucketTotal\(b\), 0\)\)/,
+  assert.match(app, /function updateTotals\(\) \{[\s\S]*?\$\('\.tagline'\)\.textContent = taglineText\(RECLAIMABLE\.reduce\(\(a, b\) => a \+ bucketTotal\(b\), 0\) \+ projectBytes\)/,
     'the counter follows the bucket badges and updates with every size');
 });
 
