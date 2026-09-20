@@ -195,3 +195,36 @@ macOS and asks for Full Disk Access and project folders again (README says so).
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.
+
+## ADR-21 — In-app updates with Sparkle 2: download automatically, ask before installing (decided 2026-09-20)
+Since 0.9.2 the app checks GitHub's releases API on click and, once a session,
+shows a notice with a link to the DMG. A link is not an update mechanism:
+users don't follow it, and the release download counts say so. The
+maintainer wants the experience LensSense has (electron-updater: periodic
+check, background download, install on quit) for a native app.
+
+Chosen: **Sparkle 2** as a SwiftPM dependency, pinned by revision. It is the
+native counterpart of electron-updater and the standard for Developer ID
+apps outside the App Store. Behaviour: check once a day and at launch after
+the first scan, download in the background, then a one-click "Install and
+relaunch" prompt (or install on the next quit); the existing opt-out
+preference and the footer notice stay, driven by Sparkle's events instead
+of our poll. Never silent: an app that deletes folders installs a new version
+of itself only after the user says so.
+
+Why this is safe enough for a deletion tool: Sparkle verifies an EdDSA
+signature over the archive against a public key compiled into the app
+(`SUPublicEDKey`), and refuses an update whose code signature or Team ID
+differs from the running app's, on top of Apple's notarization — a stronger
+guarantee than electron-updater's SHA-512 from a manifest. The private key
+lives only in the release workflow's secrets (`SPARKLE_ED_KEY`); the appcast
+is published at https://backspacer.dev/appcast.xml by the release workflow.
+
+Rejected: a hand-rolled updater (re-solving atomic bundle replacement,
+authorization for /Applications, relaunch, rollback and signature checks that
+Sparkle already solved and audited); Homebrew as the update channel (covers
+only cask installs); staying with the notice (the status quo the decision
+overrides). Costs accepted: one dependency (~5 MB, an embedded framework with
+XPC services that must be signed inside out — the nested-code guard in
+`build-app.sh` becomes a real signing step), an EdDSA key to keep, and
+notarization of nested code in the release workflow.
