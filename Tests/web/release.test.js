@@ -59,3 +59,14 @@ test('Y7 the release carries the DMG, its SHA-256 in the notes, and a build-prov
   assert.match(wf, /subject-path: .*\.dmg/);
   assert.match(wf, /spctl --assess --type open/, 'Gatekeeper is asked before publishing');
 });
+
+test('Y8 the release run deploys the site itself: GITHUB_TOKEN events never trigger other workflows', () => {
+  // `gh release create` inside release.yml raises `release: published`, but events created with the
+  // workflow token do not start workflows — so pages.yml is called as a reusable workflow instead.
+  assert.match(wf, /^  site:\n    needs: release\n(?:.*\n)*?    uses: \.\/\.github\/workflows\/pages\.yml\n    with:\n      required: true\n/m);
+  const pages = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
+  assert.match(pages, /^  workflow_call:\n    inputs:\n      required:\n        type: boolean\n/m, 'pages.yml accepts the call with a required flag');
+  assert.match(pages, /REQUIRED: \$\{\{ github\.event_name == 'release' \|\| inputs\.required == true \}\}/);
+  const site = wf.slice(wf.indexOf('  site:'));
+  assert.match(site, /permissions:\n      contents: read\n      pages: write\n      id-token: write/, 'the caller grants what Pages needs');
+});

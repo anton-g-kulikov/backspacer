@@ -119,3 +119,15 @@ jobs:
       - name: Remove the temporary keychain
         if: always()
         run: security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
+
+  # The site republishes the appcast at backspacer.dev/appcast.xml. Called here because the
+  # release above was created with GITHUB_TOKEN, whose events never trigger other workflows.
+  site:
+    needs: release
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    with:
+      required: true

@@ -19,6 +19,13 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+  # Called by release.yml after it publishes: a release created with the workflow's own token
+  # raises the event above but never starts a workflow, so the release run deploys the site itself.
+  workflow_call:
+    inputs:
+      required:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -51,7 +58,7 @@ jobs:
         # tolerates "no appcast yet" (before the first Sparkle release) but never a broken one.
         env:
           FEED: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml
-          REQUIRED: ${{ github.event_name == 'release' }}
+          REQUIRED: ${{ github.event_name == 'release' || inputs.required == true }}
         run: |
           sudo apt-get install -y -qq libxml2-utils >/dev/null
           for i in $(seq 1 12); do
