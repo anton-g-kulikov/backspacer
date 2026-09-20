@@ -116,7 +116,8 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   assert.match(html, /grid-template-columns: 400px 1fr auto;/, 'Terminal: fixed, wider for the monospace tagline');
   assert.doesNotMatch(html, /grid-template-columns: minmax\(0, \d+px\) 1fr auto/, 'the brand column must not grow with the tagline — the centre would move');
   assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
-  assert.equal((html.match(/#scan \{ justify-self: end; min-width: [\d.]+em/g) || []).length, 2, 'the button has a fixed width at rest and while busy, so the centre never moves');
+  assert.match(html, /#scan \{ justify-self: end; min-width: 11em; \}/, 'Glass: wider than the longest verb frame in the system font');
+  assert.match(html, /#scan \{ justify-self: end; min-width: 22ch;/, 'Terminal: ch units — "[ investigating... ]" is 20 monospace characters');
   assert.equal((html.match(/main \{ overflow-y: scroll;/g) || []).length, 2, 'a permanent scrollbar track in both themes: the gutter never appears or disappears, so the header never shifts');
   assert.doesNotMatch(html, /scrollbar-gutter/, 'WebKit ignores it; overflow-y: scroll is the reservation');
   assert.match(app, /window\.addEventListener\('resize', syncGutter\);\nsyncGutter\(\);/, 'measured once at load');
