@@ -256,7 +256,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Z1 | dependency | `Package.swift` pins Sparkle by a 40-hex revision and `Package.resolved` agrees |
 | Z2 | signing order | `build-app.sh` embeds `Contents/Frameworks/Sparkle.framework` and signs XPC services → framework → app, no `--deep` signing, deep verification, no nested-code guard |
 | Z3 | Info.plist | `SUEnableAutomaticChecks` true, `SUAutomaticallyUpdate` false, interval 86400; feed + public key only when `IDENTITY` is set |
-| Z4 | `make-appcast.sh` | one valid item: `sparkle:version` = build number, short version, min system 13.0, notes link, enclosure with URL/length/EdDSA signature; passes `xmllint` |
+| Z4 | `make-appcast.sh` | one valid item: `sparkle:version` = build number, short version, min system 13.0, the changelog section inline as HTML (`<description>`: bullets → `<li>`, backticks → `<code>`, bold → `<b>`), the GitHub page as `fullReleaseNotesLink`, enclosure with URL/length/EdDSA signature; passes `xmllint` |
 | Z5 | `release.yml` | `SPARKLE_ED_KEY` reaches `sign_update` through a temp file (deleted after), after notarization and before publishing; `appcast.xml` rides with the DMG as a release asset |
 
 ### Release workflow — `Tests/web/release.test.js` (shape checks over `release.yml` and `notarize.sh`)

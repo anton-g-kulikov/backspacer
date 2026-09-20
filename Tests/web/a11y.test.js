@@ -163,7 +163,11 @@ test('A17 About is a proper dialog: centred card, close button, Escape, opened f
   assert.match(html, /<button class="btn small" id="revealLog">Reveal log<\/button>/);
   assert.match(html, /<a href="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/blob\/main\/LICENSE">License<\/a>/);
   assert.doesNotMatch(html, /data-panel="about"/, 'no About tab in the footer');
+  assert.equal((html.match(/\.tabs button \{ border: 0; background: none;/g) || []).length, 2, 'the Log tab stays a text tab (▸ Log), not a button pill, in both themes');
+  assert.equal((html.match(/\.tabs button::before \{ content: "▸ "; \}/g) || []).length, 2);
+  assert.equal((html.match(/#log \.err \{ color: var\(--danger\); \}/g) || []).length, 2, 'the Log panel keeps its styling');
   assert.equal((html.match(/dialog\.about \{/g) || []).length, 2, 'the card is styled in both themes');
-  assert.match(app, /window\.__openAbout = \(\) => \{ const d = \$\('#about'\); if \(!d\.open\) d\.showModal\(\); \}/, 'modal, so Escape closes it');
+  assert.match(app, /window\.__openAbout = \(\) => \{ const d = \$\('#about'\); if \(!d\.open\) \{ d\.showModal\(\); d\.querySelector\('\.card'\)\.focus\(\); \} \};/, 'modal (Escape closes); focus lands on the card so the × shows no ring until Tab');
+  assert.match(html, /<div class="card" tabindex="-1">/);
   assert.match(app, /\$\('#aboutClose'\)\.onclick = \(\) => \$\('#about'\)\.close\(\)/);
 });

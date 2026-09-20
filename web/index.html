@@ -192,13 +192,25 @@
   .status .sum b { color: var(--fg); font-weight: 600; }
   .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
   .tabs { border-top: 1px solid var(--sep); display: flex; justify-content: space-between; padding: 0 18px; }
+  .tabs button { border: 0; background: none; padding: 7px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; }
+  .tabs button::before { content: "▸ "; }
+  .tabs button.on::before { content: "▾ "; }
+  .tabs button:hover { color: var(--fg); }
+  .panel { margin: 0; padding: 4px 18px 12px; max-height: 200px; overflow: auto; font-size: 12px; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .panel[hidden] { display: none; }
+  #log { font-family: var(--mono); font-size: 11px; }
+  #log .err { color: var(--danger); }
+  #log .ok { color: var(--safe); }
   .tabs .notice { align-self: center; font-size: 12px; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 600; }
   /* ── About: a centred card, like the confirm dialog but calmer ── */
   dialog.about { width: 360px; min-width: 0; text-align: center; }
-  dialog.about .close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--track); color: var(--muted); font-size: 18px; line-height: 28px; cursor: pointer; }
+  /* The cross is two bars, not the × glyph — a glyph sits off-centre by its font's side bearings. */
+  dialog.about .close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; background: var(--track); color: var(--muted); font-size: 0; cursor: pointer; }
+  dialog.about .close::before, dialog.about .close::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 1.6px; background: currentColor; border-radius: 1px; transform: translate(-50%, -50%) rotate(45deg); }
+  dialog.about .close::after { transform: translate(-50%, -50%) rotate(-45deg); }
   dialog.about .close:hover { background: rgba(0,0,0,.12); color: var(--fg); }
-  dialog.about .card { padding: 30px 26px 22px; }
+  dialog.about .card { padding: 30px 26px 22px; outline: none; }
   dialog.about .mark { width: 72px; height: 72px; border-radius: 17px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
   dialog.about h2 { margin: 12px 0 2px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
   dialog.about p { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; }
@@ -390,6 +402,14 @@
   .status .sum b { color: var(--fg); font-weight: 700; }
   .status .buttons { display: flex; gap: 8px; flex-shrink: 0; }
   .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 calc(18px + var(--sb, 0px)); }
+  .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
+  .tabs button::before { content: "▸ "; }
+  .tabs button.on::before { content: "▾ "; }
+  .tabs button:hover { color: var(--fg); }
+  .panel { margin: 0; padding: 4px 18px 10px; max-height: 200px; overflow: auto; font: inherit; font-size: 11.5px; color: var(--muted); -webkit-user-select: text; user-select: text; }
+  .panel[hidden] { display: none; }
+  #log .err { color: var(--danger); }
+  #log .ok { color: var(--safe); }
   .tabs .notice { align-self: center; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 700; }
   /* ── About ── */
@@ -397,7 +417,7 @@
   dialog.about .close { position: absolute; top: 8px; right: 10px; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
   dialog.about .close::before { content: "[ "; color: var(--faint); } dialog.about .close::after { content: " ]"; color: var(--faint); }
   dialog.about .close:hover { color: var(--accent); }
-  dialog.about .card { padding: 28px 24px 20px; }
+  dialog.about .card { padding: 28px 24px 20px; outline: none; }
   dialog.about .mark { display: none; }
   dialog.about h2 { margin: 0 0 4px; font-size: 14px; color: var(--accent); }
   dialog.about h2::before { content: "$ "; color: var(--muted); font-weight: 400; }
@@ -482,7 +502,7 @@
 
 <dialog id="about" class="about" aria-labelledby="aboutTitle">
   <button class="close" id="aboutClose" aria-label="Close">×</button>
-  <div class="card">
+  <div class="card" tabindex="-1">
     <img class="mark" src="icon.svg" alt="">
     <h2 id="aboutTitle">Backspacer</h2>
     <p class="ver">Version <span id="aboutVersion"></span></p>

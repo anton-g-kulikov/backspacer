@@ -336,7 +336,7 @@ document.querySelector('.tabs').onclick = e => {
   if (open && b.dataset.panel === 'log') { const p = $('#log'); p.scrollTop = p.scrollHeight; }
 };
 // About: a modal card (Escape closes it), opened from the app menu's About Backspacer.
-window.__openAbout = () => { const d = $('#about'); if (!d.open) d.showModal(); };
+window.__openAbout = () => { const d = $('#about'); if (!d.open) { d.showModal(); d.querySelector('.card').focus(); } };   // focus the card, not the × — no ring until Tab
 $('#aboutClose').onclick = () => $('#about').close();
 $('#fdaBtn').onclick = () => bridge.call('openFDA');
 $('#clearSel').onclick = () => { state.selected.clear(); document.querySelectorAll('[data-sel],[data-selall]').forEach(c => c.checked = false); updateTotals(); };

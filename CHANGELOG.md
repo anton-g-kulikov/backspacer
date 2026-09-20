@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- The update window shows the release notes themselves instead of the GitHub page; the Log tab is a text tab again; the About dialog's close cross is centred and no longer opens focused.
+
 ## 1.0.1 — 2026-09-20
 - About is a proper dialog now (app menu → About Backspacer): icon, version, update status and controls, help, log, license — the footer keeps just Log.
 - Internal: the release run now redeploys the site itself so `backspacer.dev/appcast.xml` follows every release (a release created by the workflow never triggers the site on its own).

@@ -41,16 +41,20 @@ test('Z3 Info.plist carries the feed, the public key and the update policy; a de
 
 const { execFileSync } = require('node:child_process');
 
-test('Z4 make-appcast.sh writes one valid item: versions, EdDSA signature, length, DMG URL, min system, notes link', () => {
+test('Z4 make-appcast.sh writes one valid item: versions, EdDSA signature, length, DMG URL, min system, inline notes', () => {
+  const notes = path.join(require('node:os').tmpdir(), 'notes-z4.md');
+  fs.writeFileSync(notes, '- Fixed: links in About opened **inside** the window.\n- New: `brew install --cask backspacer`.\n');
   const xml = execFileSync('bash', ['scripts/make-appcast.sh', '0.9.4', '202609201100', '916911', 'SIGBASE64==',
     'https://github.com/anton-g-kulikov/backspacer/releases/download/v0.9.4/Backspacer-0.9.4.dmg',
-    'https://github.com/anton-g-kulikov/backspacer/releases/tag/v0.9.4'], { cwd: root, encoding: 'utf8' });
+    'https://github.com/anton-g-kulikov/backspacer/releases/tag/v0.9.4', notes], { cwd: root, encoding: 'utf8' });
   assert.match(xml, /^<\?xml version="1\.0" encoding="utf-8"\?>/);
   assert.match(xml, /xmlns:sparkle="http:\/\/www\.andymatuschak\.org\/xml-namespaces\/sparkle"/);
   assert.match(xml, /<sparkle:version>202609201100<\/sparkle:version>/, 'sparkle:version is CFBundleVersion');
   assert.match(xml, /<sparkle:shortVersionString>0\.9\.4<\/sparkle:shortVersionString>/);
   assert.match(xml, /<sparkle:minimumSystemVersion>13\.0<\/sparkle:minimumSystemVersion>/);
-  assert.match(xml, /<sparkle:releaseNotesLink>https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/tag\/v0\.9\.4<\/sparkle:releaseNotesLink>/);
+  assert.match(xml, /<sparkle:fullReleaseNotesLink>https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/tag\/v0\.9\.4<\/sparkle:fullReleaseNotesLink>/, 'the GitHub page is the full-notes link, not the pane');
+  assert.match(xml, /<description><!\[CDATA\[[\s\S]*<ul>\s*<li>Fixed: links in About opened <b>inside<\/b> the window\.<\/li>\s*<li>New: <code>brew install --cask backspacer<\/code>\.<\/li>\s*<\/ul>[\s\S]*\]\]><\/description>/, 'the changelog section, as clean HTML in the pane');
+  assert.doesNotMatch(xml, /<sparkle:releaseNotesLink>/);
   assert.match(xml, /<enclosure url="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/download\/v0\.9\.4\/Backspacer-0\.9\.4\.dmg" length="916911" type="application\/octet-stream" sparkle:edSignature="SIGBASE64=="\/>/);
   assert.equal((xml.match(/<item>/g) || []).length, 1, 'the latest release only');
   execFileSync('xmllint', ['--noout', '-'], { input: xml });
