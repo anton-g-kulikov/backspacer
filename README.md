@@ -157,9 +157,16 @@ editor picks it up from the `$schema` line; `swift test` checks it too). The fie
   "infoCmd": "xcrun simctl runtime list",  // optional: shown by the Details button
   "deleteCmd": "xcrun simctl erase all",   // optional: replaces rm -rf <path>
   "itemsCmd": "…",                   // optional: lists items as key<TAB>label<TAB>KB (Details shows them)
-  "deleteItemCmd": "xcrun simctl erase {key}"  // with itemsCmd: removes one item; {key} is shell-quoted
+  "deleteItemCmd": "xcrun simctl erase {key}", // with itemsCmd: removes one item; {key} is shell-quoted
+  "platforms": ["macos", "linux", "windows"], // optional: hosts that show the entry; absent = macOS only
+  "os": { "linux": { "path": "$XDG_CACHE_HOME/pip" } }   // optional: per-OS location/command overrides
 }
 ```
+
+`platforms` and `os` prepare the catalog for other hosts (ADR-22); the macOS app
+ignores `os` and shows an entry whenever `platforms` is absent or lists `macos`.
+Paths in `os` blocks may use `$HOME`, `$XDG_CACHE_HOME`, `$XDG_CONFIG_HOME`,
+`$XDG_DATA_HOME`, `$LOCALAPPDATA`, `$APPDATA` and `$TEMP`.
 
 `glob` finds many paths: `{ "root": "$PROJECTS", "name": "node_modules", "maxdepth": 4, "type": "d" }`.
 `$PROJECTS` stands for the user's project folders — detected from common names

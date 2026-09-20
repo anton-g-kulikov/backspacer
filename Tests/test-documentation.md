@@ -285,6 +285,17 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | K8 | header icon | `.brand` starts with `<img class="mark" src="icon.svg" alt="">`; `web/icon.svg` is byte-identical to `assets/AppIcon.svg` and `make-icon.sh` refreshes it; 42 px in Glass, `display: none` in Terminal; CSP `img-src 'self'` |
 | K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
+### Catalog platform-awareness — `Tests/web/catalog.test.js` (ADR-22, step 1)
+Invariants over `catalog.json` and `catalog.schema.json` that the Swift `SchemaTests` don't express.
+| # | Case | Expect |
+|---|---|---|
+| X1 | schema | `platforms` is an optional array (min 1) over `macos`/`linux`/`windows`; `os` allows only `linux`/`windows`, each a `#/$defs/override` carrying exactly the entry's location and command field names |
+| X2 | values | every `platforms` value is known and unique; every `os.<p>` key is a known platform that the entry also lists in `platforms` |
+| X3 | variables | only the allowed `$VARS` appear; XDG variables never in base paths or `os.windows`, `%APPDATA%`-style never in base paths or `os.linux`; no `~` in `os.windows` |
+| X4 | Mac safety | until the Swift host filters by platform, every `platforms` list includes `macos` |
+| X5 | commands | an entry with a shell command lists a non-mac platform only if `os.<p>` provides a command for it |
+| X6 | coverage | the named dot-folder, `$PROJECTS` and AI-tool entries list `linux`; at least 25 entries are portable |
+
 ### Site — `Tests/web/site.test.js` (static checks over `site/index.html` and `pages.yml`)
 The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED=1`, which the Pages workflow sets.
 | # | Case | Expect |
@@ -336,6 +347,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
 | Web accessibility (node) | A1–A17 | passing |
+| Catalog platform-awareness (node) | X1–X6 | passing |
 | Site (node) | W1–W18 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y8 | passing |
