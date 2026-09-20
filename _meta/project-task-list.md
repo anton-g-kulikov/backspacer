@@ -41,6 +41,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.8.1 released: header drag, reclaimable counter in the tagline, trimmed right-click menu, themed scrollbar; site switcher.
 - 2026-09-20 — Context menu for paths: WebKit menu trimmed to Search · Copy, Services declined (system-filled, unprunable), New Terminal at Folder via `contextTarget` + `open` ops (X1, X2, X5, O1–O3, A11).
 - 2026-09-20 — Reclaimable counter inside the tagline (J17, K7): sum of the safe/regen/decide badges, live. The 0.2.0 "Reclaim XX GB" header total returns in this form, phrased as an offer rather than a target.
 - 2026-09-20 — Window drag from the header (`dragWindow` op, G1) and no selection sweep from non-selectable areas (A10); themed scrollbar, not hidden (A9). Verified with a paced synthetic drag on a `.dev`-bundle-id build.
