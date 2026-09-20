@@ -13,13 +13,6 @@ deletes only what you tick — after a confirmation that lists every item.
 **[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
 Open the DMG, drag Backspacer to Applications. Notarized; no Gatekeeper warnings.
 
-> **Formerly Reclaimer.** Renamed in 0.8.0: this project is not related to
-> *Reclaimer* by MNZN, LLC on the Mac App Store, nor to Reclaim.ai, and the
-> shared name caused confusion. The old repository URL redirects. macOS sees
-> Backspacer as a new app, so after updating grant Full Disk Access again and
-> re-add any project folders; the old copy and `~/Library/Logs/Reclaimer` can
-> go (the app lists that folder under Logs).
-
 ![Backspacer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
 
 It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The
