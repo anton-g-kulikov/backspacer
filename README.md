@@ -61,11 +61,13 @@ password dialog.
   case-insensitively. The one exception is a project folder you added
   yourself: what the globs find inside it (`node_modules`, `Pods`, build
   output) is yours to reclaim.
-- **One request to GitHub, at most once a day.** After the first scan of a session
-  the app asks GitHub's releases API whether a newer version exists (a GET that
-  carries nothing about you) and shows a one-line notice with a download link if
-  so — nothing when you're current. About → *Check for updates automatically*
-  turns it off; the manual check in About stays. Nothing else ever leaves the app.
+- **Updates, and nothing else, use the network.** Once a day (and after the first
+  scan) the app fetches `backspacer.dev/appcast.xml` and, if there's a newer
+  version, downloads the DMG from GitHub in the background — then asks before
+  installing and relaunching; it never installs on its own. About → *Check for
+  updates automatically* turns the check off. Updates are verified against a key
+  built into the app (Sparkle 2) on top of Apple's notarization. Nothing about you
+  or your disk is sent.
 - **Every delete goes through a confirmation** listing exactly what will go
   and how much. Nothing is removed by a single click.
 - **Your call goes to the Trash; caches are removed for good.** Real data

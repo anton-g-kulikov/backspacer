@@ -7,6 +7,7 @@ name: Release
 #   APPLE_ID              the Apple ID that owns the team
 #   APPLE_APP_PASSWORD    an app-specific password for it
 #   APPLE_TEAM_ID         the team id (R9BBCR3NF6)
+#   SPARKLE_ED_KEY        the private EdDSA key from Sparkle's generate_keys -x (signs the appcast)
 # Without them the signing step fails before anything is published.
 
 on:
@@ -80,6 +81,26 @@ jobs:
           spctl --assess --type open --context context:primary-signature -v "$DMG"
           xcrun stapler validate "$DMG"
 
+      # Sparkle (ADR-21): sign the stapled DMG with the EdDSA key and write the appcast the app
+      # polls. The key never touches the command line; the appcast ships as a release asset.
+      - name: Sign for Sparkle and write the appcast
+        env:
+          SPARKLE_ED_KEY: ${{ secrets.SPARKLE_ED_KEY }}
+        run: |
+          test -n "$SPARKLE_ED_KEY" || { echo "secret SPARKLE_ED_KEY is not set"; exit 1; }
+          V="${GITHUB_REF_NAME#v}"
+          DMG="build/Backspacer-$V.dmg"
+          PATH=".build/artifacts/sparkle/Sparkle/bin:$PATH"   # Sparkle's tools come with the SwiftPM artifact
+          KEYFILE="$RUNNER_TEMP/sparkle_ed_key"; (umask 077; printf '%s' "$SPARKLE_ED_KEY" > "$KEYFILE")
+          OUT="$(sign_update --ed-key-file "$KEYFILE" "$DMG")"; rm -P "$KEYFILE"
+          SIG="$(sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p' <<<"$OUT")"
+          LEN="$(sed -n 's/.*length="\([0-9]*\)".*/\1/p' <<<"$OUT")"
+          test -n "$SIG" && test -n "$LEN" || { echo "sign_update gave no signature: $OUT"; exit 1; }
+          BUILD_NUM="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' build/Backspacer.app/Contents/Info.plist)"
+          scripts/make-appcast.sh "$V" "$BUILD_NUM" "$LEN" "$SIG" \
+            "https://github.com/anton-g-kulikov/backspacer/releases/download/v$V/Backspacer-$V.dmg" \
+            "https://github.com/anton-g-kulikov/backspacer/releases/tag/v$V" > "$RUNNER_TEMP/appcast.xml"
+          xmllint --noout "$RUNNER_TEMP/appcast.xml"
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -89,7 +110,7 @@ jobs:
           SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
           { sed -n "/^## $V /,/^## /p" CHANGELOG.md | sed '1d;$d' | sed '/^$/d'; echo; echo "SHA-256 \`Backspacer-$V.dmg\`: \`$SHA\`"; } > "$RUNNER_TEMP/notes.md"
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then echo "a release for ${GITHUB_REF_NAME} already exists — delete it (and re-tag) to publish again"; exit 1; fi
-          gh release create "${GITHUB_REF_NAME}" "$DMG" --title "Backspacer $V" --notes-file "$RUNNER_TEMP/notes.md"
+          gh release create "${GITHUB_REF_NAME}" "$DMG" "$RUNNER_TEMP/appcast.xml" --title "Backspacer $V" --notes-file "$RUNNER_TEMP/notes.md"
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:

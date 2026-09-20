@@ -12,36 +12,7 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done. The 2026-09-20 review queue (R1–R27) is complete;
 what remains is grounded follow-up work.
 
-1. **In-app updates with Sparkle 2** (ADR-21; maintainer's decision
-   2026-09-20, overriding the notice-only stance). Download automatically,
-   ask before installing. Steps, each test-first:
-   - `Package.swift`: add `sparkle-project/Sparkle` (2.x, pinned by revision);
-     `scripts/build-app.sh` embeds `Sparkle.framework` and signs it inside out
-     (framework → its XPC services → the app), replacing the nested-code guard;
-     `codesign --verify --deep --strict` and `spctl` must still pass; notarize
-     locally once before touching the workflow.
-   - Keys: `generate_keys` once on the maintainer's Mac; public key →
-     `SUPublicEDKey` in Info.plist (build-app.sh), private key → repository
-     secret `SPARKLE_ED_KEY`. `SUFeedURL` = https://backspacer.dev/appcast.xml,
-     `SUEnableAutomaticChecks` true, `SUAutomaticallyUpdate` false,
-     `SUScheduledCheckInterval` 86400.
-   - `release.yml`: after notarization run `sign_update` on the DMG, write
-     `site/appcast.xml` (version, short version, length, EdDSA signature,
-     DMG URL, minimum system 13.0, release-notes link) and commit it to main
-     so Pages publishes it; W-test that the appcast validates and points at
-     the current release; `sparkle:version` = `CFBundleVersion`.
-   - App: `SPUStandardUpdaterController` owned by the AppDelegate; the
-     existing "Check for updates" menu item and About button call it; the
-     footer notice and the opt-out pref (`SUEnableAutomaticChecks`) are driven
-     by the updater's delegate events; `Updates.swift`'s GitHub poll goes.
-     Dev builds (no feed/keys) keep working: the controller is created only
-     when `SUFeedURL` is present.
-   - Docs: system-doc "Updates" section, release checklist (the key, the
-     appcast step), README's network statement (one more host: backspacer.dev
-     for the appcast and github.com for the DMG), CHANGELOG. First release
-     with Sparkle: the users on 0.9.x still update by hand once; from then on
-     in-app.
-2. **"Crashed but returned" report** (2026-09-20): now logged and
+1. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
 
 ## Roadmap (ideas, not grounded)
@@ -61,6 +32,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — In-app updates with Sparkle 2 (ADR-21): pinned dependency, inside-out signing (notarized locally), Updater wrapper + footer notice + opt-out, release workflow signs the DMG and ships appcast.xml as a release asset; the site republishes it at backspacer.dev/appcast.xml (site side: PTM). Tests W1–W3, Z1–Z5, A16.
 - 2026-09-20 — 0.9.3 released: six new catalog entries (rustup, CocoaPods specs, SDKMAN, Terraform, minikube, Vagrant), docs catch-up.
 - 2026-09-20 — 0.9.2 released: navigation-delegate fix (links open in the browser again), automatic update notice.
 - 2026-09-20 — Automatic update notice (U5–U7, A16, P1): once per session after the first scan, daily throttle, opt-out pref, footer notice; README's network statement updated.

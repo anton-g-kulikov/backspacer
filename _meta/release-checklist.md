@@ -41,7 +41,11 @@ names every offending file.
    build-provenance attestation. A rejected notarization prints Apple's log in the run.
 5. Check the release page: DMG present, notes right, `gh attestation verify
    Backspacer-X.Y.Z.dmg --owner anton-g-kulikov` passes.
-6. Homebrew: the tap (github.com/anton-g-kulikov/homebrew-tap) bumps its cask to the
+6. Updates: the workflow signed the DMG and attached `appcast.xml` to the release; check
+   `https://github.com/anton-g-kulikov/backspacer/releases/latest/download/appcast.xml`
+   names this version, and that backspacer.dev/appcast.xml matches once the site has
+   redeployed. Installed apps see the update within a day (or on Check for Updates…).
+7. Homebrew: the tap (github.com/anton-g-kulikov/homebrew-tap) bumps its cask to the
    latest release by itself within six hours, after checking the DMG's SHA-256 against
    the release notes and auditing the cask. To bump it now:
    `gh workflow run bump.yml -R anton-g-kulikov/homebrew-tap`, then
@@ -55,6 +59,7 @@ names every offending file.
 | `APPLE_ID` | `anton.g.kulikov@gmail.com` |
 | `APPLE_APP_PASSWORD` | an app-specific password (account.apple.com → Sign-In and Security); the one behind the local `Backspacer` profile works too |
 | `APPLE_TEAM_ID` | `R9BBCR3NF6` |
+| `SPARKLE_ED_KEY` | the private EdDSA key: `.build/artifacts/sparkle/Sparkle/bin/generate_keys -x file` on the Mac that holds it (login keychain, "Private key for signing Sparkle updates"); its public half is the default `SPARKLE_PUBLIC_KEY` in `build-app.sh` |
 Rotate `APPLE_APP_PASSWORD` by revoking it at account.apple.com and storing a new one;
 the certificate expires May 2031. Never paste any of these into a script or a commit.
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- In-app updates (Sparkle 2): Backspacer checks once a day, downloads a new version in the background and asks before installing and relaunching — never on its own. About → "Check for updates automatically" turns the check off; Check for Updates… in the app menu runs it now. Updates are verified against a key built into the app, on top of notarization. Users on 0.9.x install this one by hand; from here on it's in-app.
+- Header: the theme switch and size slider stay put while the scan runs and when the counter appears.
+
 ## 0.9.3 — 2026-09-20
 - New entries: Rust toolchains (rustup), CocoaPods specs repos, SDKMAN archives, Terraform plugin cache, minikube image cache — all Regenerable — and Vagrant boxes under Your call.
 - Docs: SECURITY.md explains how to verify a download (Gatekeeper, SHA-256, provenance); CONTRIBUTING names the test suites and the `.dev` build; the LICENSE preamble names the tap and the site as official channels.

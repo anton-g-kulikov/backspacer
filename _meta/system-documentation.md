@@ -15,7 +15,7 @@ behind the design in `architecture-decisions.md`.
 | `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
 | `Sources/Backspacer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `Diagnostics.swift` | The shareable log file (see *Diagnostics*). |
-| `Updates.swift` | About → Check for updates: `parse` (release JSON → version, page, DMG), `isNewer` (numeric per component; `git describe` suffixes ignored), `systemFetch` (10 s GET, no cache). The manual check runs on the user's click; `autoCheckUpdate` runs once per session after the first scan, throttled to one request a day (`update.lastCheck`) and off when `ui.autoUpdateCheck` is `"0"`; a newer version shows as a one-line notice in the footer and in About, nothing otherwise. No other network use. It links to the DMG — no download, no install (Sparkle would be the next step if drag-to-Applications proves to be skipped). |
+| `Updater.swift` | In-app updates (ADR-21): wraps `SPUStandardUpdaterController`; created by the app delegate only when the bundle carries `SUFeedURL` and `SUPublicEDKey` (dev builds: neither, so no updater). Daily automatic check plus the app menu / About button; downloads in the background; Sparkle's own "Install and relaunch" prompt — never silent. The opt-out pref maps to `automaticallyChecksForUpdates`; `didFindValidUpdate` drives the footer notice through `window.__updateFound`. |
 | `PageView.swift` | The `WKWebView` subclass: WebKit's context menu trimmed to Search with Google · Copy (+ Inspect Element when the inspector is on), the macOS Services submenu declined (`validRequestor` → nil; the system fills it for any text — "Add to Music as a Spoken Track" — and an app cannot prune it), and one app action, New Terminal at Folder, for the row or Details item the page reported via `contextTarget` for this very click (a target older than 2 s is dropped). No menu on the page background. |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it; the page header is a drag region via the `dragWindow` op, since a WKWebView never moves its window by itself), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
@@ -265,6 +265,21 @@ write` and nothing else. DNS: `scripts/pages-dns.sh` puts GitHub's apex A/AAAA
 set and the `www` CNAME into the Cloudflare zone (DNS-only, so GitHub issues
 the certificate; `.dev` is HSTS-preloaded). The custom domain and "Enforce
 HTTPS" are repository settings, set once by the maintainer.
+
+## Updates
+
+Sparkle 2 (pinned by revision in `Package.swift`; the universal framework is embedded by
+`build-app.sh` and signed inside out — XPC services, Autoupdate, Updater.app, framework,
+app). Distribution builds get `SUFeedURL = https://backspacer.dev/appcast.xml` and the
+EdDSA public key; the private key is the `SPARKLE_ED_KEY` secret and only the release
+workflow holds it. On a tag, after notarization, the workflow runs `sign_update` on the
+stapled DMG and `scripts/make-appcast.sh` writes a one-item appcast (`sparkle:version` =
+`CFBundleVersion`, `shortVersionString` = the marketing version, minimum system 13.0,
+release-notes link), published as a release asset — so
+`https://github.com/anton-g-kulikov/backspacer/releases/latest/download/appcast.xml` is
+always the current feed. The site republishes that file at `backspacer.dev/appcast.xml`
+(the site's workflow, on release). Sparkle verifies the EdDSA signature and refuses an
+update whose code signature or Team ID differs from the running app's.
 
 ## Continuous integration
 
