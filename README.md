@@ -167,6 +167,7 @@ those entries under-report or show `?`.
 Bug reports and catalog entries are the most useful things you can send —
 see [CONTRIBUTING.md](CONTRIBUTING.md) for the five questions a good entry
 answers, and [SECURITY.md](SECURITY.md) if it's about deleting the wrong thing.
+Everyone is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Something went wrong?
 

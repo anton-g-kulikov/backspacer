@@ -21,9 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-25. **R26 · OSS files**: CODE_OF_CONDUCT.md, `.github/FUNDING.yml`, GitHub
-    topics; license detected as "Other" (custom preamble) — consider pure
-    PolyForm text + NOTICE and an SPDX line.
 26. **R19 · README has no screenshot**; `assets/preview-512.png` is unused.
 27. **R18 · `scripts/mac-storage-review.sh`** is a personal script; move to
     `_meta/` or delete.
@@ -51,6 +48,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R26: CODE_OF_CONDUCT, FUNDING.yml, GitHub topics. LICENSE preamble kept: PolyForm isn't in GitHub's detector, so a pure text would still read "Other".
 - 2026-09-20 — R27: S12 (glob/children paths pass the gate), Q4 (newline in a path), C15 (plain catalog text); M6 already covers admin escaping.
 - 2026-09-20 — R22: CI hardened (read-only token, SHA-pinned actions, lint steps, tag-time package check, Dependabot).
 - 2026-09-20 — App data round two: `fda` flag, needs-access state, Mail downloads / Teams cache / Messages attachments (F12, C14, J16).
