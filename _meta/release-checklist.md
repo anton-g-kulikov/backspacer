@@ -15,6 +15,11 @@ Requires an Apple Developer Program membership.
    Check: `xcrun notarytool history --keychain-profile Reclaimer`. A `401` means
    the profile's Apple ID or password is stale — re-run store-credentials.
 
+Signing is not `--deep`: the app has a single Mach-O. If a framework, XPC service
+or helper app is ever added, sign it explicitly (its own `codesign` line, its own
+entitlements) *before* the app; the build script refuses to sign a bundle with
+unsigned nested code.
+
 Build knobs (`scripts/build-app.sh`): `IDENTITY` selects Developer ID signing
 and a universal binary (`UNIVERSAL=0/1` overrides); the version comes from
 `git describe --tags` (`VERSION=…` overrides); the icon is `assets/AppIcon.icns`.

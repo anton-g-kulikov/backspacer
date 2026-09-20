@@ -57,12 +57,17 @@ PLIST
 echo "APPL????" > "$APP/Contents/PkgInfo"
 
 echo "▸ codesign"
+# No --deep: Apple asks for nested code to be signed explicitly, inside out, with its own
+# entitlements. The bundle has a single Mach-O today; if a framework or helper is ever added,
+# this guard fails the build until it gets its own codesign line above the app's.
+NESTED=$(find "$APP/Contents" -type f -perm +111 ! -path "$APP/Contents/MacOS/$APP_NAME" -o -type d \( -name "*.framework" -o -name "*.app" -o -name "*.bundle" -o -name "*.xpc" \) | head -3)
+[ -z "$NESTED" ] || { echo "nested code found — sign it explicitly before the app:"; echo "$NESTED"; exit 1; }
 if [ -n "${IDENTITY:-}" ]; then
-  codesign --force --deep --options runtime --timestamp \
+  codesign --force --options runtime --timestamp \
            --entitlements scripts/entitlements.plist \
            --sign "$IDENTITY" "$APP"
 else
-  codesign --force --deep --sign - "$APP"
+  codesign --force --sign - "$APP"
   echo "  (ad-hoc signature — set IDENTITY to sign for distribution)"
 fi
 codesign --verify --deep --strict "$APP" && echo "  signature OK"
