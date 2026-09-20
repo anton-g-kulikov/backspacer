@@ -276,9 +276,9 @@ Tests/BackspacerTests/     Swift Testing suites (Support/: fixture, MiniSchema v
 .github/                  CI and Pages workflows, issue/PR templates, CODEOWNERS
 CONTRIBUTING.md           how to propose entries; inbound Apache-2.0 terms
 SECURITY.md               how to report a deletion-safety problem
-scripts/                  build-app.sh, notarize.sh, entitlements.plist, pages-dns.sh, site-csp.mjs
+scripts/                  build-app.sh, notarize.sh, entitlements.plist, make-icon.sh, pages-dns.sh, site-csp.mjs
 site/                     the promo page (index.html + assets/), published to backspacer.dev by pages.yml
-assets/                   icon sources and the .icns the build embeds
+assets/                   AppIcon.svg (source), AppIcon.icns + preview-512.png (built by scripts/make-icon.sh)
 _meta/                    this file, api-design, architecture-decisions, project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of)
 .claude/                  agent workflow (ignored by git) and launch.json for the UI dev server
 ```
