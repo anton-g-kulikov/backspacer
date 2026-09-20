@@ -52,6 +52,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.8.0 released: first release as Backspacer; CI honest again (pipefail), Xcode 16.4 toolchain floor.
 - 2026-09-20 — Renamed to Backspacer (ADR-20): app, bundle id `com.antonkulikov.backspacer`, module and test target, log folder, scripts, LICENSE, docs, repository (old URL redirects); tests N1–N2, K1–K6 (K6 guards against the old name creeping back). First release under the name: 0.8.0.
 - 2026-09-20 — CI honest again: `shell: bash` (pipefail) — `swift test | tail` had masked `error: fatalError` on Xcode 16.4 since R23, three hollow green runs; the folder picker's main-actor isolation made explicit for the Swift 6.0 compiler (verified on the runner via PR #2; no local Xcode 16).
 - 2026-09-20 — CI package guard fixed: the v0.7.0 tag run died with `error: fatalError` (native `swift build` after a universal one, Swift 6.0 toolchain); the step now builds `UNIVERSAL=1` and runs on every push.
