@@ -5,12 +5,13 @@
 ![Apple silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-lightgrey)
 [![CI](https://github.com/anton-g-kulikov/backspacer/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-g-kulikov/backspacer/actions/workflows/ci.yml)
 [![Buy me a book](https://img.shields.io/badge/buy%20me%20a%20book-%F0%9F%93%96-ffdd00)](https://buymeacoffee.com/antonkulikov)
+[![Website](https://img.shields.io/badge/web-backspacer.dev-30d158)](https://backspacer.dev)
 
 A small macOS app that finds the caches, build output and tooling leftovers that
 silently eat a developer's disk, sorts them by how safe they are to remove, and
 deletes only what you tick — after a confirmation that lists every item.
 
-**[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
+**[backspacer.dev](https://backspacer.dev)** · **[Download the latest release →](https://github.com/anton-g-kulikov/backspacer/releases/latest)**
 Open the DMG, drag Backspacer to Applications. Notarized; no Gatekeeper warnings.
 
 ![Backspacer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
