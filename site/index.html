@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-uv68T1Vo76HRS9SOBzWSQNq0U+9nWceSz/8LLGq+iuo=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-+Y91bW9uY44bRYJYCY4K6ibETHydiOdTM3d7sNflrnY=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -137,6 +137,8 @@
   .brew .copy:hover { color: var(--accent); }
   .brew pre { background: transparent; color: var(--fg); padding: 10px 12px; border-radius: 0; font-size: 13.5px; line-height: 1.6; white-space: pre; overflow-x: auto; user-select: all; }
   .meta { margin: 14px 0 0; font-size: 14px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; list-style: none; }
+  .meta .free { color: var(--safe); font-weight: 600; }
+  @media (prefers-color-scheme: light) { :root:not([data-skin="terminal"]) .meta .free { color: #1f9d48; } }   /* the app's green is too light on a pale background */
   .shot { margin: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); background: var(--card-strong); }
   .shot .win { display: flex; gap: 8px; padding: 10px 12px; }
   .shot .win i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
@@ -348,7 +350,7 @@ brew install --cask backspacer</code></pre>
           <li>macOS 13 or later</li>
           <li>Apple silicon and Intel</li>
           <li>Notarized, no Gatekeeper warnings</li>
-          <li>Free for noncommercial use</li>
+          <li class="free">Free for noncommercial use</li>
         </ul>
       </div>
       <div class="reveal" aria-label="What macOS shows, and what Backspacer finds inside it">
