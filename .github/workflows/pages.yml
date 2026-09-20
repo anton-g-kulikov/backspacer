@@ -2,6 +2,11 @@ name: Pages
 
 # Publishes site/ (the promo page at backspacer.dev) through GitHub Pages' Actions
 # deployment. The site tests gate the deploy: a missing or broken page fails the run.
+#
+# The Sparkle feed the app reads, https://backspacer.dev/appcast.xml, is not a file on main:
+# the release workflow publishes appcast.xml as a release asset (the branch ruleset keeps the
+# Actions token from pushing), and this job copies the latest one into the Pages artifact —
+# on every push that touches the site, and on every published release.
 
 on:
   push:
@@ -11,6 +16,8 @@ on:
       - 'catalog.json'
       - 'Tests/web/site.test.js'
       - '.github/workflows/pages.yml'
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -38,6 +45,25 @@ jobs:
         env:
           SITE_REQUIRED: 1
         run: node --test 'Tests/web/site.test.js'
+      - name: Latest appcast into the artifact
+        # Assets can still be uploading when the release event fires, so retry for a while.
+        # A release event without a usable appcast fails the deploy; a plain site push
+        # tolerates "no appcast yet" (before the first Sparkle release) but never a broken one.
+        env:
+          FEED: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml
+          REQUIRED: ${{ github.event_name == 'release' }}
+        run: |
+          sudo apt-get install -y -qq libxml2-utils >/dev/null
+          for i in $(seq 1 12); do
+            code=$(curl -fsSL -o site/appcast.xml -w '%{http_code}' "$FEED" || true)
+            [ "$code" = "200" ] && break
+            [ "$code" = "404" ] && [ "$REQUIRED" != "true" ] && { echo "no appcast on the latest release yet — skipping"; rm -f site/appcast.xml; exit 0; }
+            echo "appcast not available yet (http $code), retry $i"; sleep 10
+          done
+          [ -s site/appcast.xml ] || { echo "no appcast on the latest release"; exit 1; }
+          xmllint --noout site/appcast.xml
+          grep -q '<enclosure' site/appcast.xml && grep -q 'sparkle:version' site/appcast.xml || { echo "appcast has no Sparkle enclosure"; exit 1; }
+          echo "appcast: $(grep -o 'sparkle:shortVersionString="[^"]*"' site/appcast.xml | head -1)"
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

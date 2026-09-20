@@ -257,7 +257,12 @@ no `style` attributes, no event handlers. `node scripts/site-csp.mjs`
 rewrites the hashes after an edit; `W11` fails when they are stale.
 
 Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` on pushes
-that touch `site/`, `catalog.json` or the site test. The job runs
+that touch `site/`, `catalog.json` or the site test, and on every published
+release: the job copies the release's `appcast.xml` asset (the Sparkle feed,
+see Updates) into the artifact at `/appcast.xml`, validating it first —
+required on a release event, tolerated as absent on a site push before the
+first Sparkle release. The feed never lives on `main` (the branch ruleset
+keeps the Actions token from pushing). The job runs
 `Tests/web/site.test.js` with `SITE_REQUIRED=1` (a missing page fails, it
 never skips), then uploads `site/` as the Pages artifact. Actions are pinned
 by commit SHA; the job has `contents: read`, `pages: write`, `id-token:

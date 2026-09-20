@@ -202,6 +202,17 @@ test('W17 footer links open in a new tab, safely', gate, () => {
   for (const l of links) if (/href="https?:/.test(l)) { assert.match(l, /target="_blank"/, l); assert.match(l, /rel="noopener"/, l); }
 });
 
+test('W18 the appcast reaches backspacer.dev: Pages deploys on a published release and ships the latest appcast', gate, () => {
+  const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
+  assert.match(wf, /release:\s*\n\s*types: \[published\]/, 'a published release triggers a deploy');
+  assert.match(wf, /releases\/latest\/download\/appcast\.xml/, 'the feed comes from the latest release asset');
+  assert.match(wf, /xmllint --noout site\/appcast\.xml/, 'the fetched appcast is validated before upload');
+  assert.match(wf, /github\.event_name == 'release'/, 'on a release event a missing appcast fails the deploy');
+  assert.match(wf, /sparkle:version|<enclosure/, 'the check looks for Sparkle content, not just XML');
+  const ignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
+  assert.match(ignore, /^site\/appcast\.xml$/m, 'the fetched feed is never committed');
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);
