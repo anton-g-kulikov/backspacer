@@ -295,12 +295,13 @@ function setThreshold(i, save) {
 let scanTimer = null, scanTick = 0;
 function startScanWords() {
   clearInterval(scanTimer); scanTick = 0;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { $('#host').textContent = 'Scanning…'; return; }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { $('#scan').textContent = 'Scanning…'; return; }
   const words = shuffled(SCAN_WORDS);   // a different order every scan
-  $('#host').textContent = scanFrame(0, words);
-  scanTimer = setInterval(() => { $('#host').textContent = scanFrame(++scanTick, words); }, 250);
+  $('#scan').textContent = scanFrame(0, words);
+  scanTimer = setInterval(() => { $('#scan').textContent = scanFrame(++scanTick, words); }, 250);
 }
-function stopScanWords() { clearInterval(scanTimer); scanTimer = null; $('#host').textContent = ''; }
+function stopScanWords() { clearInterval(scanTimer); scanTimer = null; updateScanBtn(); }
+// While scanning the button carries the verbs (startScanWords); at rest it says what a click does.
 function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
 $('#scan').onclick = () => scan();
 $('#thr').oninput = e => setThreshold(e.target.value, true);
@@ -429,4 +430,4 @@ async function confirmAndDelete(ids) {
   if (ids.some(id => trashes(entry(id)))) afterTrash();
 }
 
-init().catch(err => { log('init: ' + err.message, 'err'); $('#host').textContent = 'failed to load catalog'; });
+init().catch(err => { log('init: ' + err.message, 'err'); $('.tagline').textContent = 'failed to load catalog'; });

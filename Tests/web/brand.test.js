@@ -62,9 +62,10 @@ test('K6 the old name is history only', () => {
   assert.deepEqual(leaks, [], 'files that still say Reclaimer');
 });
 
-test('K7 the tagline sits under the wordmark; scan verbs keep their own slot beside the name', () => {
+test('K7 the tagline sits under the wordmark', () => {
   const html = read('web/index.html');
-  assert.match(html, /<div class="text"><div class="name"><h1>Backspacer<\/h1><span class="sub" id="host">[^<]*<\/span><\/div><span class="tagline">I got some if you need it<\/span><\/div>/);
+  assert.match(html, /<div class="text"><h1>Backspacer<\/h1><span class="tagline">I got some if you need it<\/span><\/div>/);
+  assert.doesNotMatch(html, /id="host"/, 'the scan verbs no longer have a slot beside the name');
   assert.match(html, /\.brand \.text \{ display: flex; flex-direction: column;/, 'stacked: name row, then tagline');
   assert.doesNotMatch(html, /Pearl Jam|Got Some/, 'the line is a wink, not an attribution');
   const app = read('web/app.js');

@@ -41,6 +41,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Scan verbs in the Scan button; header as brand | centred controls | button, stacking under 960 px (A12, K7).
 - 2026-09-20 — App icon in the header (K8): `web/icon.svg` synced from the source by make-icon.sh; 42 px / 8 px gap in Glass, hidden in Terminal; README screenshot recaptured.
 - 2026-09-20 — 0.8.1 released: header drag, reclaimable counter in the tagline, trimmed right-click menu, themed scrollbar; site switcher.
 - 2026-09-20 — Context menu for paths: WebKit menu trimmed to Search · Copy, Services declined (system-filled, unprunable), New Terminal at Folder via `contextTarget` + `open` ops (X1, X2, X5, O1–O3, A11).

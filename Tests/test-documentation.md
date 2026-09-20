@@ -222,6 +222,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A9 | scrollbar | `main::-webkit-scrollbar-thumb` is styled in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
 | A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
 | A11 | right-click target (ADR-10) | `app.js` has a `contextmenu` listener that sends `contextTarget {id, item}` — selectors only, never a path; Details items carry `data-item` |
+| A12 | scan button and header layout | `startScanWords` writes the verb frames to `#scan` (static "Scanning…" under Reduce Motion); nothing references `#host`; `#scan` is its own grid cell after `.controls`; both themes use `minmax(0, 360px) 1fr auto` with `.controls { justify-self: center }`, a `min-width` on the busy button, and a `max-width: 959px` block that stacks the brand over the controls |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -249,7 +250,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | K3 | `build-app.sh` | `APP_NAME="Backspacer"`, bundle id `com.antonkulikov.backspacer` |
 | K4 | `notarize.sh` | `build/Backspacer.app`, keychain profile `Backspacer`, `Backspacer-$VERSION.zip/.dmg`, volume `Backspacer` |
 | K5 | LICENSE and catalog | the preamble reserves "Backspacer"; `cache-logs` excludes `Backspacer` (its own log folder) |
-| K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band; `updateTotals` rewrites it with `taglineText(sum of bucketTotal over RECLAIMABLE)`, so the number always equals the sum of the three bucket badges and moves with every measured size |
+| K7 | tagline | `.brand .text` stacks `<h1>Backspacer</h1>` over `<span class="tagline">I got some if you need it</span>` (no `#host` slot any more); the page never names the band; `updateTotals` rewrites it with `taglineText(sum of bucketTotal over RECLAIMABLE)`, so the number always equals the sum of the three bucket badges and moves with every measured size |
 | K8 | header icon | `.brand` starts with `<img class="mark" src="icon.svg" alt="">`; `web/icon.svg` is byte-identical to `assets/AppIcon.svg` and `make-icon.sh` refreshes it; 42 px in Glass, `display: none` in Terminal; CSP `img-src 'self'` |
 | K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
@@ -297,7 +298,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J17 | passing |
-| Web accessibility (node) | A1–A11 | passing |
+| Web accessibility (node) | A1–A12 | passing |
 | Site (node) | W1–W12 | passing |
 | Brand (node) | K1–K8 | passing |
 | DiagnosticsTests | L1–L7 | passing |

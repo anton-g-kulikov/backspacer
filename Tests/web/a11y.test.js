@@ -106,3 +106,16 @@ test('A11 right-click names the row or item by selector only; the bridge resolve
   assert.match(app, /<div class="item" data-item="\$\{esc\(itemId\(it\)\)\}">/, 'Details items carry their selector');
   assert.doesNotMatch(app, /contextTarget', \{[^}]*path:/, 'never a path from the page (ADR-10)');
 });
+
+test('A12 the scan verbs run inside the Scan button; theme and size controls sit centred', () => {
+  assert.match(app, /function startScanWords\(\) \{[\s\S]*?\$\('#scan'\)\.textContent = scanFrame\(0, words\)/);
+  assert.match(app, /reduced-motion: reduce\)'\)\.matches\) \{ \$\('#scan'\)\.textContent = 'Scanning…'/, 'static label under Reduce Motion');
+  assert.doesNotMatch(app, /#host/, 'nothing writes to a slot that no longer exists');
+  assert.match(html, /<\/div>\s*<button class="btn primary" id="scan">Scan<\/button>\s*<div class="disk">/, 'the button is its own grid cell after .controls');
+  const grids = html.match(/grid-template-columns: minmax\(0, 360px\) 1fr auto;/g) || [];
+  assert.equal(grids.length, 2, 'brand | centred controls | button, in both themes');
+  assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
+  assert.equal((html.match(/#scan\[aria-busy="true"\] \{[^}]*min-width/g) || []).length, 2, 'the button keeps a steady width while the verbs cycle');
+  const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
+  assert.equal(stacks.length, 2, 'below 960 px the header stacks: brand row, then controls + button, in both themes');
+});

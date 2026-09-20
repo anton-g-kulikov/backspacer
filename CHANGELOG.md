@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- The scan verbs (measuring, rummaging…) now run inside the Scan button; the theme switch and size slider sit centred between the brand and the button, and the header stacks on narrow windows.
 - New app icon: a ring whose segments are the five buckets in the app's colours. It also leads the header in Glass (Terminal keeps its bare `$ Backspacer` prompt).
 
 ## 0.8.1 — 2026-09-20
