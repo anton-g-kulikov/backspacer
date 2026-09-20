@@ -168,7 +168,8 @@ on 2026-09-20 (.com is parked). Costs accepted: Pearl Jam's 2009 album owns
 web search for the bare word — embraced rather than fought: the tagline is
 "I got some if you need it" — a line from the album's "Got Some", read
 here as the app offering disk space (the maintainer's own nod; it sits
-under the wordmark in the app header, and neither the app nor the site names the band or claims a connection, and the line stays a
+under the wordmark in the app header, carrying the reclaimable total as an
+aside once something is measured, and neither the app nor the site names the band or claims a connection, and the line stays a
 seven-word fragment, not a lyric reproduction) — and an iOS
 "Backspace - Photo Cleaner" shares the root. The `(y)` device from the terminal-prompt idea is kept as the
 wordmark's wink: `Backspacer (y)` — for the promo site only; the maintainer

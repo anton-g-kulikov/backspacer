@@ -76,6 +76,14 @@ const scanOrder = (entries, durations) => entries
   .map(x => x.e);
 
 /** What the header says while a scan runs, Claude-Code style: a rotating verb with breathing dots. */
+// The header tagline carries the reclaimable total as an aside once anything is measured.
+// "Reclaimable" is what the user could act on: the Safe, Regenerable and Your-call buckets,
+// counted exactly as their header badges are (visible rows above the threshold).
+const TAGLINE = 'I got some if you need it';
+const RECLAIMABLE = ['safe', 'regen', 'decide'];
+function taglineText(bytes) {
+  return bytes > 0 ? `I got some — ${fmt(bytes)} reclaimable — if you need it` : TAGLINE;
+}
 const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
 const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -96,5 +104,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

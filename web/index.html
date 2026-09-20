@@ -73,7 +73,8 @@
   .brand .name { display: flex; align-items: baseline; gap: 10px; }
   .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.02em; line-height: 1.15; }
   .brand .sub { color: var(--muted); font-size: 12.5px; font-weight: 500; }
-  .brand .tagline { color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .brand { min-width: 0; }
+  .brand .tagline { color: var(--muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .disk { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
   .disk .lbl { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
   .bar { height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
@@ -249,7 +250,8 @@
   }
   .brand { display: flex; flex-direction: column; gap: 2px; }
   .brand .name { display: flex; align-items: baseline; gap: 12px; }
-  .brand .tagline { color: var(--muted); }
+  .brand { min-width: 0; }
+  .brand .tagline { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand .tagline::before { content: "// "; color: var(--faint); }
   .brand h1 { font-size: 13px; font-weight: 700; margin: 0; color: var(--accent); letter-spacing: .02em; }
   .brand h1::before { content: "$ "; color: var(--muted); font-weight: 400; }

@@ -261,6 +261,7 @@ const bucketTotal = b => state.catalog.entries.filter(e => e.bucket === b && vis
 function updateTotals() {
   applyThreshold(); updateMeter();
   for (const b of ORDER) { const el = document.querySelector(`[data-total="${b}"]`); if (el) el.textContent = fmt(bucketTotal(b)); }
+  $('.tagline').textContent = taglineText(RECLAIMABLE.reduce((a, b) => a + bucketTotal(b), 0));
   const n = state.selected.size, bytes = [...state.selected].reduce((a, id) => a + (selectedParent(id) ? 0 : state.size.get(id) || 0), 0);
   $('#sum').innerHTML = n ? `<b>${n}</b> selected · <b>${fmt(bytes)}</b>` : 'Nothing selected';
   $('#deleteSel').disabled = !n;

@@ -45,6 +45,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — Reclaimable counter inside the tagline (J17, K7): sum of the safe/regen/decide badges, live. The 0.2.0 "Reclaim XX GB" header total returns in this form, phrased as an offer rather than a target.
 - 2026-09-20 — Window drag from the header (`dragWindow` op, G1) and no selection sweep from non-selectable areas (A10); themed scrollbar, not hidden (A9). Verified with a paced synthetic drag on a `.dev`-bundle-id build.
 - 2026-09-20 — Promo site: `site/index.html` (buckets and groups from the catalog, live version badge, hashed CSP, light/dark screenshots), `pages.yml` (SHA-pinned, `SITE_REQUIRED=1` gate), `scripts/site-csp.mjs`; backspacer.dev DNS via `scripts/pages-dns.sh`. Tests W1–W11. Pages must still be enabled on the repo with the custom domain — maintainer step.
 

@@ -176,6 +176,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
 | J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
 | J14 | `confirmDialog` (R1) | resolves `true` only when the dialog closed with `returnValue === "ok"`; a close without a value (Escape) after a previous "ok" resolves `false` — the stale value is reset before every open |
+| J17 | `taglineText` | `0`/`undefined` → the plain tagline; otherwise `I got some — <fmt(bytes)> reclaimable — if you need it`; `RECLAIMABLE` is exactly `safe, regen, decide` |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
@@ -237,7 +238,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | K3 | `build-app.sh` | `APP_NAME="Backspacer"`, bundle id `com.antonkulikov.backspacer` |
 | K4 | `notarize.sh` | `build/Backspacer.app`, keychain profile `Backspacer`, `Backspacer-$VERSION.zip/.dmg`, volume `Backspacer` |
 | K5 | LICENSE and catalog | the preamble reserves "Backspacer"; `cache-logs` excludes `Backspacer` (its own log folder) |
-| K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band |
+| K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band; `updateTotals` rewrites it with `taglineText(sum of bucketTotal over RECLAIMABLE)`, so the number always equals the sum of the three bucket badges and moves with every measured size |
 | K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
 ### Site — `Tests/web/site.test.js` (static checks over `site/index.html` and `pages.yml`)
@@ -280,7 +281,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J16 | passing |
+| Web logic (node) | J1–J17 | passing |
 | Web accessibility (node) | A1–A10 | passing |
 | Site (node) | W1–W11 | passing |
 | Brand (node) | K1–K7 | passing |
