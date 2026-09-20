@@ -13,6 +13,8 @@ enum Fixture {
     /// fake refusals in the file people attach to bug reports (N3 enforces it).
     static let quiet = Diagnostics(file: FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-tests-\(ProcessInfo.processInfo.processIdentifier).log"), maxBytes: 5_000_000)
 
-    static func catalog() throws -> Catalog { try Catalog.load(from: catalogURL) }
+    /// Every shipped entry, whatever platform it names: the gate and the text checks must cover
+    /// Linux/Windows entries too, even though the Mac host never shows them (ADR-22).
+    static func catalog() throws -> Catalog { try Catalog.loadAll(from: catalogURL) }
     static func bridge() throws -> Bridge { Bridge(catalog: try catalog(), home: home, diagnostics: quiet) }
 }

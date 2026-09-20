@@ -47,6 +47,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C16 | platform filter (ADR-22) | in a fixture with an all-platform entry, an unannotated one, a Linux-only and a Windows-only one: `Catalog.load` keeps the first two (`platforms` absent means macOS), `rawJSON` — what the `catalog` op sends — is rebuilt from the filtered array and never mentions the foreign path, `version` survives, `loadAll` keeps all four, `os` overrides decode but are not read |
 | C15 | catalog text is plain (R27): no `<` in any `label`, `note` or bucket `blurb` — they are rendered through `esc()` and would show literally | pass |
 | C14 | every entry whose path is under `~/Library/Containers`, `~/Library/Group Containers`, `~/Library/Messages`, `~/Library/Mail`, `~/Library/Safari` or `MobileSync` carries `fda: true`; the new Mail-downloads, Teams-cache and Messages-attachments entries exist with the right buckets | pass |
 | C13 | `android-avd` is a `children` entry with `companion: ".ini"`; `companion` only appears with `children` | pass |
@@ -140,6 +141,7 @@ Validated with a small JSON-Schema subset validator in `Tests/BackspacerTests/Su
 | # | Case | Expect |
 |---|---|---|
 | V1 | the shipped `catalog.json` | validates |
+| V2 (+3) | unknown platform, empty `platforms`, an `os` override with a field outside the location/command set are rejected |
 | V2 | an entry with an unknown field, `sudo` together with `deleteCmd`, an unknown bucket, an `id` with spaces, `children` without `path`, `children` alongside `glob`, `itemsCmd` without `deleteItemCmd`, `deleteItemCmd` without `{key}`, `childLabel` without `children`, no source at all | each rejected, with a message naming the entry's path in the document |
 | V3 | the validator itself: a handful of positive/negative cases per keyword | as expected (guards against the validator silently accepting everything) |
 
@@ -329,7 +331,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S12 | passing |
-| CatalogTests | C1–C15 | passing |
+| CatalogTests | C1–C16 | passing |
 | PrefTests | P1–P3 (P1 × theme, minSize, autoUpdateCheck) | passing |
 | ShellTests | Q1–Q4 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |

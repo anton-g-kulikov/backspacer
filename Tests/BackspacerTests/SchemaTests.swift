@@ -37,6 +37,9 @@ import Testing
         ("no source at all",                 #"{"path": null}"#),
         ("sudo with deleteCmd",              #"{"sudo": true, "deleteCmd": "rm -rf /"}"#),
         ("sudo with deleteItemCmd",          #"{"sudo": true, "itemsCmd": "ls", "deleteItemCmd": "rm {key}"}"#),
+        ("unknown platform",                 #"{"platforms": ["macos", "beos"]}"#),
+        ("empty platforms",                  #"{"platforms": []}"#),
+        ("os override with a stray field",   #"{"platforms": ["macos", "linux"], "os": {"linux": {"path": "$XDG_CACHE_HOME", "bucket": "keep"}}}"#),
     ])
     func rejects(_ name: String, _ patchJSON: String) throws {
         // Arguments must be Sendable (Swift 6), so each patch is JSON; null removes the key.

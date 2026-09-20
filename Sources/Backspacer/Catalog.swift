@@ -21,6 +21,19 @@ struct Catalog: Decodable {
         var keys: [String]      // first present key wins, e.g. ["folder", "workspace"]
     }
 
+    /// Per-OS override of an entry's location and command fields (ADR-22). Decoded so the schema
+    /// and the catalog stay one document; the Mac host never reads them — a Linux/Windows host will.
+    struct Override: Decodable {
+        var path: String?
+        var paths: [String]?
+        var glob: Glob?
+        var sizeCmd: String?
+        var infoCmd: String?
+        var deleteCmd: String?
+        var itemsCmd: String?
+        var deleteItemCmd: String?
+    }
+
     struct Entry: Decodable {
         var id: String
         var group: String
@@ -42,6 +55,12 @@ struct Catalog: Decodable {
         var deleteCmd: String?
         var itemsCmd: String?        // prints one item per line: key<TAB>label<TAB>KB
         var deleteItemCmd: String?   // removes one item; {key} is replaced with the quoted key
+        var platforms: [String]?     // ADR-22: which hosts show the entry; absent means everywhere (macOS today)
+        var os: [String: Override]?  // ADR-22: per-OS overrides, keyed "linux" / "windows"
+
+        /// Whether this host shows the entry. An entry that says nothing is a macOS entry from before
+        /// ADR-22; one that names platforms must name this one.
+        var isForMacOS: Bool { platforms.map { $0.contains("macos") } ?? true }
 
         var needsAdmin: Bool { sudo ?? false }
         var isManual: Bool { manual ?? false }
@@ -71,7 +90,24 @@ struct Catalog: Decodable {
         return try load(from: url)
     }
 
+    /// The catalog as this host uses it: entries for macOS only, and `rawJSON` — what the page
+    /// receives from the `catalog` op — rebuilt from that filtered array, so a Linux- or
+    /// Windows-only entry can never reach the page by accident (ADR-22).
     static func load(from url: URL) throws -> Catalog {
+        var cat = try loadAll(from: url)
+        cat.entries = cat.entries.filter(\.isForMacOS)
+        guard var doc = try JSONSerialization.jsonObject(with: Data(cat.rawJSON.utf8)) as? [String: Any],
+              let raw = doc["entries"] as? [[String: Any]] else { return cat }
+        let keep = Set(cat.entries.map(\.id))
+        doc["entries"] = raw.filter { keep.contains($0["id"] as? String ?? "") }
+        let data = try JSONSerialization.data(withJSONObject: doc, options: [.sortedKeys, .withoutEscapingSlashes])
+        cat.rawJSON = String(decoding: data, as: UTF8.self)
+        return cat
+    }
+
+    /// Every entry, whatever platform it names — for the catalog-wide tests (the safety gate runs
+    /// over every path in the shipped catalog, not only the macOS ones).
+    static func loadAll(from url: URL) throws -> Catalog {
         let data = try Data(contentsOf: url)
         var cat = try JSONDecoder().decode(Catalog.self, from: data)
         cat.rawJSON = String(decoding: data, as: UTF8.self)

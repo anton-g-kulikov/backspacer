@@ -133,4 +133,33 @@ import Testing
         #expect("a/~/x".expandingTilde == "a/~/x")
         #expect("/abs".expandingTilde == "/abs")
     }
+
+    @Test("C16 — the Mac host keeps only entries that list macOS (or don't say); loadAll keeps every entry")
+    func platformFilter() throws {
+        let json = """
+        { "version": 1, "buckets": {}, "entries": [
+          { "id": "everywhere", "group": "t", "bucket": "safe", "label": "npm cache", "path": "~/.npm/_cacache", "platforms": ["macos", "linux", "windows"], "os": { "windows": { "path": "$LOCALAPPDATA/npm-cache" } } },
+          { "id": "unsaid",     "group": "t", "bucket": "safe", "label": "Xcode DerivedData", "path": "~/Library/Developer/Xcode/DerivedData" },
+          { "id": "linux-only", "group": "t", "bucket": "safe", "label": "apt cache", "path": "/var/cache/apt/archives", "platforms": ["linux"] },
+          { "id": "win-only",   "group": "t", "bucket": "safe", "label": "%TEMP%", "path": "$TEMP", "platforms": ["windows"] }
+        ] }
+        """
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("backspacer-platforms-\(UUID().uuidString).json")
+        try Data(json.utf8).write(to: url); defer { try? FileManager.default.removeItem(at: url) }
+        let mac = try Catalog.load(from: url)
+        #expect(mac.entries.map(\.id) == ["everywhere", "unsaid"])
+        #expect(mac.entries[0].platforms == ["macos", "linux", "windows"])
+        #expect(mac.entries[0].os?["windows"]?.path == "$LOCALAPPDATA/npm-cache", "overrides decode, the Mac host just never reads them")
+        // The page gets the filtered JSON: a foreign entry cannot reach it by accident.
+        let page = try JSONSerialization.jsonObject(with: Data(mac.rawJSON.utf8)) as? [String: Any]
+        let ids = (page?["entries"] as? [[String: Any]])?.compactMap { $0["id"] as? String }
+        #expect(ids == ["everywhere", "unsaid"])
+        #expect(page?["version"] as? Int == 1, "the rest of the document is preserved")
+        #expect(!mac.rawJSON.contains("/var/cache/apt"))
+        let all = try Catalog.loadAll(from: url)
+        #expect(all.entries.map(\.id) == ["everywhere", "unsaid", "linux-only", "win-only"])
+        let bridge = Bridge(catalog: mac, diagnostics: Fixture.quiet)
+        let reply = try bridge.handle(op: "catalog", args: [:])
+        #expect(!String(describing: reply).contains("linux-only"))
+    }
 }
