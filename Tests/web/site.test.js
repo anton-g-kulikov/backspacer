@@ -80,9 +80,9 @@ test('W7 accessibility basics: landmarks, one h1, skip link, alt text, named con
   assert.match(html, /@media \(prefers-color-scheme: dark\)/);
 });
 
-test('W8 the wordmark is Backspacer (y) and the page explains the wink once', gate, () => {
-  assert.match(html, /<h1[^>]*aria-label="Backspacer"[^>]*>\s*Backspacer\s*<span[^>]*aria-hidden="true"[^>]*>\(y\)<\/span>/);
-  assert.match(text, /\(y\/n\)/);
+test('W8 the wordmark is plain Backspacer, no (y) device, and the old name appears nowhere', gate, () => {
+  assert.match(html, /<h1>Backspacer<\/h1>/);
+  assert.doesNotMatch(text, /\(y\)|\(y\/n\)/, 'the (y) device was dropped with the app\'s wordmark');
   assert.doesNotMatch(text, /Reclaimer(?!y)/, 'the old name appears nowhere on the site');
 });
 

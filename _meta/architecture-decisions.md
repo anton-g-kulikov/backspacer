@@ -171,9 +171,9 @@ here as the app offering disk space (the maintainer's own nod; it sits
 under the wordmark in the app header, carrying the reclaimable total as an
 aside once something is measured, and neither the app nor the site names the band or claims a connection, and the line stays a
 seven-word fragment, not a lyric reproduction) — and an iOS
-"Backspace - Photo Cleaner" shares the root. The `(y)` device from the terminal-prompt idea is kept as the
-wordmark's wink: `Backspacer (y)` — for the promo site only; the maintainer
-kept the app's own header plain ("Backspacer").
+"Backspace - Photo Cleaner" shares the root. The `(y)` device from the terminal-prompt idea was dropped
+altogether (2026-09-20, after the site's first draft carried it): the app's
+header is plain "Backspacer", and the site matches.
 
 Consequences when applied (one commit, one changelog line, first release
 under the new name is 0.8.0): app and bundle name, `CFBundleIdentifier`

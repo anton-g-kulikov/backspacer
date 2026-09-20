@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-qwq6KrRtLtvZbsfjeZFUf0QNKe4uPdV44advPQHgWHk='; script-src 'sha256-C84dnyVYVmBTRdBsZrkCaUCjCnhga4h45AF9iZ5cPUI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-zsYd96HOB8tDqkMnf5agKHlI0V5olbTSmfivEN7GonE='; script-src 'sha256-C84dnyVYVmBTRdBsZrkCaUCjCnhga4h45AF9iZ5cPUI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
@@ -72,7 +72,6 @@
   code, kbd, pre { font-family: var(--mono); font-size: .92em; }
   pre { margin: 0; overflow-x: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--ink-fg); line-height: 1.5; }
   pre .c { color: var(--ink-muted); }
-  pre .y { color: var(--safe); font-weight: 700; }
   .skip { position: absolute; left: var(--gutter); top: -60px; padding: 8px 12px; background: var(--accent); color: var(--accent-fg); border-radius: 8px; z-index: 10; }
   .skip:focus { top: var(--gutter); }
   .wrap { width: min(1080px, 100% - 2 * var(--gutter)); margin-inline: auto; }
@@ -89,7 +88,6 @@
   .hero .grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
   @media (min-width: 900px) { .hero .grid { grid-template-columns: 5fr 7fr; gap: 40px; } }
   h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
-  h1 .y { font-family: var(--mono); font-weight: 600; font-size: .62em; color: var(--safe); vertical-align: .18em; margin-left: .08em; }
   .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
   .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 34ch; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; align-items: center; }
@@ -167,7 +165,7 @@
   <section class="hero">
     <div class="wrap grid">
       <div>
-        <h1 aria-label="Backspacer">Backspacer<span class="y" aria-hidden="true">(y)</span></h1>
+        <h1>Backspacer</h1>
         <p class="tagline">I got some if you need it.</p>
         <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you tick.</p>
         <div class="cta">
@@ -274,10 +272,7 @@ open build/Backspacer.app
 
 <span class="c"># or just try the UI, no Xcode needed</span>
 python3 -m http.server 8765
-open http://localhost:8765/web/index.html
-
-<span class="c"># the only question it ever asks</span>
-Delete 3 items, about 21.4 GB? (y/n) <span class="y">y</span></pre>
+open http://localhost:8765/web/index.html</pre>
       </div>
     </div>
   </section>

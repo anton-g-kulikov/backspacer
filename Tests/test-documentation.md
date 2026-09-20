@@ -252,7 +252,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | W5 | groups | every `data-group` names a real catalog group; the entry count in the copy equals `entries.length` |
 | W6 | license (ADR-14) | never "open source"; "free for noncommercial use"; links to the PolyForm text and `LICENSE` |
 | W7 | accessibility | one `h1`, skip link, `main`/`nav` landmarks, `alt` on every image, a name or state on every button, `:focus-visible`, reduced-motion and dark-scheme media queries |
-| W8 | wordmark | `<h1 aria-label="Backspacer">Backspacer<span aria-hidden>(y)</span>`; a `(y/n)` prompt in the copy; the old name appears nowhere |
+| W8 | wordmark | a plain `<h1>Backspacer</h1>`; no `(y)` or `(y/n)` anywhere (the device was dropped with the app's wordmark); the old name appears nowhere |
 | W10 | tagline | "I got some if you need it." once under the `h1` and in `og:description`; the band and track are never named |
 | W11 | CSP | the sha256 hashes match the single `<style>` and `<script>` blocks; no `unsafe-*`, no event handlers, no `style` attributes |
 | W9 | workflow | `pages.yml`: pushes to `main` on `site/**`, minimal permissions, SHA-pinned actions, uploads `site`, runs the site tests with `SITE_REQUIRED: 1` |
