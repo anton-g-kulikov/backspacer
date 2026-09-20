@@ -35,7 +35,8 @@ file, then moved to Done.
   published by `.github/workflows/pages.yml` (SHA-pinned actions, `pages:
   write` + `id-token: write` only, gated by `node --test
   'Tests/web/site.test.js'`). Tests W1–W9 in `Tests/web/site.test.js` are
-  written and failing; they pin head/OG tags, local assets, release and repo
+  written; they skip while `site/index.html` is absent so CI stays green,
+  and fail with `SITE_REQUIRED=1` (which the workflow sets). They pin head/OG tags, local assets, release and repo
   links, bucket copy verbatim from `catalog.json`, ADR-14 license wording,
   landmarks/alt/reduced-motion, the `Backspacer (y)` wordmark, and the
   workflow shape, and the tagline "I got some if you need it." as the one Pearl Jam nod
