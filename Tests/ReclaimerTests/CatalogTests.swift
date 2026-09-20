@@ -82,6 +82,13 @@ import Testing
         #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
     }
 
+    @Test("C13 — AVDs are per-device with their .ini")
+    func avdCompanion() throws {
+        let e = try #require(catalog.entry("android-avd"))
+        #expect(e.children == true && e.companion == ".ini")
+        for x in catalog.entries where x.companion != nil { #expect(x.children == true, Comment(rawValue: x.id)) }
+    }
+
     @Test("C12 — the logs sweep spares our diagnostics and crash reports")
     func logsExclude() throws {
         let e = try #require(catalog.entry("cache-logs"))

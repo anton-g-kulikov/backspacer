@@ -110,6 +110,11 @@ delete sweeps child by child so the excluded ones and the parent stay.
 `~/Library/Logs` uses it to spare crash reports and Reclaimer's own
 diagnostics log (I15, C12).
 
+A `children` entry may name a `companion` extension: each child is shown by
+its stem and removed together with the sibling file `<stem><companion>`
+(an AVD's `.ini` next to its `.avd`), both gate-checked; a stray companion
+without a child is left alone (I16, C13).
+
 Symbolic links are never delete targets: `remove()` (the single path for
 `rm` and trash) `lstat`s every path and refuses a link, so a symlinked
 `children` item, `glob.then` target or entry path can't drag its destination

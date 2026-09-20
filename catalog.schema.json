@@ -61,6 +61,7 @@
         },
         "children":   { "type": "boolean", "description": "List the path's immediate subfolders as separately deletable items." },
         "exclude":    { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "With children: subfolder names that are never listed nor removed (e.g. crash reports inside ~/Library/Logs)." },
+        "companion":  { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$", "description": "With children: a sibling file named <child stem><companion> is removed together with each child (an AVD's .ini)." },
         "childLabel": {
           "type": "object",
           "required": ["file", "keys"],
@@ -85,6 +86,7 @@
         "children":      ["path"],
         "childLabel":    ["children"],
         "exclude":       ["children"],
+        "companion":     ["children"],
         "itemsCmd":      ["deleteItemCmd"],
         "deleteItemCmd": ["itemsCmd"]
       },

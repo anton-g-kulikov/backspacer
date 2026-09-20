@@ -367,7 +367,8 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         }
         if e.children == true {
             if let lbl = e.childLabel, let label = childLabel(of: path, lbl) { return label }
-            return (path as NSString).lastPathComponent
+            let name = (path as NSString).lastPathComponent
+            return e.companion != nil ? (name as NSString).deletingPathExtension : name
         }
         return abbreviate(path)
     }
@@ -472,8 +473,17 @@ final class Bridge: NSObject, WKScriptMessageHandler {
         guard e.deleteCmd == nil else { throw BridgeError.failed("\(e.label) is removed by a command, not per item.") }
         guard resolveItems(e).contains(item) else { throw BridgeError.failed("Not one of \(e.label)'s items: \(item)") }
         guard isSafeToDelete(item) else { throw BridgeError.unsafePath(item) }
+        // A companion file (an AVD's .ini next to its .avd folder) goes with the child.
+        var targets = [item]
+        if let ext = e.companion {
+            let companion = (item as NSString).deletingPathExtension + ext
+            if fm.fileExists(atPath: companion) || isSymlink(companion) {
+                guard isSafeToDelete(companion) else { throw BridgeError.unsafePath(companion) }
+                targets.append(companion)
+            }
+        }
         let before = (Self.parseDu(shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600, login: false).stdout).first?.kb ?? 0) * 1024
-        let trashed = try remove([item], for: e)
+        let trashed = try remove(targets, for: e)
         return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
     }
 

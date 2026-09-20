@@ -35,6 +35,11 @@ import Testing
         try fm.createSymbolicLink(atPath: home.path + "/Projects/n/.next/cache", withDestinationPath: home.path + "/Library/Caches/target")
         try fm.createSymbolicLink(atPath: home.path + "/Library/Caches/alias", withDestinationPath: home.path + "/Library/Caches/target")
         for d in ["Library/Logs/Reclaimer", "Library/Logs/DiagnosticReports", "Library/Logs/Zoom", "Library/Logs/Notion"] { try blob("\(d)/x.log", mb: 1) }
+        try blob(".android/avd/Pixel_7.avd/userdata.img", mb: 2)
+        try blob(".android/avd/Tablet.avd/userdata.img", mb: 1)
+        try "path=\(home.path)/.android/avd/Pixel_7.avd\n".write(to: home.appendingPathComponent(".android/avd/Pixel_7.ini"), atomically: true, encoding: .utf8)
+        try "path=\(home.path)/.android/avd/Tablet.avd\n".write(to: home.appendingPathComponent(".android/avd/Tablet.ini"), atomically: true, encoding: .utf8)
+        try "orphan".write(to: home.appendingPathComponent(".android/avd/Stray.ini"), atomically: true, encoding: .utf8)
         for d in ["App/Cache", "App/Code Cache", "App/Service Worker/CacheStorage", "App/Other", "App/Cache/inner", "Two/GPUCache"] {
             try blob("Library/Application Support/\(d)/f.bin", mb: 1)
         }
@@ -61,6 +66,7 @@ import Testing
           { "id": "next", "group": "t", "bucket": "safe", "label": "next", "glob": { "root": "~/Projects", "name": ".next", "maxdepth": 3, "type": "d", "then": "cache" } },
           { "id": "alias", "group": "t", "bucket": "safe", "label": "alias", "path": "~/Library/Caches/alias" },
           { "id": "logs", "group": "t", "bucket": "safe", "label": "logs", "path": "~/Library/Logs", "children": true, "exclude": ["Reclaimer", "DiagnosticReports"] },
+          { "id": "avd", "group": "t", "bucket": "safe", "label": "avds", "path": "~/.android/avd", "children": true, "companion": ".ini" },
           { "id": "w", "group": "t", "bucket": "safe", "label": "workspaces", "children": true,
             "path": "~/Library/Application Support/Code/User/workspaceStorage",
             "childLabel": { "file": "workspace.json", "keys": ["folder", "workspace"] } }
@@ -207,6 +213,23 @@ import Testing
         #expect(fm.fileExists(atPath: logs + "/Reclaimer/x.log") && fm.fileExists(atPath: logs + "/DiagnosticReports/x.log"))
         #expect(!fm.fileExists(atPath: logs + "/Zoom") && !fm.fileExists(atPath: logs + "/Notion"))
         #expect(fm.fileExists(atPath: logs), "the parent folder stays")
+    }
+
+    @Test("I16 — companion files go with their child (AVDs)")
+    func companions() throws {
+        defer { cleanup() }
+        let r = try bridge.handle(op: "size", args: ["id": "avd"]) as? [String: Any]
+        let names = ((r?["items"] as? [[String: Any]]) ?? []).compactMap { $0["display"] as? String }
+        #expect(names == ["Pixel_7", "Tablet"], Comment(rawValue: names.joined(separator: " | ")))
+        let avd = home.path + "/.android/avd"
+        _ = try bridge.handle(op: "delete", args: ["id": "avd", "item": avd + "/Pixel_7.avd"])
+        #expect(!fm.fileExists(atPath: avd + "/Pixel_7.avd") && !fm.fileExists(atPath: avd + "/Pixel_7.ini"))
+        #expect(fm.fileExists(atPath: avd + "/Tablet.avd") && fm.fileExists(atPath: avd + "/Tablet.ini") && fm.fileExists(atPath: avd + "/Stray.ini"))
+        // a companion that is a symlink is refused, and then nothing is removed
+        try fm.createSymbolicLink(atPath: avd + "/Tablet.ini.bak", withDestinationPath: avd + "/Stray.ini")
+        try fm.removeItem(atPath: avd + "/Tablet.ini"); try fm.createSymbolicLink(atPath: avd + "/Tablet.ini", withDestinationPath: avd + "/Stray.ini")
+        #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "avd", "item": avd + "/Tablet.avd"]) }
+        #expect(fm.fileExists(atPath: avd + "/Tablet.avd/userdata.img"))
     }
 
     @Test("I8 — parseDu")

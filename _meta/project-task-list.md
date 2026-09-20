@@ -20,8 +20,6 @@ file, then moved to Done.
 
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
-21. **AVD per-item delete** — `<name>.avd` + `<name>.ini` as one item;
-    decide whether `children` grows a sibling rule or AVDs use `itemsCmd`.
 22. **App data, round two** — sandboxed apps need Full Disk Access to even
     measure (Teams, Mail, Messages); Notion stays *Your call*; Steam/Google
     Updater bundles are app code. Needs an FDA-aware entry flag.
@@ -64,6 +62,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — AVD per-item delete via `companion` on children entries (I16, C13).
 - 2026-09-20 — 0.6.3 released: accessibility tier (R10–R17).
 - 2026-09-20 — Accessibility visuals: R14 contrast (A7 computes ratios from the tokens), R15 reduced motion (A8). Accessibility tier complete.
 - 2026-09-20 — Accessibility semantics: R10, R11, R12, R13, R16, R17 (A1–A6; browser accessibility tree verified).
