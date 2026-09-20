@@ -14,14 +14,19 @@ what remains is grounded follow-up work.
 
 1. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
+2. **Site: re-measure the hero findings** whenever the catalog gains entries
+   that change this Mac's totals materially (the seven rows and three bucket
+   totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
+   not numbers). Also bump the "N entries" count (W5 fails when it drifts).
 
 ## Roadmap (ideas, not grounded)
 
 **Linux and Windows** — decided (ADR-22, 2026-09-20) but **not scheduled**:
 the maintainer validates demand first. Design in `_meta/multi-platform.md`.
-When it starts, the order is: platform-aware catalog (ships in a normal macOS
-release, no visible change) → bridge conformance suite run against the Swift
-host → Tauri host for Linux → Windows → site. Demand signals to watch:
+Step 1 (platform-aware catalog: schema, 40 portable + 10 platform-only
+entries, Mac host filter) is done and rides the next release. Remaining, in
+order, when it starts: bridge conformance suite run against the Swift host →
+Tauri host for Linux → Windows → site (per-OS download buttons). Demand signals to watch:
 issues asking for Linux/Windows, referrers from Linux/Windows forums in the
 repository traffic, Search Console queries with "linux" or "windows".
 
