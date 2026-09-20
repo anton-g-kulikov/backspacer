@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-zsYd96HOB8tDqkMnf5agKHlI0V5olbTSmfivEN7GonE='; script-src 'sha256-C84dnyVYVmBTRdBsZrkCaUCjCnhga4h45AF9iZ5cPUI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-SF4uMcaYmKshddKbnYWkTt930mnpCot91awWKd2pcwU=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-xfH53QY9c34HQF234A6LCGhyz4/TPwOBAePUcGXKnSA='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
@@ -23,7 +23,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Backspacer scanning a Mac: buckets of caches and build output with a Delete per item">
 <meta name="twitter:card" content="summary_large_image">
-<style>
+<style id="css-glass">
   :root {
     color-scheme: light dark;
     --fg: #1d1d1f; --muted: #515157; --faint: #6e6e73;
@@ -83,6 +83,9 @@
   nav ul { display: flex; gap: 4px 18px; flex-wrap: wrap; list-style: none; margin: 0 0 0 auto; padding: 0; }
   nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
   nav a:hover { color: var(--fg); text-decoration: underline; }
+  .skins { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); }
+  .skins button { border: 0; background: transparent; color: var(--muted); font: 600 13px var(--sans); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+  .skins button[aria-pressed="true"] { background: var(--card-strong); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
 
   .hero { padding: clamp(40px, 8vw, 96px) 0 24px; }
   .hero .grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
@@ -144,6 +147,86 @@
   footer a { color: var(--muted); }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
+<style id="css-terminal">
+  /* Terminal look: the app's second skin. Scoped to html[data-skin="terminal"]; always dark. */
+  :root[data-skin="terminal"] {
+    color-scheme: dark;
+    --bg: #0a0c0e; --card: #0e1114; --card-strong: #12161a; --border: #1c2226;
+    --fg: #d3dbe0; --muted: #8796a1; --faint: #758591;
+    --accent: #5cf08a; --accent-fg: #0a0c0e; --danger: #ff6b5b;
+    --safe: #5cf08a; --regen: #ffb454; --decide: #c792ea; --keep: #7c8a94; --locked: #556670;
+    --ink: #0e1114; --ink-fg: #d3dbe0; --ink-muted: #758591;
+    --sans: "SF Mono", ui-monospace, Menlo, "JetBrains Mono", monospace;
+    --mono: "SF Mono", ui-monospace, Menlo, "JetBrains Mono", monospace;
+    --mesh: none; --shadow: none; --radius: 4px;
+  }
+  @media (prefers-contrast: more) { :root[data-skin="terminal"] { --muted: #b3bec6; --faint: #97a4ad; --border: #2e383d; } }
+  [data-skin="terminal"] body { font-size: 15px; background: var(--bg); }
+  [data-skin="terminal"] header.top { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); border-bottom-color: var(--border); }
+  [data-skin="terminal"] .mark img { display: none; }
+  [data-skin="terminal"] .mark::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  [data-skin="terminal"] .mark { color: var(--accent); }
+  [data-skin="terminal"] nav a::before { content: "./"; color: var(--faint); }
+  [data-skin="terminal"] .skins { padding: 0; border: 0; background: none; border-radius: 0; color: var(--faint); }
+  [data-skin="terminal"] .skins::before { content: "[ "; white-space: pre; } [data-skin="terminal"] .skins::after { content: " ]"; white-space: pre; }
+  [data-skin="terminal"] .skins button { padding: 0 3px; border-radius: 0; text-transform: lowercase; font-weight: 400; }
+  [data-skin="terminal"] .skins button[aria-pressed="true"] { background: none; box-shadow: none; color: var(--accent); font-weight: 700; }
+  [data-skin="terminal"] h1 { color: var(--accent); font-weight: 700; letter-spacing: 0; font-size: clamp(34px, 6vw, 56px); }
+  [data-skin="terminal"] h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
+  [data-skin="terminal"] .tagline::before { content: "// "; color: var(--faint); }
+  [data-skin="terminal"] section h2 { font-size: clamp(20px, 2.6vw, 26px); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  [data-skin="terminal"] section h2::before { content: "── "; color: var(--faint); font-weight: 400; }
+  [data-skin="terminal"] .btn { background: none; border: 0; box-shadow: none; padding: 6px 4px; border-radius: 0; color: var(--fg); font-weight: 400; }
+  [data-skin="terminal"] .btn::before { content: "["; color: var(--faint); margin-right: 6px; } [data-skin="terminal"] .btn::after { content: "]"; color: var(--faint); margin-left: 6px; }
+  [data-skin="terminal"] .btn:hover { color: var(--accent); } [data-skin="terminal"] .btn:hover::before, [data-skin="terminal"] .btn:hover::after { color: var(--fg); }
+  [data-skin="terminal"] .btn.primary { color: var(--accent); font-weight: 700; } [data-skin="terminal"] .btn.primary::before, [data-skin="terminal"] .btn.primary::after { color: var(--accent); }
+  [data-skin="terminal"] .btn.primary small { color: var(--muted); }
+  [data-skin="terminal"] .shot { border-radius: 4px; }
+  [data-skin="terminal"] .shot .win { display: none; }
+  [data-skin="terminal"] .storage, [data-skin="terminal"] .bucket, [data-skin="terminal"] .groups li, [data-skin="terminal"] .safety li { border-radius: 4px; }
+  [data-skin="terminal"] .storage .ic { border-radius: 2px; background: #3a464d; }
+  [data-skin="terminal"] .bucket h3 i { box-shadow: none; border-radius: 0; width: 8px; height: 8px; }
+  [data-skin="terminal"] .bucket .tag { border-radius: 0; }
+  [data-skin="terminal"] .bucket .tag::before { content: "# "; }
+  [data-skin="terminal"] .groups b::before { content: "▸ "; color: var(--faint); }
+  [data-skin="terminal"] .safety b::before { content: "> "; color: var(--accent); }
+  [data-skin="terminal"] pre { border: 1px solid var(--border); border-radius: 4px; }
+  [data-skin="terminal"] footer a { color: var(--muted); } [data-skin="terminal"] footer a::before { content: "["; color: var(--faint); } [data-skin="terminal"] footer a::after { content: "]"; color: var(--faint); }
+  [data-skin="terminal"] :focus-visible { outline-color: var(--accent); border-radius: 0; }
+</style>
+<script>
+// The one script. Runs in <head> so a stored look applies before first paint; everything that
+// needs the DOM waits for DOMContentLoaded. No inline handlers: the CSP hashes this block.
+(() => {
+  const SKINS = ['glass', 'terminal'];
+  const read = () => { try { return localStorage.getItem('ui.theme'); } catch { return null; } };
+  const store = t => { try { localStorage.setItem('ui.theme', t); } catch {} };
+  const apply = t => {
+    if (!SKINS.includes(t)) t = 'glass';
+    document.documentElement.dataset.skin = t;
+    for (const b of document.querySelectorAll('.skins button')) b.setAttribute('aria-pressed', String(b.dataset.skin === t));
+    // The hero <picture> chooses by media query; retarget the terminal sources by rewriting theirs.
+    for (const src of document.querySelectorAll('source[data-skin="terminal"]')) src.media = t === 'terminal' ? 'all' : 'not all';
+    return t;
+  };
+  const q = new URL(location.href).searchParams.get('theme');   // ?theme=terminal, as in the app
+  apply(q || read() || 'glass');
+  document.addEventListener('DOMContentLoaded', async () => {
+    apply(document.documentElement.dataset.skin);
+    document.querySelector('.skins').addEventListener('click', e => { const t = e.target.dataset.skin; if (t) store(apply(t)); });
+    // Version badge on the download button, from the latest GitHub release. Fails quietly: the
+    // link itself always points at releases/latest, so the button works without this.
+    try {
+      const r = await fetch('https://api.github.com/repos/anton-g-kulikov/backspacer/releases/latest', { headers: { Accept: 'application/vnd.github+json' } });
+      if (!r.ok) return;
+      const rel = await r.json();
+      const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
+      const mb = dmg ? (dmg.size / 1e6).toFixed(1) + ' MB' : '';
+      document.getElementById('ver').textContent = [rel.tag_name, mb].filter(Boolean).join(' · ');
+    } catch {}
+  });
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -158,6 +241,7 @@
         <li><a href="https://github.com/anton-g-kulikov/backspacer">GitHub</a></li>
       </ul>
     </nav>
+    <div class="skins" role="group" aria-label="Look"><button type="button" data-skin="glass" aria-pressed="true">Glass</button><button type="button" data-skin="terminal" aria-pressed="false">Terminal</button></div>
   </div>
 </header>
 
@@ -182,6 +266,8 @@
       <figure class="shot" aria-label="The app window">
         <div class="win" aria-hidden="true"><i></i><i></i><i></i></div>
         <picture>
+          <source srcset="assets/screenshot-terminal.webp" type="image/webp" media="not all" data-skin="terminal">
+          <source srcset="assets/screenshot-terminal.png" media="not all" data-skin="terminal">
           <source srcset="assets/screenshot-dark.webp" type="image/webp" media="(prefers-color-scheme: dark)">
           <source srcset="assets/screenshot-dark.png" media="(prefers-color-scheme: dark)">
           <source srcset="assets/screenshot-light.webp" type="image/webp">
@@ -288,19 +374,5 @@ open http://localhost:8765/web/index.html</pre>
   </div>
 </footer>
 
-<script>
-// Version badge on the download button, from the latest GitHub release. Fails quietly: the
-// link itself always points at releases/latest, so the button works without this.
-(async () => {
-  try {
-    const r = await fetch('https://api.github.com/repos/anton-g-kulikov/backspacer/releases/latest', { headers: { Accept: 'application/vnd.github+json' } });
-    if (!r.ok) return;
-    const rel = await r.json();
-    const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
-    const mb = dmg ? (dmg.size / 1e6).toFixed(1) + ' MB' : '';
-    document.getElementById('ver').textContent = [rel.tag_name, mb].filter(Boolean).join(' · ');
-  } catch {}
-})();
-</script>
 </body>
 </html>

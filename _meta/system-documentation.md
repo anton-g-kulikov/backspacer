@@ -15,6 +15,7 @@ behind the design in `architecture-decisions.md`.
 | `web/logic.js` | The page's pure logic — formatting, deletability/disposal predicates, nesting and own-size, threshold visibility, meter segmentation, item naming. No DOM, no state; loaded by the page and tested under Node (`Tests/web`). |
 | `Sources/Backspacer/main.swift` | Entry point. Builds `NSApplication` in code — no storyboard, no nib. |
 | `Diagnostics.swift` | The shareable log file (see *Diagnostics*). |
+| `PageView.swift` | The `WKWebView` subclass: WebKit's context menu trimmed to Search with Google · Copy (+ Inspect Element when the inspector is on), the macOS Services submenu declined (`validRequestor` → nil; the system fills it for any text — "Add to Music as a Spoken Track" — and an app cannot prune it), and one app action, New Terminal at Folder, for the row or Details item the page reported via `contextTarget` for this very click (a target older than 2 s is dropped). No menu on the page background. |
 | `AppDelegate.swift` | Window (transparent title bar, full-size content so the traffic lights sit on the page; the measured title-bar height is injected as `--titlebar` before first paint and the page pads itself by it; the page header is a drag region via the `dragWindow` op, since a WKWebView never moves its window by itself), `WKWebView`, menu bar (View → theme), navigation policy (external links leave the app), debug-run fallbacks. |
 | `Bridge.swift` | The only door from JS to the machine. Dispatches ops, resolves catalog ids to paths, runs `du`/`find`/`rm`, enforces the safety gate, stores preferences. |
 | `Catalog.swift` | Typed mirror of `catalog.json`; `Resources` locates bundled files. |
@@ -225,8 +226,16 @@ API to show the tag and DMG size, and fails silently. Screenshots: light
 the page's mock bridge), served by `prefers-color-scheme` inside a CSS
 window frame; `og.png` is the share card.
 
+Look: the same two skins as the app. Glass follows the OS light/dark
+setting; Terminal is always dark. The header switcher sets
+`html[data-skin]`, which the `css-terminal` sheet is scoped to, stores the
+choice in `localStorage` (`ui.theme`, the app's key), and `?theme=terminal`
+selects it for a visit without storing, as in the app. The hero `<picture>`
+gets a terminal source enabled by the script, since sources are otherwise
+chosen by the OS colour scheme.
+
 Security: a Content-Security-Policy meta with `default-src 'none'` and
-sha256 hashes for the one style and one script block — no `unsafe-inline`,
+sha256 hashes for the two style sheets and the one script block — no `unsafe-inline`,
 no `style` attributes, no event handlers. `node scripts/site-csp.mjs`
 rewrites the hashes after an edit; `W11` fails when they are stale.
 

@@ -221,12 +221,23 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A8 | reduced motion (R15) | both themes have a `@media (prefers-reduced-motion: reduce)` block that stops the blink animations and transitions; `startScanWords` shows a static "Scanning…" when the media query matches |
 | A9 | scrollbar | `main::-webkit-scrollbar-thumb` is styled in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
 | A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
+| A11 | right-click target (ADR-10) | `app.js` has a `contextmenu` listener that sends `contextTarget {id, item}` — selectors only, never a path; Details items carry `data-item` |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
 | # | Case | Expect |
 |---|---|---|
 | G1 | `dragWindow` op | replies `{ok: true}`, is not logged (one per mouse-down), and is a no-op when the bridge has no window |
+
+### Context menu — `Tests/BackspacerTests/ContextMenuTests.swift`, `PathActionTests.swift`
+| # | Case | Expect |
+|---|---|---|
+| X1 | WebKit's text menu | of Look Up, Translate, Search, Copy, Copy Link with Highlight, Share, Writing Tools, Speech, Services, Inspect Element only Search with Google, Copy and Inspect Element survive `PageView.trim` |
+| X2 | the page-background menu | Back / Forward / Reload are dropped entirely (no menu) |
+| X5 | path action items | `pathItems` yields `New Terminal at Folder` carrying the target as `representedObject`; a target older than 2 s or `nil` yields nothing |
+| O1 | `open` op on an entry | opens the entry's first resolved path with the opener (`.terminal`) and replies `{path}` |
+| O2 | `open` op on a Details item | the selector must be one of the entry's current items; a foreign path or `/etc` is refused and nothing opens |
+| O3 | `open` op's app | only `with: "terminal"` is accepted; anything else or nothing is refused |
 
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
@@ -254,7 +265,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | W7 | accessibility | one `h1`, skip link, `main`/`nav` landmarks, `alt` on every image, a name or state on every button, `:focus-visible`, reduced-motion and dark-scheme media queries |
 | W8 | wordmark | a plain `<h1>Backspacer</h1>`; no `(y)` or `(y/n)` anywhere (the device was dropped with the app's wordmark); the old name appears nowhere |
 | W10 | tagline | "I got some if you need it." once under the `h1` and in `og:description`; the band and track are never named |
-| W11 | CSP | the sha256 hashes match the single `<style>` and `<script>` blocks; no `unsafe-*`, no event handlers, no `style` attributes |
+| W11 | CSP | the sha256 hashes cover both `<style>` sheets and the one `<script>`; no `unsafe-*`, no event handlers, no `style` attributes |
+| W12 | look switcher | a `role="group"` "Look" with Glass / Terminal buttons carrying `aria-pressed`; `css-glass` and `css-terminal` sheets, the latter scoped to `:root[data-skin="terminal"]`; the script sits in `<head>` and reads `localStorage` (guarded) or `?theme=` before first paint; a terminal screenshot `<source>` the script enables |
 | W9 | workflow | `pages.yml`: pushes to `main` on `site/**`, minimal permissions, SHA-pinned actions, uploads `site`, runs the site tests with `SITE_REQUIRED: 1` |
 
 ## Manual verification (release checklist covers these)
@@ -277,13 +289,15 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | ProjectRootTests | R1–R6 | passing |
 | BrandTests | N1–N2 | passing |
 | WindowDragTests | G1 | passing |
+| ContextMenuTests | X1, X2, X5 | passing |
+| PathActionTests | O1–O3 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J17 | passing |
-| Web accessibility (node) | A1–A10 | passing |
-| Site (node) | W1–W11 | passing |
+| Web accessibility (node) | A1–A11 | passing |
+| Site (node) | W1–W12 | passing |
 | Brand (node) | K1–K7 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

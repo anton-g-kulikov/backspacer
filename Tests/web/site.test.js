@@ -98,12 +98,26 @@ test('W11 the CSP hashes match the inline style and script blocks', gate, () => 
   const sha = x => 'sha256-' + createHash('sha256').update(x).digest('base64');
   const block = tag => html.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))[1];
   const csp = html.match(/Content-Security-Policy" content="([^"]+)"/)[1];
-  assert.ok(csp.includes(`style-src '${sha(block('style'))}'`), 'style hash (run node scripts/site-csp.mjs)');
+  for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) assert.ok(csp.includes(`'${sha(m[1])}'`), 'style hash (run node scripts/site-csp.mjs)');
   assert.ok(csp.includes(`script-src '${sha(block('script'))}'`), 'script hash (run node scripts/site-csp.mjs)');
-  assert.equal((html.match(/<style/g) || []).length, 1); assert.equal((html.match(/<script/g) || []).length, 1);
+  assert.equal((html.match(/<style/g) || []).length, 2, 'glass + terminal sheets'); assert.equal((html.match(/<script/g) || []).length, 1);
   assert.doesNotMatch(html, /\bon[a-z]+="/, 'no inline event handlers (CSP would block them)');
   assert.doesNotMatch(html, /\sstyle="/, 'no style attributes (a hashed style-src blocks them)');
   assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval/);
+});
+
+test('W12 look switcher: Glass / Terminal like the app, persisted, applied before first paint, screenshot follows', gate, () => {
+  const group = html.match(/<div class="skins" role="group" aria-label="Look">([\s\S]*?)<\/div>/);
+  assert.ok(group, 'a labelled group in the header');
+  for (const t of ['glass', 'terminal']) assert.match(group[1], new RegExp(`<button type="button" data-skin="${t}" aria-pressed="(true|false)">`), t);
+  assert.match(html, /<style id="css-glass">/, 'glass sheet');
+  assert.match(html, /<style id="css-terminal"[^>]*>/, 'terminal sheet');
+  assert.match(html, /:root\[data-skin="terminal"\]/, 'terminal tokens are scoped to the skin attribute');
+  const head = html.slice(0, html.indexOf('<body'));
+  assert.match(head, /<script>[\s\S]*localStorage[\s\S]*<\/script>/, 'the one script sits in <head> so a stored choice applies before first paint');
+  assert.match(html, /try \{[^}]*localStorage/, 'storage reads are guarded');
+  assert.match(html, /\?theme=terminal|searchParams\.get\('theme'\)/, '?theme=terminal selects the skin, as in the app');
+  assert.match(html, /<source[^>]*data-skin="terminal"/, 'a terminal screenshot source the script can enable');
 });
 
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {

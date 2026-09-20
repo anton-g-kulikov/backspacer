@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Website: Glass / Terminal switcher in the header, the same two looks as the app, remembered per browser; `?theme=terminal` works there too.
+- Right-click on a path: the menu is Search with Google, Copy and New Terminal at Folder (which opens that row's folder — or the Details item you clicked — in Terminal). Look Up, Translate, Share, Writing Tools, Speech and the Services submenu are gone; the page background has no menu.
 - The tagline carries a live count of reclaimable space — "I got some [35.9 GB reclaimable] if you need it" — the sum of the Safe, Regenerable and Your-call buckets as shown on their badges (visible rows above the size threshold), updating as the scan measures and after every delete. Keep and Managed by macOS never count.
 - The window can be dragged by its header again. Selecting a path (to copy it) now needs the drag to start on the path itself; before, a drag anywhere swept a selection across every path in view.
 - The scrollbar, when macOS shows one (a mouse attached, or "always"), is a thin themed thumb on a transparent track instead of the stock bar.
