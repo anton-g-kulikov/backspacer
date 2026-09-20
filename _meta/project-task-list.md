@@ -13,6 +13,36 @@ Numbered by priority. R-numbers are the 2026-09-20 technical review's findings
 Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
+### Next — brand and site (decided 2026-09-20, ADR-20)
+- **Rename to Backspacer** — one commit, then 0.8.0. Touch points, in order:
+  `scripts/build-app.sh` (`APP_NAME`, `BUNDLE_ID=com.antonkulikov.backspacer`),
+  `Package.swift` target and `Sources/` folder, `Sources/*` strings (window
+  title, menus, About, `setFrameAutosaveName`, the `defaults write` hint,
+  `Diagnostics` log path `Library/Logs/Backspacer/Backspacer.log`, admin
+  helper prompt text), `web/index.html` + `web/app.js` (title, header
+  wordmark `Backspacer (y)`, About copy, log-path note), `scripts/notarize.sh`
+  (`APP`, ZIP/DMG names, volume name), `LICENSE` preamble (reserved name
+  "Backspacer"), `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, issue
+  templates, `CHANGELOG.md` line, `_meta/*` and `Tests/test-documentation.md`,
+  every test that asserts a string with the old name (SafetyGate S-tests use
+  the fixture home, unaffected). Then: `gh repo rename backspacer` (old URL
+  redirects; update badges and links), register backspacer.app / .dev (the
+  maintainer's step), tag `v0.8.0`. Tests: `swift test` and the node suites
+  green; a grep for the old name finds only CHANGELOG history and ADR-20.
+  Migration: no `UserDefaults` migration — the app is new to macOS under the
+  new bundle id; the README release note says FDA must be granted again.
+- **Promo site (GitHub Pages)** — `site/index.html` under the new name,
+  published by `.github/workflows/pages.yml` (SHA-pinned actions, `pages:
+  write` + `id-token: write` only, gated by `node --test
+  'Tests/web/site.test.js'`). Tests W1–W9 in `Tests/web/site.test.js` are
+  written and failing; they pin head/OG tags, local assets, release and repo
+  links, bucket copy verbatim from `catalog.json`, ADR-14 license wording,
+  landmarks/alt/reduced-motion, the `Backspacer (y)` wordmark, and the
+  workflow shape, and the tagline "I got some if you need it." as the one Pearl Jam nod
+  (W10). Screenshots: light and dark Glass, Terminal, captured from
+  the page's mock bridge at 1180×860 @2x. Blocked on the rename (the site
+  must not ship pointing at `Reclaimer-*.dmg`).
+
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
 12. **"Crashed but returned" report** (2026-09-20): now logged and

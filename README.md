@@ -13,6 +13,12 @@ deletes only what you tick — after a confirmation that lists every item.
 **[Download the latest release →](https://github.com/anton-g-kulikov/reclaimer/releases/latest)**
 Open the DMG, drag Reclaimer to Applications. Notarized; no Gatekeeper warnings.
 
+> **Name clash, and a rename.** This project is not related to *Reclaimer* by
+> MNZN, LLC on the Mac App Store, nor to Reclaim.ai. To end the confusion it
+> is being renamed **Backspacer** for the next release (0.8.0); the repository
+> URL will redirect. Until then the app, DMG and log folder still say
+> Reclaimer.
+
 ![Reclaimer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
 
 It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The

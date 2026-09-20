@@ -141,6 +141,44 @@ the `DateFormatter`). No SwiftLint/SwiftFormat: one maintainer, consistent
 style, and a linter would be a dependency for contributors to install; an
 `.editorconfig` covers the basics. Revisit when there are regular contributors.
 
+## ADR-20 — Rename to Backspacer (decided 2026-09-20, not yet applied)
+"Reclaimer" is also a paid disk cleaner by MNZN, LLC on the Mac App Store
+(since 2024, actively updated, "developer caches" on its feature list). Same
+name, same category, same platform: every search lands on theirs, and a
+tampered build could pass for either. The rename is a marketing and
+trust decision, not a legal one — we are not on the App Store.
+
+Seven rounds of candidates were checked against the Mac and iOS App Stores,
+GitHub repository names, Homebrew casks and registry RDAP for `.app`, `.dev`
+and `.com`. Rejected: everything on the "reclaim" root (Hyperspace "Reclaim
+Disk Space", "Reclaim Space", "Reclaim: Phone Storage Cleaner" share the
+shelf); Decruft (decruft.app is a live site); DevClaimer — clean everywhere,
+but one spoken syllable from DevCleaner for Xcode, a Mac app in the same
+niche with a Homebrew cask, so "get DevClaimer" is heard as DevCleaner;
+Reclaimer(y) as a wordplay on the (y/n) prompt — not a rename, the
+conflict stays.
+
+Chosen: **Backspacer** — the key that deletes what came before. No product
+in the niche shares it; backspacer.app and backspacer.dev were unregistered
+on 2026-09-20 (.com is parked). Costs accepted: Pearl Jam's 2009 album owns
+web search for the bare word — embraced rather than fought: the tagline is
+"I got some if you need it." — a line from the album's "Got Some", read
+here as the app offering disk space (the maintainer's own nod; the site
+never names the band or claims a connection, and the line stays a
+seven-word fragment, not a lyric reproduction) — and an iOS
+"Backspace - Photo Cleaner" shares the root. The `(y)` device from the terminal-prompt idea is kept as the
+wordmark's wink: `Backspacer (y)`.
+
+Consequences when applied (one commit, one changelog line, first release
+under the new name is 0.8.0): app and bundle name, `CFBundleIdentifier`
+`com.antonkulikov.backspacer` (macOS treats it as a new app — Full Disk
+Access must be granted again, window frame and preferences start fresh,
+`ui.*` defaults are not migrated), log folder `~/Library/Logs/Backspacer/`,
+GitHub repository renamed (the old URL redirects), DMG and release titles,
+the reserved-name clause in LICENSE, README, About panel, docs and tests.
+The notarytool keychain profile keeps its name; `Bridge.handlerName` and the
+`ReclaimerTests` target name are internal and may follow later.
+
 ## ADR-9 — Swift Testing, not XCTest
 New target, Xcode 27 toolchain; Swift Testing's parameterised tests suit the
 path-list cases in the safety gate. Run with `swift test`.
