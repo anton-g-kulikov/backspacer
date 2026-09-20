@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Internal: the app reads those fields and shows only entries meant for macOS — no visible change until Linux/Windows-only entries exist.
 - Catalog: entries may declare `platforms` and per-OS `os.linux` / `os.windows` overrides (ADR-22, step 1); 40 entries are marked portable with Linux and Windows locations. No change to what the macOS app shows.
 
 ## 1.0.2 — 2026-09-20

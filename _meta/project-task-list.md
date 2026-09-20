@@ -41,6 +41,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — ADR-22 step 1, host side: Entry decodes platforms/os; load filters to macOS and rebuilds rawJSON; loadAll for catalog-wide tests (C16, V2 +3).
 - 2026-09-20 — 1.0.2 released: inline release notes in the Sparkle pane, Log tab and About dialog polish; catalog platform annotations (PTM).
 - 2026-09-20 — 1.0.1 released: About as a modal dialog (A17), footer trimmed to Log; release run calls pages.yml (Y8). First release delivered through Sparkle to 1.0.0 users.
 - 2026-09-20 — 1.0.0 released: the first version that updates itself (Sparkle 2); appcast as a release asset, republished by the site.
