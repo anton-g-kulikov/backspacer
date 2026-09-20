@@ -45,6 +45,10 @@ test('W3 download and source links go to the GitHub repo', gate, () => {
   assert.match(html, /href="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/latest"/);
   assert.match(html, /href="https:\/\/github\.com\/anton-g-kulikov\/backspacer"/);
   assert.match(html, /api\.github\.com\/repos\/anton-g-kulikov\/backspacer\/releases\/latest/, 'the version badge is fetched live');
+  assert.match(html, /<a class="btn primary" href="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/latest" id="download" download>/, 'no-JS fallback is the release page');
+  assert.match(html, /browser_download_url/, 'with JS the button points at the DMG asset itself');
+  assert.match(html, /\.href = dmg\.browser_download_url/, 'the href is rewritten, not opened by script');
+  assert.match(html, /<a class="notes" href="https:\/\/github\.com\/anton-g-kulikov\/backspacer\/releases\/latest">Release notes<\/a>/, 'the release page stays one link away');
 });
 
 test('W4 the bucket names and blurbs are the catalog\'s, verbatim', gate, () => {

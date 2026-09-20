@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-fIb3x5yP4Zz0uGoQ3HB/O6cJPWX3fJlmXgsU9Dl475I=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-xfH53QY9c34HQF234A6LCGhyz4/TPwOBAePUcGXKnSA='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-C1+n5YWNMagKltmU+hiLxeNCXA5o9OUCR8F9P52gu+4=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png?v=2" sizes="512x512" type="image/png">
@@ -102,6 +102,7 @@
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); background: var(--card-strong); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
   .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .btn.primary small { font-weight: 500; opacity: .85; font-family: var(--mono); font-size: 13px; }
+  .notes { font-size: 14px; color: var(--muted); }
   .meta { margin: 14px 0 0; font-size: 14px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; list-style: none; }
   .shot { margin: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); background: var(--card-strong); }
   .shot .win { display: flex; gap: 8px; padding: 10px 12px; }
@@ -219,15 +220,16 @@
   document.addEventListener('DOMContentLoaded', async () => {
     apply(document.documentElement.dataset.skin);
     document.querySelector('.skins').addEventListener('click', e => { const t = e.target.dataset.skin; if (t) store(apply(t)); });
-    // Version badge on the download button, from the latest GitHub release. Fails quietly: the
-    // link itself always points at releases/latest, so the button works without this.
+    // The download button: from the latest GitHub release, point it straight at the DMG and show
+    // the tag and size. Fails quietly: without this it opens the release page, which also works.
     try {
       const r = await fetch('https://api.github.com/repos/anton-g-kulikov/backspacer/releases/latest', { headers: { Accept: 'application/vnd.github+json' } });
       if (!r.ok) return;
       const rel = await r.json();
-      const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
+      const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name) && /^https:\/\/github\.com\/anton-g-kulikov\/backspacer\//.test(a.browser_download_url));
       const mb = dmg ? (dmg.size / 1e6).toFixed(1) + ' MB' : '';
       document.getElementById('ver').textContent = [rel.tag_name, mb].filter(Boolean).join(' · ');
+      if (dmg) document.getElementById('download').href = dmg.browser_download_url;
     } catch {}
   });
 })();
@@ -258,8 +260,9 @@
         <p class="tagline">I got some if you need it.</p>
         <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you tick.</p>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/anton-g-kulikov/backspacer/releases/latest" id="download">Download for macOS <small id="ver" aria-live="polite"></small></a>
+          <a class="btn primary" href="https://github.com/anton-g-kulikov/backspacer/releases/latest" id="download" download>Download for macOS <small id="ver" aria-live="polite"></small></a>
           <a class="btn" href="https://github.com/anton-g-kulikov/backspacer">Read the source</a>
+          <a class="notes" href="https://github.com/anton-g-kulikov/backspacer/releases/latest">Release notes</a>
         </div>
         <ul class="meta">
           <li>macOS 13 or later</li>

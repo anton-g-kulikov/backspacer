@@ -219,9 +219,12 @@ and project names — the About text says so.
 file with inline CSS and one inline script, no build step, no dependencies.
 It mirrors the app: the bucket titles and blurbs are the catalog's verbatim,
 the "what it knows about" grid names catalog groups, and the entry count is
-the catalog's (`W4`, `W5` fail when they drift). The download button links
-to `releases/latest`; a script fetches the latest release from the GitHub
-API to show the tag and DMG size, and fails silently. Screenshots: light
+the catalog's (`W4`, `W5` fail when they drift). The download button is
+`releases/latest` in the markup; the script fetches the latest release from
+the GitHub API, points the button straight at the DMG asset (only a
+`github.com/anton-g-kulikov/backspacer/…` URL is accepted) and shows the
+tag and size — without JS or when the API is rate-limited the button opens
+the release page. "Release notes" is a separate link. Screenshots: light
 (the README's window capture, title bar cropped) and dark (captured from
 the page's mock bridge), served by `prefers-color-scheme` inside a CSS
 window frame; `og.png` is the share card.

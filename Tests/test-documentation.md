@@ -259,7 +259,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 |---|---|---|
 | W1 | head | `lang`, charset, viewport, a `Backspacer…` title, a description ≥ 60 chars, `og:title/description/image/url`, `twitter:card`, an icon, a CSP starting `default-src 'none'` |
 | W2 | assets | every local `src`/`href`/`srcset` resolves under `site/`; `og:image` is a site file on the canonical host |
-| W3 | links | download → `releases/latest`, source → the repo, the version badge fetches `releases/latest` from the API |
+| W3 | links | download → `releases/latest` in the markup with a `download` attribute; the script rewrites `href` to the release's `browser_download_url` (never opens it itself); source → the repo; a separate "Release notes" link to the release page |
 | W4 | catalog copy | every bucket title and blurb from `catalog.json` appears verbatim |
 | W5 | groups | every `data-group` names a real catalog group; the entry count in the copy equals `entries.length` |
 | W6 | license (ADR-14) | never "open source"; "free for noncommercial use"; links to the PolyForm text and `LICENSE` |
