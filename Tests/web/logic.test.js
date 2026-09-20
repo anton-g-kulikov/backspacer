@@ -236,3 +236,12 @@ test('J22 explainHTML: the reasoning block Details opens with — labelled lines
   assert.equal(explainHTML({ bucket: 'safe' }, {}), '', 'no block without explain');
   assert.ok(hasInfo({ explain: { what: 'a', why: 'b' } }), 'explain alone earns a Details button');
 });
+
+test('J23 sortProjects: by age keeps groupByProject\'s order; by size is largest first; Elsewhere stays last either way', () => {
+  const { sortProjects } = L;
+  const g = [{ path: '/a', bytes: 1, touched: 10 }, { path: '/b', bytes: 3, touched: 20 }, { path: '', bytes: 9, touched: null }, { path: '/c', bytes: 2, touched: 30 }];
+  assert.deepEqual(sortProjects(g, 'age').map(x => x.path), ['/a', '/b', '', '/c'], 'age: untouched, the input order is the age order');
+  assert.deepEqual(sortProjects(g, 'size').map(x => x.path), ['/b', '/c', '/a', ''], 'size: largest first, Elsewhere last');
+  assert.deepEqual(g.map(x => x.path), ['/a', '/b', '', '/c'], 'the input is not mutated');
+  assert.deepEqual(sortProjects(g, 'bogus').map(x => x.path), ['/a', '/b', '', '/c'], 'anything else means age');
+});

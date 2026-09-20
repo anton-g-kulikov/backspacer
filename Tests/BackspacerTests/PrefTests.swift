@@ -5,7 +5,7 @@ import Testing
 @Suite struct PrefTests {
     let bridge = try! Fixture.bridge()
 
-    @Test("P1 — known keys are accepted and namespaced", arguments: ["theme", "minSize", "autoUpdateCheck", "projectView"])
+    @Test("P1 — known keys are accepted and namespaced", arguments: ["theme", "minSize", "autoUpdateCheck", "projectView", "projectSort"])
     func knownKeys(key: String) throws {
         #expect(try bridge.prefKey(["key": key]) == "ui." + key)
     }

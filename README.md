@@ -85,7 +85,7 @@ password dialog.
 - **By project.** The Project folders island switches the build-output view from
   by tool to by project: one row per project under your folders, its `node_modules`,
   `Pods`, `.next`, build folders summed, and when it was last touched (last commit,
-  or the newest source file) — stalest first, so a project you haven't opened in
+  or the newest source file) — stalest first (or largest first, your pick), so a project you haven't opened in
   months is an easy call. Deleting a project's output leaves its source alone.
 - **Nothing runs as root without the system dialog.** Admin items use
   `do shell script … with administrator privileges`, so the app never sees a

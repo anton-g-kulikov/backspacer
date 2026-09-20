@@ -245,7 +245,7 @@ final class Bridge: NSObject, @unchecked Sendable {
 
     // MARK: Prefs — UI settings that should survive relaunch (the arm switch deliberately doesn't).
 
-    private static let prefKeys: Set<String> = ["theme", "minSize", "autoUpdateCheck", "projectView"]
+    private static let prefKeys: Set<String> = ["theme", "minSize", "autoUpdateCheck", "projectView", "projectSort"]
 
     func prefKey(_ args: [String: Any]) throws -> String {
         guard let k = args["key"] as? String, Self.prefKeys.contains(k) else {

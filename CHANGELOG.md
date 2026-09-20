@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- By project: the Projects card can be sorted largest first as well as stalest first (Stalest | Largest in its header; remembered).
+
 ## 1.2.0 — 2026-09-20
 - Explain: Details now opens with the reasoning behind the row — what lives there, why it's in that bucket, what happens after you delete it, and when to keep it — for every entry. 28 entries that had no description under their label have one now, and every row has a Details button.
 - Catalog: the Claude Code entry says that `~/.claude/projects` also holds Claude's per-project memory notes, and the Codex and Gemini entries that their folders include the tools' config and login.

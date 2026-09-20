@@ -79,8 +79,8 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
-// fmt, esc, deletable, granular, hasInfo, explainHTML, itemDeletable, itemId, trashes, itemName, isVisible,
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', projectSort: 'age', scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
+// fmt, esc, deletable, granular, hasInfo, explainHTML, sortProjects, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
 const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
@@ -172,6 +172,7 @@ async function init() {
   else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
   bridge.call('prefGet', { key: 'projectView' }).then(r => setProjectView(r.value || 'tool', false)).catch(() => setProjectView('tool', false));
+  bridge.call('prefGet', { key: 'projectSort' }).then(r => setProjectSort(r.value || 'age', false)).catch(() => setProjectSort('age', false));
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   bridge.call('logPath').then(r => { $('#logPath').textContent = r.path.replace(/^\/Users\/[^/]+/, '~'); }).catch(() => {});
   $('#revealLog').onclick = () => bridge.call('revealLog').catch(err => log(err.message, 'err'));
@@ -371,11 +372,18 @@ function setProjectView(v, save) {
   if (save) bridge.call('prefSet', { key: 'projectView', value: state.projectView }).catch(() => {});
 }
 $('#projView').onclick = e => { const v = e.target.dataset.view; if (v) setProjectView(v, true); };
+function setProjectSort(v, save) {
+  state.projectSort = v === 'size' ? 'size' : 'age';
+  document.querySelectorAll('#projSort button').forEach(b => { const on = b.dataset.sort === state.projectSort; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  if (state.catalog) renderProjects();
+  if (save) bridge.call('prefSet', { key: 'projectSort', value: state.projectSort }).catch(() => {});
+}
+$('#projSort').onclick = e => { const v = e.target.dataset.sort; if (v) setProjectSort(v, true); };
 function renderProjects() {
   const sec = $('#projects'), body = $('#projects-body');
   const on = state.projectView === 'project' && state.scanned;
   sec.hidden = !on; if (!on) return;
-  const groups = groupByProject(state.projects, projectEntries(), state.items).filter(g => g.bytes >= minBytes() || g.path === '');
+  const groups = sortProjects(groupByProject(state.projects, projectEntries(), state.items).filter(g => g.bytes >= minBytes() || g.path === ''), state.projectSort);
   const now = Math.floor(Date.now() / 1000);
   $('#projectsTotal').textContent = fmt(groups.reduce((a, g) => a + g.bytes, 0));
   if (!groups.length) { body.innerHTML = `<div class="empty">No build output ${fmt(minBytes())} or larger in your project folders${state.roots.length ? '' : ' — add a folder above'}.</div>`; return; }
@@ -470,7 +478,7 @@ document.addEventListener('contextmenu', e => {
 
 document.addEventListener('click', async e => {
   const head = e.target.closest('.bucket-head');
-  if (head && !e.target.closest('.sel')) {
+  if (head && !e.target.closest('.sel, .seg')) {   // "all" and the sort segment sit in the head without toggling it
     const sec = head.parentElement, open = sec.classList.toggle('collapsed') === false;
     head.querySelector('h2 button').setAttribute('aria-expanded', String(open));
     return;

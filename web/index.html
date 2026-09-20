@@ -524,9 +524,11 @@
   <section class="bucket projects" id="projects" aria-labelledby="projects-h" hidden>
     <div class="bucket-head">
       <span class="dot" style="background:var(--regen)"></span>
-      <div class="title"><h2><button type="button" id="projects-h" aria-expanded="true" aria-controls="projects-body" aria-describedby="projects-blurb">Projects</button></h2><small id="projects-blurb">Build output by project, stalest first. Deleting a project's output leaves its source alone.</small></div>
+      <div class="title"><h2><button type="button" id="projects-h" aria-expanded="true" aria-controls="projects-body" aria-describedby="projects-blurb">Projects</button></h2><small id="projects-blurb">Build output by project. Deleting a project's output leaves its source alone.</small></div>
       <span class="total" id="projectsTotal" style="--c:var(--regen)">—</span>
-      <span></span>
+      <div class="seg" id="projSort" role="group" aria-label="Sort projects" title="Stalest first, or largest first">
+        <button data-sort="age" aria-pressed="true">Stalest</button><button data-sort="size" aria-pressed="false">Largest</button>
+      </div>
     </div>
     <div class="bucket-body" id="projects-body"></div>
   </section>

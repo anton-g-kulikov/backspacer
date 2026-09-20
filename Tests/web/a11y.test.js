@@ -240,3 +240,13 @@ test('A29 Details opens with the Explain block, above the items, the command out
   assert.match(html, /\.explain \{[^}]*display: grid/, 'a definition list laid out as label + text');
   assert.equal((html.match(/\.explain dt \{/g) || []).length, 2, 'styled in both themes');
 });
+
+test('A30 the Projects card sorts by age or size: a named segment in its header, a remembered preference, applied on render', () => {
+  assert.match(html, /<div class="seg" id="projSort" role="group" aria-label="Sort projects"[^>]*>\s*<button data-sort="age" aria-pressed="true">Stalest<\/button><button data-sort="size" aria-pressed="false">Largest<\/button>/);
+  assert.match(html, /<small id="projects-blurb">Build output by project\. Deleting a project's output leaves its source alone\.<\/small>/, 'the blurb no longer promises one order');
+  assert.match(app, /function setProjectSort\(v, save\)/);
+  assert.match(app, /prefSet', \{ key: 'projectSort'/);
+  assert.match(app, /prefGet', \{ key: 'projectSort' \}\)\.then\(r => setProjectSort\(r\.value \|\| 'age', false\)\)\.catch\(\(\) => setProjectSort\('age', false\)\)/);
+  assert.match(app, /const groups = sortProjects\(groupByProject\(state\.projects, projectEntries\(\), state\.items\)\.filter\(.+\), state\.projectSort\);/);
+  assert.match(app, /\$\('#projSort'\)\.onclick/);
+});
