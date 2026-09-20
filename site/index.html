@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-C1+n5YWNMagKltmU+hiLxeNCXA5o9OUCR8F9P52gu+4=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-kqlybU+vKpsLdQLS7bDz8J9vXkiotMoIY3uWBEtwx8E=' 'sha256-eg/EywkzgHcywoJKZCXIzrIM4Bsr/q86i5sn/Zj4SQk='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png?v=2" sizes="512x512" type="image/png">
@@ -111,8 +111,9 @@
   .shot img { display: block; width: 100%; height: auto; }
 
   section { padding: 44px 0; }
-  section h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.015em; line-height: 1.15; }
-  section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; }
+  section h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.015em; line-height: 1.15; text-wrap: balance; }
+  section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; text-wrap: pretty; }
+  h1, .tagline, .lede, .story, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
 
   .storage { margin: 0 auto; max-width: 720px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
   .storage .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
@@ -180,7 +181,8 @@
   [data-skin="terminal"] h1 { color: var(--accent); font-weight: 700; letter-spacing: 0; font-size: clamp(34px, 6vw, 56px); }
   [data-skin="terminal"] h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
   [data-skin="terminal"] .tagline::before { content: "// "; color: var(--faint); }
-  [data-skin="terminal"] section h2 { font-size: clamp(20px, 2.6vw, 26px); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  [data-skin="terminal"] section h2 { font-size: clamp(18px, 2.3vw, 24px); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  [data-skin="terminal"] section .sub, [data-skin="terminal"] .story { max-width: 70ch; }
   [data-skin="terminal"] section h2::before { content: "── "; color: var(--faint); font-weight: 400; }
   [data-skin="terminal"] .btn { background: none; border: 0; box-shadow: none; padding: 6px 4px; border-radius: 0; color: var(--fg); font-weight: 400; }
   [data-skin="terminal"] .btn::before { content: "["; color: var(--faint); margin-right: 6px; } [data-skin="terminal"] .btn::after { content: "]"; color: var(--faint); margin-left: 6px; }
