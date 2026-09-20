@@ -103,6 +103,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
         NSApp.terminate(nil)
     }
 
+    @objc private func openRepo(_ sender: Any?) { NSWorkspace.shared.open(URL(string: "https://github.com/anton-g-kulikov/reclaimer")!) }
+    @objc private func openIssues(_ sender: Any?) { NSWorkspace.shared.open(URL(string: "https://github.com/anton-g-kulikov/reclaimer/issues/new/choose")!) }
+    @objc private func revealLog(_ sender: Any?) { NSWorkspace.shared.activateFileViewerSelecting([Diagnostics.standard.file]) }
+
     /// View ▸ Glass / Terminal. The page stores the choice through the bridge (UserDefaults "ui.theme").
     @objc private func setTheme(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? String else { return }
@@ -138,7 +142,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
 
         let editItem = NSMenuItem(); main.addItem(editItem)
         let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+        edit.addItem(.separator())
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
         edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
 
@@ -155,9 +164,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, WKNavi
         let windowItem = NSMenuItem(); main.addItem(windowItem)
         let win = NSMenu(title: "Window")
         win.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        win.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         win.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        win.addItem(.separator())
+        win.addItem(withTitle: "Bring All to Front", action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: "")
         windowItem.submenu = win
         NSApp.windowsMenu = win
+
+        let helpItem = NSMenuItem(); main.addItem(helpItem)
+        let help = NSMenu(title: "Help")
+        help.addItem(withTitle: "Reclaimer on GitHub", action: #selector(openRepo(_:)), keyEquivalent: "?")
+        help.addItem(withTitle: "Report a Problem…", action: #selector(openIssues(_:)), keyEquivalent: "")
+        help.addItem(withTitle: "Reveal Diagnostics Log", action: #selector(revealLog(_:)), keyEquivalent: "")
+        helpItem.submenu = help
+        NSApp.helpMenu = help
 
         NSApp.mainMenu = main
     }

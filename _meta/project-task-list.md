@@ -21,8 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-28. **R25 · Standard menus**: Help, Edit ▸ Undo/Cut/Paste, Window ▸ Zoom /
-    Bring All to Front; `CFBundleInfoDictionaryVersion`.
 29. **R24 · `codesign --deep`** is discouraged by Apple; wrong once nested
     code (Sparkle) exists.
 30. **R23 · Swift 6 language mode** + strict concurrency; drop `@unchecked
@@ -45,6 +43,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R25: Edit/Window/Help menus completed; CFBundleInfoDictionaryVersion and CFBundleDevelopmentRegion in Info.plist.
 - 2026-09-20 — R18: the origin audit script moved to `_meta/origin-storage-review.sh`, header de-personalised.
 - 2026-09-20 — R19: README screenshot (assets/screenshot-glass.png, captured from the app). preview-512.png is the icon preview, kept for the icon source.
 - 2026-09-20 — R26: CODE_OF_CONDUCT, FUNDING.yml, GitHub topics. LICENSE preamble kept: PolyForm isn't in GitHub's detector, so a pure text would still read "Other".
