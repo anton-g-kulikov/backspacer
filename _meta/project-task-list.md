@@ -35,6 +35,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.8.2 released: first release through the tag-triggered workflow (icon in the header, update check, scan verbs in the button, centred controls).
 - 2026-09-20 — Tag-triggered release workflow (Y1–Y7): temp keychain, notarytool from secrets, DMG + SHA-256 + provenance; checklist rewritten with the secrets table and a manual fallback. Blocked on the maintainer adding the five secrets before the first automated release.
 - 2026-09-20 — In-app update check (U1–U4, J18, A13): About button + app menu item, GitHub releases API on click only, link to the DMG. Test hygiene: every test bridge logs to a temp file (N3) — the suite had been writing fake refusals into the user's real log.
 - 2026-09-20 — Scan verbs in the Scan button; header as brand | centred controls | button, stacking under 960 px (A12, K7).
