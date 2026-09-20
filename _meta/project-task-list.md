@@ -8,25 +8,22 @@ _(none)_
 
 ## Queued — in order
 
-Numbered by priority. R-numbers are the 2026-09-20 technical review's findings
-(file:line and the test that pins each); un-numbered items are earlier work.
 Each becomes a bounded task: failing test first, one change, docs in the owning
-file, then moved to Done.
+file, then moved to Done. The 2026-09-20 review queue (R1–R27) is complete;
+what remains is grounded follow-up work.
 
-### Next — nothing queued for the site
-- backspacer.dev is live (2026-09-20): Pages enabled with the Actions source,
-  custom domain bound, certificate approved, HTTPS enforced; `www` and
-  `http://` redirect; the domain is verified on the maintainer's account
-  (TXT `_github-pages-challenge-anton-g-kulikov`, kept in the zone).
+1. **"Crashed but returned" report** (2026-09-20): now logged and
+   auto-reloaded; wait for the next occurrence with the log, then decide.
+2. **Homebrew cask** — `brew install --cask backspacer`: a cask in a tap under
+   the maintainer's account (or homebrew-cask once there are users), pointing
+   at the notarized DMG with its SHA-256; a release-checklist step to bump it.
+3. **In-app update check** — About → "Check for updates" against the GitHub
+   releases API (no Sparkle, no auto-download: show the version and a link),
+   so users learn that a fix shipped.
+4. **Tag-triggered release workflow** — build, sign with a temp keychain,
+   notarize with `notarytool`, upload the DMG with SHA-256 in the notes and
+   SLSA provenance; replaces the manual checklist steps 3–8.
 
-### Critical — the deletion gate has holes
-### Severe — wrong results or a frozen app
-12. **"Crashed but returned" report** (2026-09-20): now logged and
-    auto-reloaded; wait for the next occurrence with the log.
-
-### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
-### Features (earlier queue)
-### Hygiene — repo, release, open source
 ## Roadmap (ideas, not grounded)
 
 From the 2026-09-20 review: in-app updates (Sparkle 2 or a "Check for updates"
@@ -46,7 +43,8 @@ From the 0.1.0 README:
 
 - 2026-09-20 — Reclaimable counter inside the tagline (J17, K7): sum of the safe/regen/decide badges, live. The 0.2.0 "Reclaim XX GB" header total returns in this form, phrased as an offer rather than a target.
 - 2026-09-20 — Window drag from the header (`dragWindow` op, G1) and no selection sweep from non-selectable areas (A10); themed scrollbar, not hidden (A9). Verified with a paced synthetic drag on a `.dev`-bundle-id build.
-- 2026-09-20 — Promo site: `site/index.html` (buckets and groups from the catalog, live version badge, hashed CSP, light/dark screenshots), `pages.yml` (SHA-pinned, `SITE_REQUIRED=1` gate), `scripts/site-csp.mjs`; backspacer.dev DNS via `scripts/pages-dns.sh`. Tests W1–W11. Pages must still be enabled on the repo with the custom domain — maintainer step.
+- 2026-09-20 — backspacer.dev live: Pages enabled (Actions source), custom domain bound, certificate approved, HTTPS enforced, `www` and `http://` redirect, domain verified on the maintainer's account (TXT `_github-pages-challenge-anton-g-kulikov`, kept in the zone). The (y) wordmark device dropped from the site to match the app; README no longer mentions the old name; tagline aside in brackets (J17).
+- 2026-09-20 — Promo site: `site/index.html` (buckets and groups from the catalog, live version badge, hashed CSP, light/dark screenshots), `pages.yml` (SHA-pinned, `SITE_REQUIRED=1` gate), `scripts/site-csp.mjs`; backspacer.dev DNS via `scripts/pages-dns.sh`. Tests W1–W11.
 
 - 2026-09-20 — 0.8.0 released: first release as Backspacer; CI honest again (pipefail), Xcode 16.4 toolchain floor.
 - 2026-09-20 — Renamed to Backspacer (ADR-20): app, bundle id `com.antonkulikov.backspacer`, module and test target, log folder, scripts, LICENSE, docs, repository (old URL redirects); tests N1–N2, K1–K6 (K6 guards against the old name creeping back). First release under the name: 0.8.0.
