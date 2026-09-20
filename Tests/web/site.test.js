@@ -33,7 +33,8 @@ test('W1 the page exists with the head every crawler and share card needs', gate
 test('W2 every local asset the page references exists under site/', gate, () => {
   const refs = [...html.matchAll(/\b(?:src|href|srcset)="([^"]+)"/g)].map(m => m[1])
     .flatMap(v => v.split(',').map(s => s.trim().split(' ')[0]))
-    .filter(v => v && !/^(https?:|mailto:|#|data:)/.test(v));
+    .filter(v => v && !/^(https?:|mailto:|#|data:)/.test(v))
+    .map(v => v.replace(/\?.*$/, ''));   // ?v= cache-busters
   assert.ok(refs.length >= 4, 'the page references local assets (icon, screenshots)');
   for (const r of refs) assert.ok(fs.existsSync(path.join(root, 'site', r)), `missing site/${r}`);
   const og = html.match(/property="og:image" content="https:\/\/backspacer\.dev\/([^"]+)"/);
