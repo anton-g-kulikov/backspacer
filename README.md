@@ -27,7 +27,7 @@ shell around it.
 
 Backspacer isn't an app uninstaller or a general disk cleaner. It is for the apps
 and tools you keep: the caches, build output and downloads they pile up while you
-use them, which no uninstaller will ever touch. When you're done with an app,
+use them. When you're done with an app,
 [AppCleaner](https://freemacsoft.net/appcleaner/) is the best free way to remove
 it together with everything it left behind.
 
