@@ -86,8 +86,8 @@ test('A8 reduced motion is honoured', () => {
 });
 
 test('A9 the scrollbar is styled, not hidden', () => {
-  const thumbs = html.match(/main::-webkit-scrollbar-thumb \{/g) || [];
-  assert.ok(thumbs.length >= 2, 'a thumb rule in each theme (plus a dark-mode override in Glass)');
+  const thumbs = html.match(/main::-webkit-scrollbar-thumb, \.info-out::-webkit-scrollbar-thumb, \.panel::-webkit-scrollbar-thumb \{/g) || [];
+  assert.ok(thumbs.length >= 2, 'one thumb rule per theme covering every scrolling container: the list, Details and the Log/About panels');
   assert.doesNotMatch(html, /::-webkit-scrollbar[^{]*\{[^}]*display: none/, 'the affordance stays visible');
   assert.doesNotMatch(html, /::-webkit-scrollbar[^{]*\{[^}]*width: 0/, 'the affordance stays visible');
 });
