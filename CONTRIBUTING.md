@@ -20,9 +20,16 @@ Thanks for looking. Two kinds of contribution help most:
 
 ## Before you open a pull request
 
-- `swift test` and `node --test 'Tests/web/*.test.js'` pass. The suites include
-  the safety gate over every catalog path and the schema — a rejected entry is
-  the test telling you something.
+- `swift test` and `node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'`
+  pass (CI runs exactly these). The Swift suites include the safety gate over
+  every catalog path and the schema — a rejected entry is the test telling you
+  something. `Tests/test-documentation.md` says what each suite proves.
+- To try the app: `BUNDLE_ID=com.antonkulikov.backspacer.dev scripts/build-app.sh && open -n build/Backspacer.app`
+  — the `.dev` bundle id keeps it apart from an installed copy (own prefs, own
+  Full Disk Access grant).
+- Releases are the maintainer's: a `vX.Y.Z` tag builds, notarizes and publishes the
+  DMG through GitHub Actions, and the Homebrew tap follows by itself. Don't bump
+  versions in a PR.
 - One change per PR. Fill in the template; the bucket rationale is what gets
   reviewed most carefully.
 - Code changes follow the repo's shape: intent in `Tests/test-documentation.md`,

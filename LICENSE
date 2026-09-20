@@ -8,7 +8,8 @@ author (anton.g.kulikov@gmail.com).
 
 The "Backspacer" name and the app icon are not licensed. If you distribute a
 modified version, give it a different name and icon so nobody mistakes it for
-the signed build published at https://github.com/anton-g-kulikov/backspacer.
+the signed build published at https://github.com/anton-g-kulikov/backspacer,
+through the Homebrew tap anton-g-kulikov/tap, and at https://backspacer.dev.
 
 Contributions (issues, catalog entries, pull requests) are welcome; pull
 requests are made under the Apache License 2.0 — see CONTRIBUTING.md.

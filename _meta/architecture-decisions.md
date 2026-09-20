@@ -141,7 +141,7 @@ the `DateFormatter`). No SwiftLint/SwiftFormat: one maintainer, consistent
 style, and a linter would be a dependency for contributors to install; an
 `.editorconfig` covers the basics. Revisit when there are regular contributors.
 Lesson (2026-09-20): a delegate method whose closure type lacks the protocol's `@MainActor @Sendable` compiles with a "nearly matches" warning and is silently never called — the navigation delegate went dead this way for four releases. Warnings on `func webView…`/`func application…` are bugs; V1–V2 pin the selectors.
-Toolchain floor: Xcode 16.4 (Swift 6.0), enforced by CI. Its compiler does not
+Toolchain floor: Xcode 16.4 (Swift 6.1, `swift-tools-version:6.1`), enforced by CI. Its compiler does not
 infer main-actor isolation for a closure handed to `DispatchQueue.main.sync`,
 where Xcode 27's does — isolation is spelled out (`@MainActor` helper +
 `MainActor.assumeIsolated`) rather than left to inference.

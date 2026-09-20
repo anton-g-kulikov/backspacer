@@ -37,11 +37,13 @@
       "properties": {
         "id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Stable; the UI and the bridge key on it." },
         "group":  { "type": "string", "description": "Sub-heading inside the bucket." },
-        "bucket": { "type": "string", "enum": ["safe", "regen", "decide", "keep", "locked"] },
-        "label":  { "type": "string" },
+        "bucket": { "type": "string", "enum": ["safe", "regen", "decide", "keep", "locked"],
+                    "description": "safe: caches every app rebuilds; regen: comes back on the next build or install; decide: the user's call, goes to the Trash; keep: shown, never deletable; locked: managed by macOS." },
+        "label":  { "type": "string", "description": "The row's title — a folder name or the tool's own name; the note carries the reasoning." },
         "note":   { "type": "string", "description": "Shown under the label." },
         "path":   { "type": "string", "description": "One path; ~ is the home folder." },
-        "paths":  { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "paths":  { "type": "array", "minItems": 1, "items": { "type": "string" },
+                    "description": "Several fixed paths measured and removed together (~ is home). Use path for one, glob to search." },
         "glob": {
           "type": "object",
           "required": ["root"],
