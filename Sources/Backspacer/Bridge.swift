@@ -139,7 +139,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow"]
 
     // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
 
@@ -192,6 +192,14 @@ final class Bridge: NSObject, @unchecked Sendable {
             diagnostics.log(level, "page: " + String((args["message"] as? String ?? "").prefix(2000)))
             return ["ok": true]
         case "logPath":  return ["path": diagnostics.file.path]
+        case "dragWindow":
+            // The page's header is a drag region: WKWebView has none of its own, so on mouse-down
+            // the page asks and the window follows the event that is still in flight.
+            Task { @MainActor in
+                guard let window = self.webView?.window, let event = NSApp.currentEvent else { return }
+                if event.type == .leftMouseDown || event.type == .leftMouseDragged { window.performDrag(with: event) }
+            }
+            return ["ok": true]
         case "scanHints": return ["durations": defaults.dictionary(forKey: Self.durationsKey) as? [String: Int] ?? [:]]
         case "revealLog":
             diagnostics.log(.info, "revealing the log file")

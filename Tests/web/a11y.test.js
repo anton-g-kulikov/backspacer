@@ -84,3 +84,18 @@ test('A8 reduced motion is honoured', () => {
   assert.equal((html.match(/@media \(prefers-reduced-motion: reduce\)/g) || []).length, 2);
   assert.match(app, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)/);
 });
+
+test('A9 the scrollbar is styled, not hidden', () => {
+  const thumbs = html.match(/main::-webkit-scrollbar-thumb \{/g) || [];
+  assert.ok(thumbs.length >= 2, 'a thumb rule in each theme (plus a dark-mode override in Glass)');
+  assert.doesNotMatch(html, /::-webkit-scrollbar[^{]*\{[^}]*display: none/, 'the affordance stays visible');
+  assert.doesNotMatch(html, /::-webkit-scrollbar[^{]*\{[^}]*width: 0/, 'the affordance stays visible');
+});
+
+test('A10 the header drags the window; selection only starts on selectable text', () => {
+  assert.match(app, /addEventListener\('mousedown'/);
+  assert.match(app, /bridge\.call\('dragWindow'\)/, 'a mouse-down on the header asks the window to follow');
+  assert.match(app, /SELECTABLE_OR_INTERACTIVE = '[^']*\.path[^']*'/, 'paths stay selectable by dragging inside them');
+  assert.match(app, /SELECTABLE_OR_INTERACTIVE = '[^']*input[^']*'/, 'controls keep their default mouse-down');
+  assert.match(app, /e\.preventDefault\(\);\s*\/\/ no selection sweep/);
+});

@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- The window can be dragged by its header again. Selecting a path (to copy it) now needs the drag to start on the path itself; before, a drag anywhere swept a selection across every path in view.
+- The scrollbar, when macOS shows one (a mouse attached, or "always"), is a thin themed thumb on a transparent track instead of the stock bar.
+
+## Unreleased
 - Website: https://backspacer.dev — the promo page lives in `site/` and is published by GitHub Pages from `main`; its copy is tested against the catalog so buckets and groups never drift.
 
 ## 0.8.0 — 2026-09-20 (Backspacer)

@@ -39,6 +39,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `logPath` | — | `{path}` | where the diagnostics file lives |
 | `scanHints` | — | `{durations: {id: ms}}` | how long each entry's last `size` took; the page starts the slow ones first |
 | `revealLog` | — | `{path}` | selects the diagnostics file in Finder |
+| `dragWindow` | — | `{ok}` | the page's header is a window drag region: sent on mouse-down there, the bridge calls `NSWindow.performDrag(with:)` on the event still in flight (WKWebView has no drag regions of its own); quiet, no-op without a window |
 
 ## Host → page calls
 

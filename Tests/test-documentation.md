@@ -218,7 +218,14 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A5 | meter (R16) | `#diskBar` has `role="img"` and `updateMeter` writes an `aria-label` summarising the segments |
 | A7 | contrast (R14) | computed from the CSS tokens against each theme's panel background: `--muted` ≥ 4.5:1 in Glass light, Glass dark and Terminal; `--faint` ≥ 3.3:1 (Glass light) and ≥ 4.5:1 (Glass dark, Terminal); a `@media (prefers-contrast: more)` block raises both |
 | A8 | reduced motion (R15) | both themes have a `@media (prefers-reduced-motion: reduce)` block that stops the blink animations and transitions; `startScanWords` shows a static "Scanning…" when the media query matches |
+| A9 | scrollbar | `main::-webkit-scrollbar-thumb` is styled in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
+| A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
+
+### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
+| # | Case | Expect |
+|---|---|---|
+| G1 | `dragWindow` op | replies `{ok: true}`, is not logged (one per mouse-down), and is a no-op when the bridge has no window |
 
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
@@ -268,12 +275,13 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |
 | BrandTests | N1–N2 | passing |
+| WindowDragTests | G1 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J16 | passing |
-| Web accessibility (node) | A1–A8 | passing |
+| Web accessibility (node) | A1–A10 | passing |
 | Site (node) | W1–W11 | passing |
 | Brand (node) | K1–K7 | passing |
 | DiagnosticsTests | L1–L7 | passing |

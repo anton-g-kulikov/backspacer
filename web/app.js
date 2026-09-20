@@ -317,6 +317,16 @@ document.addEventListener('change', e => {
   if (id) { e.target.checked ? state.selected.add(id) : state.selected.delete(id); updateTotals(); }
   if (b) { document.querySelectorAll(`section[data-bucket="${b}"] .row:not([hidden]) [data-sel]`).forEach(c => { c.checked = e.target.checked; c.checked ? state.selected.add(c.dataset.sel) : state.selected.delete(c.dataset.sel); }); updateTotals(); }
 });
+// Mouse-down policy: the header is a window drag region (the bridge calls performDrag); anywhere
+// else that isn't selectable text or a control, the default is suppressed so a drag can't sweep
+// a selection across the paths (R17 made them selectable) — copy a path by dragging inside it.
+const SELECTABLE_OR_INTERACTIVE = 'button, input, select, textarea, a, label, summary, dialog, [tabindex], .path, .ipath, .info-out, .panel';
+document.addEventListener('mousedown', e => {
+  if (e.button !== 0 || e.target.closest(SELECTABLE_OR_INTERACTIVE)) return;
+  e.preventDefault();   // no selection sweep
+  if (e.target.closest('header')) bridge.call('dragWindow').catch(() => {});
+});
+
 document.addEventListener('click', async e => {
   const head = e.target.closest('.bucket-head');
   if (head && !e.target.closest('.sel')) {
