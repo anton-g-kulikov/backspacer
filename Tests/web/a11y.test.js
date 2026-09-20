@@ -117,6 +117,9 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   assert.doesNotMatch(html, /grid-template-columns: minmax\(0, \d+px\) 1fr auto/, 'the brand column must not grow with the tagline — the centre would move');
   assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
   assert.equal((html.match(/#scan \{ justify-self: end; min-width: [\d.]+em/g) || []).length, 2, 'the button has a fixed width at rest and while busy, so the centre never moves');
+  assert.equal((html.match(/main \{ overflow-y: scroll;/g) || []).length, 2, 'a permanent scrollbar track in both themes: the gutter never appears or disappears, so the header never shifts');
+  assert.doesNotMatch(html, /scrollbar-gutter/, 'WebKit ignores it; overflow-y: scroll is the reservation');
+  assert.match(app, /window\.addEventListener\('resize', syncGutter\);\nsyncGutter\(\);/, 'measured once at load');
   const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
   assert.equal(stacks.length, 2, 'below 960 px the header stacks: brand row, then controls + button, in both themes');
 });

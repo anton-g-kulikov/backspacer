@@ -110,10 +110,12 @@ function applyTheme(t) {
   requestAnimationFrame(syncGutter);
 }
 window.__setTheme = t => { applyTheme(t); bridge.call('prefSet', { key: 'theme', value: t }).catch(() => {}); };
-// Scrollbar gutter: the scroll area reserves it on both edges; the floating/full-width bars
-// widen their side margins by the same amount so all three columns line up.
+// Scrollbar gutter: main always shows its track (overflow-y: scroll), so the gutter is a constant
+// per theme; the header and footer widen their side margins by half of it so the columns line up.
+// Measured at load and on theme/resize — never as a side effect of the list changing.
 function syncGutter() { const m = document.querySelector('main'); document.documentElement.style.setProperty('--sb', ((m.offsetWidth - m.clientWidth) / 2) + 'px'); }
 window.addEventListener('resize', syncGutter);
+syncGutter();
 $('#theme').onclick = e => { const t = e.target.dataset.theme; if (t) window.__setTheme(t); };
 
 /* ── project folders ────────────────── */
@@ -170,7 +172,7 @@ async function init() {
   $('#autoUpd').onchange = e => bridge.call('prefSet', { key: 'autoUpdateCheck', value: e.target.checked ? '1' : '0' }).catch(() => {});
   state.catalog = await bridge.call('catalog');
   NEST = buildNesting(state.catalog.entries);
-  render(); syncGutter();
+  render();
   refreshDisk();
   bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
   bridge.call('projectRoots').then(r => renderRoots(r.roots)).catch(() => {});
