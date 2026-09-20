@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-kqlybU+vKpsLdQLS7bDz8J9vXkiotMoIY3uWBEtwx8E=' 'sha256-eg/EywkzgHcywoJKZCXIzrIM4Bsr/q86i5sn/Zj4SQk='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-rZnE3PLL1pjji9UyTMYOfC2dab8k8E9TkmbaWdmFIAw=' 'sha256-eg/EywkzgHcywoJKZCXIzrIM4Bsr/q86i5sn/Zj4SQk='; script-src 'sha256-oc94Pq7tro9v0hYarAdRwc1gXs98fkfKf7kMHfQkiVQ='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png?v=2" sizes="512x512" type="image/png">
@@ -115,7 +115,7 @@
   section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; text-wrap: pretty; }
   h1, .tagline, .lede, .story, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
 
-  .storage { margin: 0 auto; max-width: 720px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
+  .storage { margin: 0; max-width: 720px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 4px 18px; }
   .storage .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
   .storage .row:first-child { border-top: 0; }
   .storage .ic { width: 30px; height: 30px; border-radius: 8px; background: #8e8e93; color: #fff; display: grid; place-items: center; font-weight: 700; }
@@ -123,7 +123,7 @@
   .storage .ic.dev { background: #6e6e73; font-size: 14px; }
   .storage .n { font-variant-numeric: tabular-nums; color: var(--muted); }
   .storage .n.big { color: var(--fg); font-weight: 600; }
-  .story { max-width: 62ch; margin: 22px auto 0; color: var(--muted); }
+  .story { max-width: 62ch; margin: 22px 0 0; color: var(--muted); }
 
   .buckets { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); }
   .bucket { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 18px 18px 16px; }
