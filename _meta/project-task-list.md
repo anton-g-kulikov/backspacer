@@ -13,12 +13,11 @@ Numbered by priority. R-numbers are the 2026-09-20 technical review's findings
 Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done.
 
-### Next — site goes live (maintainer)
-- Enable GitHub Pages on the repo with source "GitHub Actions", set the custom
-  domain `backspacer.dev` and Enforce HTTPS (`gh api -X PUT
-  repos/anton-g-kulikov/backspacer/pages -f cname=backspacer.dev -F
-  https_enforced=true` once the first deploy has run), and verify the domain
-  under account Settings → Pages (`VERIFY=<code> scripts/pages-dns.sh`).
+### Next — nothing queued for the site
+- backspacer.dev is live (2026-09-20): Pages enabled with the Actions source,
+  custom domain bound, certificate approved, HTTPS enforced; `www` and
+  `http://` redirect. Optional: verify the domain under account Settings →
+  Pages (`VERIFY=<code> scripts/pages-dns.sh`) so nobody else can bind it.
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
