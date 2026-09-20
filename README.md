@@ -117,12 +117,21 @@ scripts/build-app.sh             # → build/Backspacer.app, ad-hoc signed
 open build/Backspacer.app
 ```
 
-Right-click → *Inspect Element* works inside debug builds (WKWebView
-inspector); for a release build turn it on with
-`defaults write com.antonkulikov.backspacer WebInspector -bool YES`.
-`swift build` alone gives you the bare binary for compile checks; `swift test`
-runs the Swift suites and `node --test 'Tests/web/*.test.js'` the page-logic
-ones (what they cover: `Tests/test-documentation.md`).
+**Debugging the page.** Right-click → *Inspect Element* works in debug builds
+(the WKWebView inspector). For a release build, turn it on once:
+
+```bash
+defaults write com.antonkulikov.backspacer WebInspector -bool YES
+```
+
+**Checks.** `swift build` compiles the bare binary. The tests:
+
+```bash
+swift test                              # Swift suites
+node --test 'Tests/web/*.test.js'       # page logic, accessibility, site
+```
+
+What they cover is in `Tests/test-documentation.md`.
 
 **Adding an entry** is a JSON edit, validated by `catalog.schema.json` (your
 editor picks it up from the `$schema` line; `swift test` checks it too). The fields:
