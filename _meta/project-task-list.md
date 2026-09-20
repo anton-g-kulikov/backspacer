@@ -14,11 +14,7 @@ what remains is grounded follow-up work.
 
 1. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
-2. **CI guard for Sparkle's nested code** (Developer): one line in `ci.yml`'s
-   package guard — `codesign --verify --deep --strict` on the ad-hoc dev
-   bundle — so a Sparkle revision bump that breaks the inside-out signing
-   order or the XPC entitlements fails on push, not at tag time.
-3. **Site: re-measure the hero findings** whenever the catalog gains entries
+2. **Site: re-measure the hero findings** whenever the catalog gains entries
    that change this Mac's totals materially (the seven rows and three bucket
    totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
    not numbers). Also bump the "N entries" count (W5 fails when it drifts).
