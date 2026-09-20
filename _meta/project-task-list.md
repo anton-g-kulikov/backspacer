@@ -16,8 +16,8 @@ file, then moved to Done.
 ### Next — nothing queued for the site
 - backspacer.dev is live (2026-09-20): Pages enabled with the Actions source,
   custom domain bound, certificate approved, HTTPS enforced; `www` and
-  `http://` redirect. Optional: verify the domain under account Settings →
-  Pages (`VERIFY=<code> scripts/pages-dns.sh`) so nobody else can bind it.
+  `http://` redirect; the domain is verified on the maintainer's account
+  (TXT `_github-pages-challenge-anton-g-kulikov`, kept in the zone).
 
 ### Critical — the deletion gate has holes
 ### Severe — wrong results or a frozen app
