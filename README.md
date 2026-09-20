@@ -25,6 +25,11 @@ It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The
 knowledge from that chase lives in `catalog.json`; the app is a thin, careful
 shell around it.
 
+Backspacer isn't an app uninstaller or a general disk cleaner. To remove an app
+together with everything it left behind, [AppCleaner](https://freemacsoft.net/appcleaner/)
+is the best free one; Backspacer picks up where it leaves off, with the caches
+and build output no uninstaller looks at.
+
 ```
 ┌─────────────────────────────────────────────┐
 │  web/index.html   (HTML/JS UI, runs in       │

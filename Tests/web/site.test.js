@@ -182,6 +182,15 @@ test('W15 reveal hero: the System Data row unfolds into a real findings card; th
   assert.match(how, /<figcaption>/, 'with a caption');
 });
 
+test('W16 what it is not: one AppCleaner recommendation on the site and in the README', gate, () => {
+  const url = 'https://freemacsoft.net/appcleaner/';
+  assert.equal((html.match(new RegExp(url.replace(/[./]/g, '\\$&'), 'g')) || []).length, 1, 'once on the page');
+  assert.match(html, new RegExp(`<p class="isnot">[\\s\\S]*?<a href="${url.replace(/[./]/g, '\\$&')}">AppCleaner<\\/a>`), 'in the "what it isn\'t" line');
+  assert.match(text, /isn't an app uninstaller/i);
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+  assert.ok(readme.includes(`[AppCleaner](${url})`), 'README links it too');
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);

@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-REtQLI/T0SdNKh+wZlSped0Y5SHLNIStc5UbyhddWtc=' 'sha256-g+HS7MZWKe9EA0SQ/ksMFDRQnkBMsznCdH3TAKZPfYk='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-fjLTA1iJ28UCYr0gTTCX27bSKKXV04bksjJ2EL19veM=' 'sha256-cnX5TFzEa4JEokkatG1VaS9/osRuxaWPd0cvJDl8Wqg='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -190,6 +190,8 @@
   .groups li { border-radius: 14px; background: var(--card); border: 1px solid var(--border); padding: 14px 16px; }
   .groups b { display: block; font-size: 15.5px; margin-bottom: 4px; }
   .groups span { color: var(--muted); font-size: 14.5px; }
+  .isnot { margin: 22px 0 0; max-width: 62ch; color: var(--muted); font-size: 15.5px; text-wrap: pretty; }
+  .isnot b { color: var(--fg); }
 
   .safety { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin: 0; padding: 0; list-style: none; }
   .safety li { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); padding: 18px; }
@@ -256,6 +258,7 @@
   [data-skin="terminal"] .bucket .tag { border-radius: 0; }
   [data-skin="terminal"] .bucket .tag::before { content: "# "; }
   [data-skin="terminal"] .groups b::before { content: "▸ "; color: var(--faint); }
+  [data-skin="terminal"] .isnot b::before { content: "// "; color: var(--faint); font-weight: 400; }
   [data-skin="terminal"] .safety b::before { content: "> "; color: var(--accent); }
   [data-skin="terminal"] pre { border: 1px solid var(--border); border-radius: 4px; }
   [data-skin="terminal"] footer a { color: var(--muted); } [data-skin="terminal"] footer a::before { content: "["; color: var(--faint); } [data-skin="terminal"] footer a::after { content: "]"; color: var(--faint); }
@@ -418,6 +421,7 @@ brew install --cask backspacer</code></pre>
         <li data-group="Your files"><b>Your files</b><span>Screenshots and Downloads: measured, never deleted by the app</span></li>
         <li data-group="Managed by macOS"><b>Managed by macOS</b><span>Time Machine local snapshots, Apple Intelligence models, developer documentation</span></li>
       </ul>
+      <p class="isnot"><b>What it isn't:</b> an app uninstaller or a general Mac cleaner. To remove an app together with everything it left behind, <a href="https://freemacsoft.net/appcleaner/">AppCleaner</a> is the best free one; Backspacer picks up where it leaves off, with the caches and build output no uninstaller looks at.</p>
     </div>
   </section>
 
