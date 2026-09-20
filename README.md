@@ -31,21 +31,6 @@ use them. When you're done with an app,
 [AppCleaner](https://freemacsoft.net/appcleaner/) is the best free way to remove
 it together with everything it left behind.
 
-```
-┌─────────────────────────────────────────────┐
-│  web/index.html   (HTML/JS UI, runs in       │
-│                    WKWebView or a browser)   │
-│         │  {id, op, args}  ▲ reply(id, ok)   │
-│  Sources/Backspacer/Bridge.swift              │
-│    resolves catalog ids → paths, runs du /   │
-│    find / rm, asks for admin via the system  │
-│    dialog, opens Full Disk Access settings   │
-│         │                                    │
-│  catalog.json  — what to scan, which bucket, │
-│                  how to delete, what to warn │
-└─────────────────────────────────────────────┘
-```
-
 ## Buckets
 
 | Bucket | Meaning | UI |
@@ -105,6 +90,17 @@ password dialog.
 
 The source is published so you can check what the app does before trusting it
 with your disk, build it yourself, and propose catalog entries.
+
+Three parts, one door between them:
+
+- `web/index.html` — the UI, plain HTML and JS. Runs inside a WKWebView in the
+  app, or in any browser against a mock bridge.
+- `Sources/Backspacer/Bridge.swift` — the only way from the page to the machine.
+  Takes `{id, op, args}`, resolves catalog ids to paths, runs `du`, `find` and
+  `rm`, asks for admin through the system dialog, opens the Full Disk Access
+  pane. The page never names a path.
+- `catalog.json` — what to scan, which bucket it belongs to, how to delete it,
+  what to warn about.
 
 **UI only** — no Xcode needed. The page falls back to a mock bridge with
 random sizes when it isn't inside the app:
