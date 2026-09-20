@@ -241,6 +241,12 @@ selects it for a visit without storing, as in the app. The hero `<picture>`
 gets a terminal source enabled by the script, since sources are otherwise
 chosen by the OS colour scheme.
 
+Search: `robots.txt`, `sitemap.xml` and a `404.html` sit beside the page;
+the head carries a JSON-LD `SoftwareApplication` record (data, excluded
+from the CSP hashes), Open Graph and Twitter card tags, a ≤ 60-char title
+and a ≤ 158-char description (`W14`). Search Console / Bing verification
+is the maintainer's step (a DNS TXT via `scripts/pages-dns.sh` or a meta tag).
+
 Security: a Content-Security-Policy meta with `default-src 'none'` and
 sha256 hashes for the two style sheets and the one script block — no `unsafe-inline`,
 no `style` attributes, no event handlers. `node scripts/site-csp.mjs`

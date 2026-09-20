@@ -294,6 +294,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | W10 | tagline | "I got some if you need it." once under the `h1` and in `og:description`; the band and track are never named |
 | W11 | CSP | the sha256 hashes cover both `<style>` sheets and the one `<script>`; no `unsafe-*`, no event handlers, no `style` attributes |
 | W13 | Homebrew | the exact two-step install command once in `<code id="brew">`, a Copy button with an accessible name using the clipboard API, and the README carrying the identical string |
+| W14 | SEO | `robots.txt` allowing all with the sitemap URL, `sitemap.xml` listing the page, `404.html` (noindex, links home), JSON-LD `SoftwareApplication` (macOS, free offer, download URL, license), Twitter card tags, description 120–158 chars, title ≤ 60 |
 | W12 | look switcher | a `role="group"` "Look" with Glass / Terminal buttons carrying `aria-pressed`; `css-glass` and `css-terminal` sheets, the latter scoped to `:root[data-skin="terminal"]`; the script sits in `<head>` and reads `localStorage` (guarded) or `?theme=` before first paint; a terminal screenshot `<source>` the script enables |
 | W9 | workflow | `pages.yml`: pushes to `main` on `site/**`, minimal permissions, SHA-pinned actions, uploads `site`, runs the site tests with `SITE_REQUIRED: 1` |
 
@@ -326,7 +327,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
 | Web accessibility (node) | A1–A15 | passing |
-| Site (node) | W1–W13 | passing |
+| Site (node) | W1–W14 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y7 | passing |
 | DiagnosticsTests | L1–L7 | passing |

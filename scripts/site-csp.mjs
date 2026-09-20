@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 const path = new URL('../site/index.html', import.meta.url);
 const html = readFileSync(path, 'utf8');
 const sha = s => 'sha256-' + createHash('sha256').update(s).digest('base64');
-const blocks = tag => [...html.matchAll(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'g'))].map(m => m[1]);
+const blocks = tag => [...html.matchAll(new RegExp(`<${tag}(?![^>]*application/ld\\+json)[^>]*>([\\s\\S]*?)</${tag}>`, 'g'))].map(m => m[1]);   // JSON-LD is data, not code
 if (!blocks('style').length || !blocks('script').length) throw new Error('no <style> or <script>');
 const want = { 'style-src': blocks('style').map(sha).map(h => `'${h}'`).join(' '), 'script-src': blocks('script').map(sha).map(h => `'${h}'`).join(' ') };
 let out = html;

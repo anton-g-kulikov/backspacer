@@ -101,11 +101,11 @@ test('W10 the tagline is the one Pearl Jam nod: under the h1, in og:description,
 test('W11 the CSP hashes match the inline style and script blocks', gate, () => {
   const { createHash } = require('node:crypto');
   const sha = x => 'sha256-' + createHash('sha256').update(x).digest('base64');
-  const block = tag => html.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))[1];
+  const block = tag => html.match(new RegExp(`<${tag}(?![^>]*application/ld\\+json)[^>]*>([\\s\\S]*?)</${tag}>`))[1];   // JSON-LD is data
   const csp = html.match(/Content-Security-Policy" content="([^"]+)"/)[1];
   for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) assert.ok(csp.includes(`'${sha(m[1])}'`), 'style hash (run node scripts/site-csp.mjs)');
   assert.ok(csp.includes(`script-src '${sha(block('script'))}'`), 'script hash (run node scripts/site-csp.mjs)');
-  assert.equal((html.match(/<style/g) || []).length, 2, 'glass + terminal sheets'); assert.equal((html.match(/<script/g) || []).length, 1);
+  assert.equal((html.match(/<style/g) || []).length, 2, 'glass + terminal sheets'); assert.equal((html.match(/<script(?! type="application\/ld\+json")/g) || []).length, 1, 'one executable script (JSON-LD is data)');
   assert.doesNotMatch(html, /\bon[a-z]+="/, 'no inline event handlers (CSP would block them)');
   assert.doesNotMatch(html, /\sstyle="/, 'no style attributes (a hashed style-src blocks them)');
   assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval/);
@@ -134,6 +134,32 @@ test('W13 Homebrew: the exact install command, once, in a <code>, with a copy bu
   assert.match(html, /navigator\.clipboard\.writeText/, 'the copy button uses the clipboard API');
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.ok(readme.includes(cmd), 'README documents the same command');
+});
+
+test('W14 SEO: crawl files, structured data, social card, description length, 404 page', gate, () => {
+  const robots = fs.readFileSync(path.join(root, 'site/robots.txt'), 'utf8');
+  assert.match(robots, /^User-agent: \*\nAllow: \/\nSitemap: https:\/\/backspacer\.dev\/sitemap\.xml\n$/);
+  const sitemap = fs.readFileSync(path.join(root, 'site/sitemap.xml'), 'utf8');
+  assert.match(sitemap, /<loc>https:\/\/backspacer\.dev\/<\/loc>/);
+  assert.ok(fs.existsSync(path.join(root, 'site/404.html')), 'GitHub Pages serves site/404.html for unknown paths');
+  const nf = fs.readFileSync(path.join(root, 'site/404.html'), 'utf8');
+  assert.match(nf, /<meta name="robots" content="noindex">/);
+  assert.match(nf, /href="https:\/\/backspacer\.dev\/"/, 'the 404 page links home');
+  const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert.ok(ld, 'JSON-LD present');
+  const data = JSON.parse(ld[1]);
+  assert.equal(data['@type'], 'SoftwareApplication');
+  assert.equal(data.operatingSystem, 'macOS 13 or later');
+  assert.equal(data.applicationCategory, 'UtilitiesApplication');
+  assert.equal(data.offers.price, '0');
+  assert.match(data.downloadUrl, /releases\/latest$/);
+  assert.equal(data.license, 'https://polyformproject.org/licenses/noncommercial/1.0.0');
+  const desc = html.match(/<meta name="description" content="([^"]*)"/)[1];
+  assert.ok(desc.length >= 120 && desc.length <= 158, `description ${desc.length} chars (search snippets cut near 155)`);
+  assert.match(html, /<meta name="twitter:image" content="https:\/\/backspacer\.dev\/assets\/og\.png">/);
+  assert.match(html, /<meta name="twitter:title" content="[^"]+">/);
+  const title = html.match(/<title>([^<]*)<\/title>/)[1];
+  assert.ok(title.length <= 60, `title ${title.length} chars`);
 });
 
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
