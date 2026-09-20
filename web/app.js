@@ -83,7 +83,10 @@ const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the 
 const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
 // Rows measured below the current stop are hidden, deselected and left out of totals.
 const minBytes = () => THR[state.thr];
-const visible = id => isVisible(state.size.get(id), minBytes());
+// A row shows when it clears the size threshold — and, in the by-project view, when it is not a
+// project build-output entry: those move into the Projects card (rows, select-all, bucket badges).
+const isProjectEntry = id => entry(id)?.glob?.root === '$PROJECTS';
+const visible = id => isVisible(state.size.get(id), minBytes()) && !(state.projectView === 'project' && isProjectEntry(id));
 
 // Totals use each entry's *own* size (measured minus nested children) so nothing counts twice.
 let NEST = { children: new Map(), parent: new Map() };
@@ -300,7 +303,9 @@ const bucketTotal = b => state.catalog.entries.filter(e => e.bucket === b && vis
 function updateTotals() {
   applyThreshold(); updateMeter();
   for (const b of ORDER) { const el = document.querySelector(`[data-total="${b}"]`); if (el) el.textContent = fmt(bucketTotal(b)); }
-  $('.tagline').textContent = taglineText(RECLAIMABLE.reduce((a, b) => a + bucketTotal(b), 0));
+  // The tagline counts the same bytes in both views: the buckets, plus what the Projects card took over.
+  const projectBytes = state.projectView === 'project' ? projectEntries().filter(e => RECLAIMABLE.includes(e.bucket) && isVisible(state.size.get(e.id), minBytes())).reduce((a, e) => a + own(e.id), 0) : 0;
+  $('.tagline').textContent = taglineText(RECLAIMABLE.reduce((a, b) => a + bucketTotal(b), 0) + projectBytes);
   const n = state.selected.size, bytes = [...state.selected].reduce((a, id) => a + (selectedParent(id) ? 0 : state.size.get(id) || 0), 0);
   $('#sum').innerHTML = n ? `<b>${n}</b> selected · <b>${fmt(bytes)}</b>` : 'Nothing selected';
   $('#deleteSel').disabled = !n;
@@ -358,7 +363,7 @@ async function refreshProjects() {
 function setProjectView(v, save) {
   state.projectView = v === 'project' ? 'project' : 'tool';
   document.querySelectorAll('#projView button').forEach(b => { const on = b.dataset.view === state.projectView; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
-  renderProjects();
+  if (state.catalog) updateTotals();   // applyThreshold hides or restores the project rows and renders the card
   if (save) bridge.call('prefSet', { key: 'projectView', value: state.projectView }).catch(() => {});
 }
 $('#projView').onclick = e => { const v = e.target.dataset.view; if (v) setProjectView(v, true); };

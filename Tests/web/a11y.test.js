@@ -197,3 +197,9 @@ test('A19 the by-project view: a toggle in the Project folders island, one card,
   assert.match(app, /prefSet', \{ key: 'projectView'/);
   assert.match(app, /aria-label="Last touched \$\{[^}]+\}"/, 'the age has an accessible name');
 });
+
+test('A20 in the by-project view the project entries leave the buckets and live in the card only', () => {
+  assert.match(app, /const visible = id => isVisible\(state\.size\.get\(id\), minBytes\(\)\) && !\(state\.projectView === 'project' && isProjectEntry\(id\)\)/, 'rows, select-all and bucket badges all follow visible()');
+  assert.match(app, /const projectBytes = state\.projectView === 'project' \?/, 'the tagline still counts the bytes the card took over');
+  assert.match(app, /if \(state\.catalog\) updateTotals\(\);\s*\/\/ applyThreshold hides or restores/);
+});
