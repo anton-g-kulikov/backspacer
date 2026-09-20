@@ -272,7 +272,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Y5 | keychain | created with a random password, the certificate imported with the secret, deleted in an `if: always()` step; the login keychain is never touched |
 | Y6 | notarization | credentials come from `NOTARY_*` env (the three secrets), never `--keychain-profile` in CI; `notarize.sh` builds `AUTH` from the env when set, else from the profile, and never echoes the password |
 | Y9 | Sparkle signing guard | CI's package step builds with `build-app.sh` (which signs Sparkle's nested code inside out) and deep-strict-verifies the bundle on every push, so a Sparkle bump that breaks the signing order or the XPC entitlements fails before a tag |
-| Y8 | site deploy | `release.yml` has a `site` job that `needs: release` and calls `pages.yml` as a reusable workflow with `required: true` (a GITHUB_TOKEN-created release never triggers `release: published`); `pages.yml` declares `workflow_call` and treats the flag like a release event |
+| Y8 | site deploy | `release.yml` has a `site` job that `needs: release` and calls `pages.yml` as a reusable workflow with `required: true` and `tag: github.ref_name` (the "latest" pointer lagged behind on 1.0.3, so the site fetches this tag's asset) (a GITHUB_TOKEN-created release never triggers `release: published`); `pages.yml` declares `workflow_call` and treats the flag like a release event |
 | Y7 | artefact | DMG hashed with `shasum -a 256`, the hash in the notes, the DMG as the asset, Gatekeeper asked first, `attest-build-provenance` on the DMG |
 
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)

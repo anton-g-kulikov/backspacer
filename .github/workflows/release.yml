@@ -136,3 +136,4 @@ jobs:
     uses: ./.github/workflows/pages.yml
     with:
       required: true
+      tag: ${{ github.ref_name }}   # this release's asset, not "latest", which can still point at the previous one

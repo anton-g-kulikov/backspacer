@@ -61,10 +61,11 @@ test('Y7 the release carries the DMG, its SHA-256 in the notes, and a build-prov
 });
 
 test('Y8 the release run deploys the site itself: GITHUB_TOKEN events never trigger other workflows', () => {
+  const pages = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   // `gh release create` inside release.yml raises `release: published`, but events created with the
   // workflow token do not start workflows — so pages.yml is called as a reusable workflow instead.
-  assert.match(wf, /^  site:\n    needs: release\n(?:.*\n)*?    uses: \.\/\.github\/workflows\/pages\.yml\n    with:\n      required: true\n/m);
-  const pages = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
+  assert.match(wf, /^  site:\n    needs: release\n(?:.*\n)*?    uses: \.\/\.github\/workflows\/pages\.yml\n    with:\n      required: true\n      tag: \$\{\{ github\.ref_name \}\}/m, 'the site ships this tag\'s appcast — "latest" lagged behind on 1.0.3');
+  assert.match(pages, /releases\/download\/\{1\}\/appcast\.xml', github\.repository, inputs\.tag\)/, 'pages.yml fetches by tag when given one');
   assert.match(pages, /^  workflow_call:\n    inputs:\n      required:\n        type: boolean\n/m, 'pages.yml accepts the call with a required flag');
   assert.match(pages, /REQUIRED: \$\{\{ github\.event_name == 'release' \|\| inputs\.required == true \}\}/);
   const site = wf.slice(wf.indexOf('  site:'));

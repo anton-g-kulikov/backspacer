@@ -26,6 +26,10 @@ on:
       required:
         type: boolean
         default: false
+      tag:
+        description: the release tag whose appcast to ship (the "latest" pointer can lag right after publishing)
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -57,7 +61,7 @@ jobs:
         # A release event without a usable appcast fails the deploy; a plain site push
         # tolerates "no appcast yet" (before the first Sparkle release) but never a broken one.
         env:
-          FEED: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml
+          FEED: ${{ inputs.tag != '' && format('https://github.com/{0}/releases/download/{1}/appcast.xml', github.repository, inputs.tag) || format('https://github.com/{0}/releases/latest/download/appcast.xml', github.repository) }}
           REQUIRED: ${{ github.event_name == 'release' || inputs.required == true }}
         run: |
           sudo apt-get install -y -qq libxml2-utils >/dev/null
@@ -70,7 +74,7 @@ jobs:
           [ -s site/appcast.xml ] || { echo "no appcast on the latest release"; exit 1; }
           xmllint --noout site/appcast.xml
           grep -q '<enclosure' site/appcast.xml && grep -q 'sparkle:version' site/appcast.xml || { echo "appcast has no Sparkle enclosure"; exit 1; }
-          echo "appcast: $(grep -o 'sparkle:shortVersionString="[^"]*"' site/appcast.xml | head -1)"
+          echo "appcast: $(grep -o 'sparkle:shortVersionString>[^<]*' site/appcast.xml | head -1)"
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
