@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-CDT2C6WVkFXzfdTx/p+wLEaenYk5ybOaE08vLglwIC4=' 'sha256-C65Br+ljk3bH5fWM7EM3SvAixXWKnIF/rj7AyDzYVDc='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-uv68T1Vo76HRS9SOBzWSQNq0U+9nWceSz/8LLGq+iuo=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -38,7 +38,6 @@
   "operatingSystem": "macOS 13 or later",
   "downloadUrl": "https://github.com/anton-g-kulikov/backspacer/releases/latest",
   "installUrl": "https://github.com/anton-g-kulikov/backspacer/releases/latest",
-  "softwareVersion": "0.9.0",
   "license": "https://polyformproject.org/licenses/noncommercial/1.0.0",
   "image": "https://backspacer.dev/assets/og.png",
   "screenshot": "https://backspacer.dev/assets/screenshot-light.png",
@@ -122,6 +121,7 @@
   /* Wide screens: both columns start at the top; the copy stays put while the reveal scrolls, and
      the grid row (the reveal's height) releases it at the end. */
   @media (min-width: 960px) { .hero-grid { grid-template-columns: 11fr 10fr; gap: 48px; align-items: start; } .hero-copy { position: sticky; top: 84px; } }
+  .kicker { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
   h1 { margin: 0; font-size: clamp(40px, 7vw, 64px); line-height: 1.02; letter-spacing: -.02em; font-weight: 800; }
   .tagline { margin: 10px 0 0; font-family: var(--mono); font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
   .lede { margin: 18px 0 0; font-size: clamp(18px, 2.1vw, 21px); color: var(--muted); max-width: 40ch; }
@@ -238,6 +238,7 @@
   [data-skin="terminal"] h1 { color: var(--accent); font-weight: 700; letter-spacing: 0; font-size: clamp(34px, 6vw, 56px); }
   [data-skin="terminal"] h1::before { content: "$ "; color: var(--muted); font-weight: 400; }
   [data-skin="terminal"] .tagline::before { content: "// "; color: var(--faint); }
+  [data-skin="terminal"] .kicker { text-transform: none; letter-spacing: 0; } [data-skin="terminal"] .kicker::before { content: "# "; }
   [data-skin="terminal"] .reveal .label::before { content: "// "; }
   [data-skin="terminal"] section h2 { font-size: clamp(18px, 2.3vw, 24px); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
   [data-skin="terminal"] section .sub { max-width: min(66.6%, 84ch); }
@@ -329,6 +330,7 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
+        <p class="kicker">Free up disk space on a developer's Mac</p>
         <h1>Backspacer</h1>
         <p class="tagline">I got some if you need it.</p>
         <p class="lede">A small macOS app that finds the caches, build output and tooling leftovers that silently eat a developer's disk, sorts them by how safe they are to remove, and deletes only what you select.</p>

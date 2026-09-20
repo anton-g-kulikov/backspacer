@@ -155,6 +155,8 @@ test('W14 SEO: crawl files, structured data, social card, description length, 40
   assert.equal(data.applicationCategory, 'UtilitiesApplication');
   assert.equal(data.offers.price, '0');
   assert.match(data.downloadUrl, /releases\/latest$/);
+  assert.equal(data.softwareVersion, undefined, 'no hardcoded version: it goes stale every release');
+  assert.match(html, /<p class="kicker">Free up disk space on a developer(?:'|&#39;|’)s Mac<\/p>\s*<h1>Backspacer<\/h1>/, 'a search-phrase kicker above the brand H1');
   assert.equal(data.license, 'https://polyformproject.org/licenses/noncommercial/1.0.0');
   const desc = html.match(/<meta name="description" content="([^"]*)"/)[1];
   assert.ok(desc.length >= 120 && desc.length <= 158, `description ${desc.length} chars (search snippets cut near 155)`);
