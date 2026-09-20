@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-XomDDpARpWcn1hj5DAJpggggsSf5VDdnBDDCm5+qy8E=' 'sha256-cnX5TFzEa4JEokkatG1VaS9/osRuxaWPd0cvJDl8Wqg='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-CDT2C6WVkFXzfdTx/p+wLEaenYk5ybOaE08vLglwIC4=' 'sha256-C65Br+ljk3bH5fWM7EM3SvAixXWKnIF/rj7AyDzYVDc='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -145,7 +145,8 @@
 
   section { padding: 44px 0; }
   section h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.015em; line-height: 1.15; text-wrap: balance; }
-  section .sub { margin: 0 0 24px; color: var(--muted); max-width: 62ch; text-wrap: balance; }
+  section .sub { margin: 0 0 24px; color: var(--muted); max-width: min(66.6%, 80ch); text-wrap: balance; }
+  @media (max-width: 720px) { section .sub, .isnot { max-width: none; } }
   h1, .tagline, .lede, .rcap, .bucket p, .groups span, .safety p, .prose p { text-wrap: pretty; }
 
   /* The reveal: the macOS Storage row, then what Backspacer finds inside it — markup, not an image,
@@ -192,7 +193,7 @@
   .groups li { border-radius: 14px; background: var(--card); border: 1px solid var(--border); padding: 14px 16px; }
   .groups b { display: block; font-size: 15.5px; margin-bottom: 4px; }
   .groups span { color: var(--muted); font-size: 14.5px; }
-  .isnot { margin: 22px 0 0; max-width: 62ch; color: var(--muted); font-size: 15.5px; text-wrap: pretty; }
+  .isnot { margin: 22px 0 0; max-width: min(66.6%, 80ch); color: var(--muted); font-size: 15.5px; text-wrap: pretty; }
   .isnot b { color: var(--fg); }
 
   .safety { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin: 0; padding: 0; list-style: none; }
@@ -239,7 +240,7 @@
   [data-skin="terminal"] .tagline::before { content: "// "; color: var(--faint); }
   [data-skin="terminal"] .reveal .label::before { content: "// "; }
   [data-skin="terminal"] section h2 { font-size: clamp(18px, 2.3vw, 24px); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
-  [data-skin="terminal"] section .sub { max-width: 70ch; }
+  [data-skin="terminal"] section .sub { max-width: min(66.6%, 84ch); }
   [data-skin="terminal"] section h2::before { content: "── "; color: var(--faint); font-weight: 400; }
   [data-skin="terminal"] .btn { background: none; border: 0; box-shadow: none; padding: 6px 4px; border-radius: 0; color: var(--fg); font-weight: 400; }
   [data-skin="terminal"] .btn::before { content: "["; color: var(--faint); margin-right: 6px; } [data-skin="terminal"] .btn::after { content: "]"; color: var(--faint); margin-left: 6px; }
