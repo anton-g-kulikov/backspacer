@@ -167,6 +167,8 @@
   .info-out pre { margin: 4px 0; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 12px; align-items: center; padding: 5px 0; border-top: 1px solid var(--sep); }
   .item:first-child { border-top: 0; }
+  .item.more { grid-template-columns: 1fr; }
+  .item.more .btn { justify-self: start; color: var(--muted); }
   .item .ipath { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; user-select: text; }
   .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px 18px; color: var(--faint); }
@@ -253,7 +255,7 @@
   /* ── header ─────────────────────────── */
   header {
     padding: 12px calc(18px + var(--sb, 0px)) 10px; border-bottom: 1px solid var(--line);
-    display: grid; grid-template-columns: minmax(0, 360px) 1fr auto; gap: 8px 16px; align-items: center;
+    display: grid; grid-template-columns: minmax(0, 400px) 1fr auto; gap: 8px 16px; align-items: center;
   }
   .brand { display: flex; min-width: 0; }
   .brand .mark { display: none; }
@@ -364,6 +366,8 @@
   .info-out pre { margin: 4px 0; font: inherit; font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 10px; align-items: center; padding: 3px 0; border-top: 1px solid var(--line); }
   .item:first-child { border-top: 0; }
+  .item.more { grid-template-columns: 1fr; }
+  .item.more .btn { justify-self: start; }
   .item .ipath { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); -webkit-user-select: text; user-select: text; }
   .item .btn { width: 100%; padding-left: 0; padding-right: 0; text-align: center; }
   .empty { padding: 12px; color: var(--faint); }
@@ -427,7 +431,7 @@
       <button data-theme="glass" aria-pressed="true">Glass</button><button data-theme="terminal" aria-pressed="false">Terminal</button>
     </div>
     <label class="thr" title="Hide anything smaller than this. Hidden items can't be selected or deleted.">
-      <span>Show ≥</span><input type="range" id="thr" min="0" max="9" value="3" aria-label="Show items at least this large" aria-valuetext="100 MB"><b id="thrLbl">100 MB</b>
+      <span>Show ≥</span><input type="range" id="thr" min="0" max="9" value="0" aria-label="Show items at least this large" aria-valuetext="10 MB"><b id="thrLbl">10 MB</b>
     </label>
   </div>
   <button class="btn primary" id="scan">Scan</button>

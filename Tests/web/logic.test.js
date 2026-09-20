@@ -183,3 +183,13 @@ test('J18 updateText: one line per outcome, the link only when there is somethin
     { text: 'You’re up to date.', link: null, linkText: null });
   assert.deepEqual(updateText(null, 'Couldn’t reach GitHub.'), { text: 'Couldn’t reach GitHub.', link: null, linkText: null });
 });
+
+test('J19 splitItems: the size threshold applies to Details items, unknown sizes stay visible', () => {
+  const { splitItems } = require('../../web/logic.js');
+  const items = [{ path: 'a', bytes: 500e6 }, { path: 'b', bytes: 99e6 }, { path: 'c', bytes: 100e6 }, { path: 'd' }, { path: 'e', bytes: 0 }];
+  const r = splitItems(items, 100e6);
+  assert.deepEqual(r.shown.map((i) => i.path), ['a', 'c', 'd'], 'at or above the threshold, or unmeasured');
+  assert.deepEqual(r.hidden.map((i) => i.path), ['b', 'e']);
+  assert.equal(r.hiddenBytes, 99e6);
+  assert.deepEqual(splitItems(items, 0).hidden, [], 'a zero threshold hides nothing');
+});

@@ -83,8 +83,10 @@ password dialog.
   Trash they would reclaim nothing. Admin paths and command-driven entries
   (`brew`, `simctl`) can't be trashed and are removed directly.
 - **The size threshold hides, it doesn't just filter.** The "Show ≥" slider
-  (10 MB … 10 GB, default 100 MB) removes smaller entries from the list, deselects them, and
-  they can't be deleted until the slider is lowered again.
+  (10 MB … 10 GB, default 10 MB) removes smaller entries from the list, deselects them, and
+  they can't be deleted until the slider is lowered again. Inside Details the same
+  threshold applies; a last row says how many smaller items there are and how much
+  they hold, and reveals them on click.
 - **Nothing runs as root without the system dialog.** Admin items use
   `do shell script … with administrator privileges`, so the app never sees a
   password and there's no helper tool to trust.

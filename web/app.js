@@ -74,7 +74,7 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), scanning: false, scanned: false, thr: 3, disk: null, roots: [] };
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
 // fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
@@ -279,6 +279,8 @@ function updateTotals() {
 }
 
 function applyThreshold() {
+  state.showSmall.clear();
+  for (const id of state.items.keys()) { const out = document.querySelector(`[data-infoout="${id}"]`); if (out && !out.hidden) renderItems(id); }
   for (const id of [...state.selected]) if (!visible(id)) { state.selected.delete(id); const cb = document.querySelector(`[data-sel="${id}"]`); if (cb) cb.checked = false; }
   for (const sec of document.querySelectorAll('section.bucket')) {
     let any = false, lbl = null, lblAny = false;
@@ -366,6 +368,7 @@ document.addEventListener('click', async e => {
     out.innerHTML = '<pre>…</pre>';
     try { out.querySelector('pre').textContent = (await bridge.call('info', { id })).text || '(no output)'; } catch (err) { out.querySelector('pre').textContent = err.message; }
   }
+  if (t.dataset.showsmall) { state.showSmall.add(t.dataset.showsmall); renderItems(t.dataset.showsmall); }
   if (t.dataset.reveal) bridge.call('reveal', { id: t.dataset.reveal }).catch(err => log(err.message, 'err'));
   if (t.dataset.del) confirmAndDelete([t.dataset.del]);
   if (t.dataset.delitem) confirmAndDeleteItem(t.dataset.delitem, t.dataset.path);
@@ -382,12 +385,19 @@ function renderItems(id) {
   items.sort((a, b) => (b.bytes || 0) - (a.bytes || 0));   // largest first; the host names them
   const show = itemName;
   const canDel = itemDeletable(e);
-  out.innerHTML = items.map(it => `
+  // The size threshold applies here too; "show small" reveals the rest until the slider moves.
+  const { shown, hidden, hiddenBytes } = state.showSmall.has(id) ? { shown: items, hidden: [], hiddenBytes: 0 } : splitItems(items, minBytes());
+  const row = it => `
     <div class="item" data-item="${esc(itemId(it))}">
       <span class="ipath" title="${esc(it.path || it.key)}">${esc(show(it))}</span>
       <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
       ${canDel ? `<button class="btn small danger" data-delitem="${e.id}" data-path="${esc(itemId(it))}">Delete</button>` : '<span></span>'}
-    </div>`).join('');
+    </div>`;
+  const more = hidden.length ? `
+    <div class="item more">
+      <button class="btn small" data-showsmall="${e.id}">${hidden.length} smaller item${hidden.length === 1 ? '' : 's'}, ${fmt(hiddenBytes)} — below ${fmt(minBytes())}</button>
+    </div>` : '';
+  out.innerHTML = shown.map(row).join('') + more;
 }
 
 async function confirmAndDeleteItem(id, path) {

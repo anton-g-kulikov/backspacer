@@ -177,6 +177,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
 | J14 | `confirmDialog` (R1) | resolves `true` only when the dialog closed with `returnValue === "ok"`; a close without a value (Escape) after a previous "ok" resolves `false` — the stale value is reset before every open |
 | J17 | `taglineText` | `0`/`undefined` → the plain tagline; otherwise `I got some [<fmt(bytes)> of space] if you need it`; `RECLAIMABLE` is exactly `safe, regen, decide` |
+| J19 | `splitItems` | items at or above the threshold (or unmeasured) are shown; the rest are set aside with their byte total; a zero threshold hides nothing |
 | J18 | `updateText` | newer → "X is available." plus a Download link; current → "You’re up to date."; no result → the error text; links only when there is something to get |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
@@ -223,8 +224,10 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A9 | scrollbar | `main::-webkit-scrollbar-thumb` is styled in both themes (plus a dark-mode override in Glass); the scrollbar is never hidden (`display: none` / zero width) — it stays a visible affordance, keyboard scrolling untouched |
 | A10 | drag region and selection sweep | `app.js` has a `mousedown` listener that calls `bridge.call('dragWindow')` on the header and `preventDefault`s outside `SELECTABLE_OR_INTERACTIVE` (which names `.path` and `input`, so paths stay selectable and controls keep their default) |
 | A11 | right-click target (ADR-10) | `app.js` has a `contextmenu` listener that sends `contextTarget {id, item}` — selectors only, never a path; Details items carry `data-item` |
-| A12 | scan button and header layout | `startScanWords` writes the verb frames to `#scan` (static "Scanning…" under Reduce Motion); nothing references `#host`; `#scan` is its own grid cell after `.controls`; both themes use `minmax(0, 360px) 1fr auto` with `.controls { justify-self: center }`, a `min-width` on the busy button, and a `max-width: 959px` block that stacks the brand over the controls |
+| A12 | scan button and header layout | `startScanWords` writes the verb frames to `#scan` (static "Scanning…" under Reduce Motion); nothing references `#host`; `#scan` is its own grid cell after `.controls`; the brand column is `minmax(0, 360px)` in Glass and `minmax(0, 400px)` in Terminal (monospace) with `.controls { justify-self: center }`, a `min-width` on the busy button, and a `max-width: 959px` block that stacks the brand over the controls |
 | A13 | update check UI | About has `<p class="upd">` with the `#checkUpd` button and an `aria-live` `#updResult`; `app.js` wires the click and `window.__checkUpdates` (for the app menu); the check is never called at init |
+| A14 | Details threshold | `renderItems` splits with `splitItems(items, minBytes())`, ends with a `data-showsmall` button ("N smaller items, X — below Y") that reveals them; `applyThreshold` re-renders open lists |
+| A15 | default threshold | `state.thr` is 0 (10 MB), the slider starts at 0 with `aria-valuetext="10 MB"`, the label reads 10 MB |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; Log/About tabs carry `aria-expanded`; theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -321,8 +324,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J18 | passing |
-| Web accessibility (node) | A1–A13 | passing |
+| Web logic (node) | J1–J19 | passing |
+| Web accessibility (node) | A1–A15 | passing |
 | Site (node) | W1–W13 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y7 | passing |

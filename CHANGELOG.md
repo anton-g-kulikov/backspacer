@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The size filter now applies inside Details too: items below the threshold are folded into one last row ("12 smaller items, 340 MB — below 100 MB") that reveals them on click; totals still add up. The filter's default is 10 MB, the slider's first stop.
+- Terminal: the tagline no longer truncates at the default window width.
 - Homebrew: `brew tap anton-g-kulikov/tap && brew install --cask backspacer`; `brew upgrade` follows releases.
 
 ## 0.9.0 — 2026-09-20

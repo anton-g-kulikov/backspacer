@@ -32,6 +32,13 @@ const itemName = it => it.display ?? it.label ?? it.path.split('/').slice(-2).jo
 const rowSizeText = (bytes, trashed, needsAccess = false) => trashed ? 'in Trash' : (bytes == null && needsAccess) ? 'needs access' : fmt(bytes);
 /** Rows measured below the threshold are hidden; rows still measuring stay visible. */
 const isVisible = (bytes, minBytes) => bytes == null || bytes >= minBytes;
+// The same threshold inside a Details list: items below it are set aside (with their total), so
+// the list stays short but nothing is silently missing and the parent's size still adds up.
+function splitItems(items, minBytes) {
+  const shown = [], hidden = [];
+  for (const it of items) (isVisible(it.bytes, minBytes) ? shown : hidden).push(it);
+  return { shown, hidden, hiddenBytes: hidden.reduce((a, it) => a + (it.bytes || 0), 0) };
+}
 
 /**
  * Some entries live inside others (pip cache inside ~/Library/Caches). Returns direct
@@ -110,5 +117,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, updateText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, updateText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

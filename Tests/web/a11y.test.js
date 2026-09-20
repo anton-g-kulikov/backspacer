@@ -112,8 +112,8 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   assert.match(app, /reduced-motion: reduce\)'\)\.matches\) \{ \$\('#scan'\)\.textContent = 'Scanning…'/, 'static label under Reduce Motion');
   assert.doesNotMatch(app, /#host/, 'nothing writes to a slot that no longer exists');
   assert.match(html, /<\/div>\s*<button class="btn primary" id="scan">Scan<\/button>\s*<div class="disk">/, 'the button is its own grid cell after .controls');
-  const grids = html.match(/grid-template-columns: minmax\(0, 360px\) 1fr auto;/g) || [];
-  assert.equal(grids.length, 2, 'brand | centred controls | button, in both themes');
+  assert.match(html, /grid-template-columns: minmax\(0, 360px\) 1fr auto;/, 'Glass: brand | centred controls | button');
+  assert.match(html, /grid-template-columns: minmax\(0, 400px\) 1fr auto;/, 'Terminal: the monospace tagline needs a wider brand column');
   assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
   assert.equal((html.match(/#scan\[aria-busy="true"\] \{[^}]*min-width/g) || []).length, 2, 'the button keeps a steady width while the verbs cycle');
   const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
@@ -127,4 +127,17 @@ test('A13 About offers a manual update check with a live result', () => {
   assert.match(app, /bridge\.call\('checkUpdate'\)/);
   assert.match(app, /window\.__checkUpdates = /, 'the app menu triggers the same check');
   assert.doesNotMatch(app, /checkUpdate'\)[^;]*\n[^\n]*init\(/, 'never at launch — only on the click');
+});
+
+test('A14 Details lists honour the size threshold and say what they hide', () => {
+  assert.match(app, /function renderItems\(id\) \{[\s\S]*?splitItems\(items, minBytes\(\)\)/);
+  assert.match(app, /<button class="btn small" data-showsmall="\$\{e\.id\}">/, 'the summary row is a button that reveals the small items');
+  assert.match(app, /smaller item/, 'it says how many and how much');
+  assert.match(app, /function applyThreshold\(\) \{[\s\S]*?renderItems\(/, 'open Details lists re-render when the slider moves');
+});
+
+test('A15 the size filter defaults to 10 MB (the slider\'s first stop) unless a preference says otherwise', () => {
+  assert.match(app, /const state = \{[^}]*thr: 0,/);
+  assert.match(html, /<input type="range" id="thr" min="0" max="9" value="0" [^>]*aria-valuetext="10 MB">/);
+  assert.match(html, /<b id="thrLbl">10 MB<\/b>/);
 });
