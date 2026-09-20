@@ -46,6 +46,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C14 | every entry whose path is under `~/Library/Containers`, `~/Library/Group Containers`, `~/Library/Messages`, `~/Library/Mail`, `~/Library/Safari` or `MobileSync` carries `fda: true`; the new Mail-downloads, Teams-cache and Messages-attachments entries exist with the right buckets | pass |
 | C13 | `android-avd` is a `children` entry with `companion: ".ini"`; `companion` only appears with `children` | pass |
 | C12 | `cache-logs` is a `children` entry excluding `Reclaimer` and `DiagnosticReports` (R21); `exclude` only ever appears with `children` | pass |
 | C11 | no entry combines `sudo` with `deleteCmd` or `deleteItemCmd` (R7): admin work is only ever an `rm -rf` the bridge builds from gate-checked paths | pass |
@@ -153,6 +154,7 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
 | F9 | `size` on an entry with several paths | one `xargs -0 -P 2 -n 1 du -skx` over NUL-separated quoted paths; total = sum of the per-path lines; items keep per-path bytes. Ceiling: 4 workers × 2 = at most 8 `du` processes during a scan |
 | F10 | `size` on a single-path entry | still a plain `du -skxc` (no xargs) |
+| F12 | `fda: true` entries | without Full Disk Access (no `~/Library/Safari` in the fixture home) `size` returns `bytes: null` and runs no `du`; with it, `du` runs as usual |
 | F11 | a `sudo` entry with a `deleteCmd` / `deleteItemCmd` (built in the test; the catalog forbids it) | `delete` throws; nothing reaches `runAsAdmin`; `run` is never called with the command |
 
 ### Web logic — `Tests/web/logic.test.js` (Node's `node:test`, run with `node --test Tests/web`)
@@ -171,6 +173,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J11 | `shuffled` | a permutation of the words; different rngs give different orders; `scanFrame` honours the given list |
 | J13 | `scanOrder` | entries sorted by last duration, longest first; unknown durations last, in catalog order; `SCAN_WORKERS` is 4 |
 | J14 | `confirmDialog` (R1) | resolves `true` only when the dialog closed with `returnValue === "ok"`; a close without a value (Escape) after a previous "ok" resolves `false` — the stale value is reset before every open |
+| J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
 | J9 | catalog consistency | every entry with `itemsCmd` is `granular` and `hasInfo`; every `children` entry is `granular` |
@@ -226,7 +229,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S11 | passing |
-| CatalogTests | C1–C13 | passing |
+| CatalogTests | C1–C14 | passing |
 | PrefTests | P1–P3 | passing |
 | ShellTests | Q1–Q3 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
@@ -235,8 +238,8 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
-| FakeShellTests | F1–F11 | passing |
-| Web logic (node) | J1–J15 | passing |
+| FakeShellTests | F1–F12 | passing |
+| Web logic (node) | J1–J16 | passing |
 | Web accessibility (node) | A1–A8 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

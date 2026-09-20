@@ -27,8 +27,9 @@ const trashes = e => e.bucket === 'decide' && !e.sudo && !e.deleteCmd && !e.item
 /** What an item is called in the Details list. */
 const itemName = it => it.display ?? it.label ?? it.path.split('/').slice(-2).join('/');
 
-/** The size cell: a row moved to the Trash says so instead of showing 0. */
-const rowSizeText = (bytes, trashed) => trashed ? 'in Trash' : fmt(bytes);
+/** The size cell: a row moved to the Trash says so instead of showing 0; an FDA entry that
+ *  couldn't be measured says what it needs instead of a dash. */
+const rowSizeText = (bytes, trashed, needsAccess = false) => trashed ? 'in Trash' : (bytes == null && needsAccess) ? 'needs access' : fmt(bytes);
 /** Rows measured below the threshold are hidden; rows still measuring stay visible. */
 const isVisible = (bytes, minBytes) => bytes == null || bytes >= minBytes;
 

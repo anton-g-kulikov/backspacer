@@ -33,6 +33,7 @@ struct Catalog: Decodable {
         var childLabel: ChildLabel?  // with children: label each subfolder from a JSON file inside it
         var exclude: [String]?       // with children: subfolder names never listed nor removed
         var companion: String?       // with children: a sibling file "<stem><companion>" removed with each child (AVD .ini)
+        var fda: Bool?               // lives behind Full Disk Access: without it, size is unknown rather than 0
         var sudo: Bool?
         var manual: Bool?
         var note: String?

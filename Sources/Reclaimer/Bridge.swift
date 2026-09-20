@@ -293,7 +293,7 @@ final class Bridge: NSObject, WKScriptMessageHandler {
 
     /// ~/Library/Safari is TCC-protected; listing it succeeds only with Full Disk Access.
     private func hasFullDiskAccess() -> Bool {
-        (try? fm.contentsOfDirectory(atPath: home + "/Library/Safari")) != nil
+        (try? fm.contentsOfDirectory(atPath: tildeHome + "/Library/Safari")) != nil
     }
 
     private func openFullDiskAccessSettings() {
@@ -302,6 +302,9 @@ final class Bridge: NSObject, WKScriptMessageHandler {
     }
 
     private func size(_ e: Catalog.Entry) throws -> [String: Any] {
+        // Behind Full Disk Access a du would silently report 0 and the row would vanish below the
+        // threshold; unknown is the honest answer, and the page says what it takes.
+        if e.fda == true && !hasFullDiskAccess() { return ["bytes": NSNull(), "paths": [String](), "fda": true] }
         if let cmd = e.sizeCmd {
             let r = runCatalogCommand(cmd, timeout: 300)
             if let kb = parseKB(r.stdout) { return ["bytes": kb * 1024, "paths": [String]()] }

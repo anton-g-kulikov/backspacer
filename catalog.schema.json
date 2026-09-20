@@ -69,6 +69,7 @@
           "properties": { "file": { "type": "string" }, "keys": { "type": "array", "minItems": 1, "items": { "type": "string" } } },
           "description": "With children: name each subfolder after the first present key in <child>/<file> (JSON)."
         },
+        "fda":    { "type": "boolean", "description": "Lives behind Full Disk Access (containers, Mail, Messages, Safari, MobileSync): without it the size shows as unknown, not 0." },
         "sudo":   { "type": "boolean", "description": "Measured and removed through the macOS admin dialog." },
         "manual": { "type": "boolean", "description": "Measured and explained, never removed by the app." },
         "sizeCmd":       { "type": "string", "description": "Prints the size in KB." },

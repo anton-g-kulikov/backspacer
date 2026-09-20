@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- App data behind Full Disk Access (Mail attachment downloads, Microsoft Teams cache, Messages attachments, plus Safari, Telegram, iPhone backups, UTM, Docker) is marked with a "disk access" badge and shows "needs access" instead of quietly disappearing when the permission isn't granted.
 - Android virtual devices are listed per device in Details; deleting one removes its `.ini` too, so Device Manager doesn't show a broken entry.
 
 ## 0.6.3 — 2026-09-20 (accessibility)

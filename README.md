@@ -123,6 +123,7 @@ editor picks it up from the `$schema` line; `swift test` checks it too). The fie
   "companion": ".ini",               // with children: <stem>.ini is removed together with each child
   "note": "Rebuilt on next build.",  // optional, shown under the label
   "sudo": false,                     // needs admin to measure/delete
+  "fda": false,                      // lives behind Full Disk Access: size shows "needs access" until granted
   "manual": false,                   // measure + explain, never delete
   "sizeCmd": "…",                    // optional: command printing size in KB
   "infoCmd": "xcrun simctl runtime list",  // optional: shown by the Details button

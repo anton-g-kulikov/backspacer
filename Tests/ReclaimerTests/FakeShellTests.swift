@@ -20,6 +20,7 @@ import Testing
           { "id": "cmd", "group": "t", "bucket": "safe",   "label": "custom", "path": "~/Library/Logs", "deleteCmd": "brew cleanup -s" },
           { "id": "sz",  "group": "t", "bucket": "decide", "label": "sized",  "sizeCmd": "some-tool --kb", "manual": true },
           { "id": "multi", "group": "t", "bucket": "safe", "label": "two", "paths": ["~/Library/Caches", "~/Library/Logs"] },
+          { "id": "fda", "group": "t", "bucket": "safe", "label": "mail dl", "path": "~/Library/Caches", "fda": true },
           { "id": "root1", "group": "t", "bucket": "safe", "label": "bad", "path": "~/Library/Logs", "sudo": true, "deleteCmd": "evil-tool --wipe" },
           { "id": "root2", "group": "t", "bucket": "decide", "label": "bad2", "sudo": true, "itemsCmd": "list", "deleteItemCmd": "evil-rm {key}" },
           { "id": "it",  "group": "t", "bucket": "decide", "label": "items",  "itemsCmd": "list-things", "deleteItemCmd": "rm-thing {key}" }
@@ -120,6 +121,19 @@ import Testing
         shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
         _ = try bridge.handle(op: "size", args: ["id": "p"])
         #expect(!shell.calls.contains { $0.contains("xargs") })
+    }
+
+    @Test("F12 — FDA entries report unknown instead of 0 without Full Disk Access")
+    func fdaGate() throws {
+        defer { cleanup() }
+        let r = try bridge.handle(op: "size", args: ["id": "fda"]) as? [String: Any]
+        #expect(r?["bytes"] is NSNull, Comment(rawValue: "\(String(describing: r?["bytes"]))"))
+        #expect(!shell.calls.contains { $0.hasPrefix("du ") })
+        try fm.createDirectory(at: home.appendingPathComponent("Library/Safari"), withIntermediateDirectories: true)   // the FDA probe
+        shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
+        let r2 = try bridge.handle(op: "size", args: ["id": "fda"]) as? [String: Any]
+        let expected: Int64 = 5 * 1024
+        #expect(n(r2?["bytes"]) == expected)
     }
 
     @Test("F11 — sudo plus a command is refused before anything runs")

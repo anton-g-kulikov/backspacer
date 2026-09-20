@@ -159,3 +159,9 @@ test('J15 hostile folder names cannot break out of an attribute (R2)', () => {
   assert.ok(!/<script>/.test(html) && !/<script[^>]*>[^<]*\S[^<]*<\/script>/.test(html), 'no inline script blocks');
   assert.ok(!/ on[a-z]+=/.test(html), 'no inline event handlers in the markup');
 });
+
+test('J16 rowSizeText says what an unknown size means on an FDA entry', () => {
+  assert.equal(L.rowSizeText(null, false, true), 'needs access');
+  assert.equal(L.rowSizeText(null, false, false), '—');
+  assert.equal(L.rowSizeText(5e6, false, true), '5 MB');
+});

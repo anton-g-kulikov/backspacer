@@ -28,6 +28,7 @@ function mockBridge() {
         case 'fdaStatus': return { granted: false };
         case 'size': {
           const e = catalog.entries.find(x => x.id === args.id);
+          if (e.fda) return { bytes: null, paths: [], fda: true };   // the mock reports FDA as not granted
           let s = sizes.get(args.id);
           if (!s) {
             s = { bytes: e.bucket === 'locked' ? rnd(4e8, 2e9) : (Math.random() < .2 ? 0 : rnd(1e7, 9e9)) };
@@ -179,7 +180,7 @@ function render() {
     for (const e of entries) {
       if (e.group !== group) { group = e.group; body.insertAdjacentHTML('beforeend', `<div class="group-lbl">${esc(group)}</div>`); }
       const canDel = deletable(e);
-      const badges = [e.sudo ? '<span class="badge admin">admin</span>' : '', e.manual ? '<span class="badge manual">manual</span>' : ''].join('');
+      const badges = [e.sudo ? '<span class="badge admin">admin</span>' : '', e.manual ? '<span class="badge manual">manual</span>' : '', e.fda ? '<span class="badge fda" title="Needs Full Disk Access to measure">disk access</span>' : ''].join('');
       const globRoot = e.glob && (e.glob.root === '$PROJECTS' ? (state.roots.map(r => r.display).join(' · ') || 'project folders') : e.glob.root);
       const pathTxt = e.path || (e.paths ? e.paths.join('  ·  ') : e.glob ? `${globRoot}/**/${e.glob.name || (e.glob.names || e.glob.pathPatterns || []).join('|')}` : '');
       body.insertAdjacentHTML('beforeend', `
@@ -243,7 +244,8 @@ async function scan(only) {
         const r = await bridge.call('size', { id: e.id });
         state.size.set(e.id, r.bytes); if (r.items) state.items.set(e.id, r.items);
         const el = document.querySelector(`[data-size="${e.id}"]`);
-        el.textContent = fmt(r.bytes); el.className = 'size' + (r.bytes === 0 || r.bytes == null ? ' zero' : '');
+        el.textContent = rowSizeText(r.bytes, false, !!r.fda); el.className = 'size' + (r.bytes === 0 || r.bytes == null ? ' zero' : '');
+        if (r.fda) el.title = 'Needs Full Disk Access — grant it in System Settings, then Rescan';
       } catch (err) { state.size.set(e.id, null); log(`${e.label}: ${err.message}`, 'err'); const el = document.querySelector(`[data-size="${e.id}"]`); el.textContent = '?'; el.className = 'size zero'; }
       updateTotals();
     }

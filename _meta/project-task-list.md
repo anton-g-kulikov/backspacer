@@ -20,10 +20,6 @@ file, then moved to Done.
 
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
-22. **App data, round two** — sandboxed apps need Full Disk Access to even
-    measure (Teams, Mail, Messages); Notion stays *Your call*; Steam/Google
-    Updater bundles are app code. Needs an FDA-aware entry flag.
-
 ### Hygiene — repo, release, open source
 23. **R22 · CI hardening**: `permissions: contents: read`; SHA-pin actions;
     on tags run an ad-hoc `build-app.sh` + `codesign --verify --strict` +
@@ -62,6 +58,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — App data round two: `fda` flag, needs-access state, Mail downloads / Teams cache / Messages attachments (F12, C14, J16).
 - 2026-09-20 — AVD per-item delete via `companion` on children entries (I16, C13).
 - 2026-09-20 — 0.6.3 released: accessibility tier (R10–R17).
 - 2026-09-20 — Accessibility visuals: R14 contrast (A7 computes ratios from the tokens), R15 reduced motion (A8). Accessibility tier complete.

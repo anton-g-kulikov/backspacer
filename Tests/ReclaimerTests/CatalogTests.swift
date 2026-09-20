@@ -82,6 +82,18 @@ import Testing
         #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
     }
 
+    @Test("C14 — everything behind Full Disk Access says so")
+    func fdaFlags() throws {
+        let gated = ["~/Library/Containers", "~/Library/Group Containers", "~/Library/Messages", "~/Library/Mail", "~/Library/Safari", "MobileSync"]
+        for e in catalog.entries {
+            let paths = (e.path.map { [$0] } ?? []) + (e.paths ?? [])
+            if paths.contains(where: { p in gated.contains { p.contains($0) } }) { #expect(e.fda == true, Comment(rawValue: e.id)) }
+        }
+        #expect(catalog.entry("app-mail-downloads")?.bucket == "safe")
+        #expect(catalog.entry("app-teams-cache")?.bucket == "safe")
+        #expect(catalog.entry("app-messages")?.manual == true, "the gate refuses ~/Library/Messages, so measure only")
+    }
+
     @Test("C13 — AVDs are per-device with their .ini")
     func avdCompanion() throws {
         let e = try #require(catalog.entry("android-avd"))

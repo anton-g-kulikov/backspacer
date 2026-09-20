@@ -179,8 +179,12 @@ The View menu (⌘1/⌘2) calls `window.__setTheme`; `menuNeedsUpdate` re-reads
 
 ## Full Disk Access
 
-`hasFullDiskAccess` lists `~/Library/Safari`, which is TCC-protected. Without
-FDA the page shows a banner whose button opens
+`hasFullDiskAccess` lists `~/Library/Safari`, which is TCC-protected. Entries
+flagged `fda: true` (containers, Mail, Messages, Safari, MobileSync, UTM,
+Docker's VM) are not measured without it: `size` returns `bytes: null` with
+`fda: true`, the row shows *needs access* and a **disk access** badge instead
+of silently measuring 0 and vanishing below the threshold (F12, C14, J16).
+Without FDA the page also shows a banner whose button opens
 `x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles`.
 TCC keys the grant on team ID + bundle ID, so it survives rebuilds only for
 Developer ID–signed builds; ad-hoc builds lose it on every rebuild.
