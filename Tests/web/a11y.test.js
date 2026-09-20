@@ -112,10 +112,11 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   assert.match(app, /reduced-motion: reduce\)'\)\.matches\) \{ \$\('#scan'\)\.textContent = 'Scanning…'/, 'static label under Reduce Motion');
   assert.doesNotMatch(app, /#host/, 'nothing writes to a slot that no longer exists');
   assert.match(html, /<\/div>\s*<button class="btn primary" id="scan">Scan<\/button>\s*<div class="disk">/, 'the button is its own grid cell after .controls');
-  assert.match(html, /grid-template-columns: minmax\(0, 360px\) 1fr auto;/, 'Glass: brand | centred controls | button');
-  assert.match(html, /grid-template-columns: minmax\(0, 400px\) 1fr auto;/, 'Terminal: the monospace tagline needs a wider brand column');
+  assert.match(html, /grid-template-columns: 360px 1fr auto;/, 'Glass: fixed brand column | centred controls | button');
+  assert.match(html, /grid-template-columns: 400px 1fr auto;/, 'Terminal: fixed, wider for the monospace tagline');
+  assert.doesNotMatch(html, /grid-template-columns: minmax\(0, \d+px\) 1fr auto/, 'the brand column must not grow with the tagline — the centre would move');
   assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
-  assert.equal((html.match(/#scan\[aria-busy="true"\] \{[^}]*min-width/g) || []).length, 2, 'the button keeps a steady width while the verbs cycle');
+  assert.equal((html.match(/#scan \{ justify-self: end; min-width: [\d.]+em/g) || []).length, 2, 'the button has a fixed width at rest and while busy, so the centre never moves');
   const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
   assert.equal(stacks.length, 2, 'below 960 px the header stacks: brand row, then controls + button, in both themes');
 });
