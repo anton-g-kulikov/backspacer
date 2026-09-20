@@ -42,6 +42,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 1.2.1 released: Projects card sort.
 - 2026-09-20 — Projects card sort: Stalest | Largest segment, `projectSort` preference (J23, A30, P1).
 - 2026-09-20 — 1.2.0 released: Explain in Details, the accessibility audit (axe-core in CI, screen-reader fixes).
 - 2026-09-20 — Explain (C17, J22, A29): `explain { what, why, after, keep }` in the schema and on all 93 entries, a `note` on the 28 that lacked one, Details opens with the block. One note corrected on the way (Claude's per-project memory notes live in `~/.claude/projects` too); the new Codex and Gemini notes say their folders hold config and login.

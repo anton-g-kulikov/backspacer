@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 — 2026-09-20
 - By project: the Projects card can be sorted largest first as well as stalest first (Stalest | Largest in its header; remembered).
 
 ## 1.2.0 — 2026-09-20
