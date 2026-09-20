@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.3 — 2026-09-20
 - New entries: Rust toolchains (rustup), CocoaPods specs repos, SDKMAN archives, Terraform plugin cache, minikube image cache — all Regenerable — and Vagrant boxes under Your call.
 - Docs: SECURITY.md explains how to verify a download (Gatekeeper, SHA-256, provenance); CONTRIBUTING names the test suites and the `.dev` build; the LICENSE preamble names the tap and the site as official channels.
 

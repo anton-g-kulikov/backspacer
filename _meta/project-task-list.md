@@ -61,6 +61,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 0.9.3 released: six new catalog entries (rustup, CocoaPods specs, SDKMAN, Terraform, minikube, Vagrant), docs catch-up.
 - 2026-09-20 — 0.9.2 released: navigation-delegate fix (links open in the browser again), automatic update notice.
 - 2026-09-20 — Automatic update notice (U5–U7, A16, P1): once per session after the first scan, daily throttle, opt-out pref, footer notice; README's network statement updated.
 - 2026-09-20 — Fixed: navigation delegate never called since Swift 6 (closure type mismatch) — About links opened in-window, the update DMG link did nothing; V1–V2 pin the selectors; external navigations are logged.
