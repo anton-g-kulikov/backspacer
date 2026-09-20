@@ -82,6 +82,16 @@ import Testing
         #expect(ol.itemsCmd != nil && ol.deleteItemCmd?.contains("{key}") == true)
     }
 
+    @Test("C15 — catalog text is plain, never markup")
+    func plainText() {
+        for e in catalog.entries {
+            #expect(!e.label.contains("<"), Comment(rawValue: e.id))
+            #expect(!(e.note ?? "").contains("<"), Comment(rawValue: e.id))
+        }
+        let raw = catalog.rawJSON
+        #expect(!raw.contains("\"blurb\": \"<"))
+    }
+
     @Test("C14 — everything behind Full Disk Access says so")
     func fdaFlags() throws {
         let gated = ["~/Library/Containers", "~/Library/Group Containers", "~/Library/Messages", "~/Library/Mail", "~/Library/Safari", "MobileSync"]

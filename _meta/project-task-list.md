@@ -21,10 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-24. **R27 · Test gaps**: S7 only covers static `path`/`paths` — extend to
-    glob roots/`then` and `children` items; `Shell.runAsAdmin` escaping;
-    `Shell.q` with newline; catalog `note` free of HTML; every glob root
-    under an allowed prefix.
 25. **R26 · OSS files**: CODE_OF_CONDUCT.md, `.github/FUNDING.yml`, GitHub
     topics; license detected as "Other" (custom preamble) — consider pure
     PolyForm text + NOTICE and an SPDX line.
@@ -55,6 +51,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R27: S12 (glob/children paths pass the gate), Q4 (newline in a path), C15 (plain catalog text); M6 already covers admin escaping.
 - 2026-09-20 — R22: CI hardened (read-only token, SHA-pinned actions, lint steps, tag-time package check, Dependabot).
 - 2026-09-20 — App data round two: `fda` flag, needs-access state, Mail downloads / Teams cache / Messages attachments (F12, C14, J16).
 - 2026-09-20 — AVD per-item delete via `companion` on children entries (I16, C13).

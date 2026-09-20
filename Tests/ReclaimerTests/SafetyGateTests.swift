@@ -102,6 +102,34 @@ import Testing
         #expect(b.isSafeToDelete(home.path + "/Library/Caches"))
     }
 
+    @Test("S12 — glob matches and children of every catalog entry can pass the gate")
+    func globsAndChildrenPassGate() throws {
+        let catalog = try Fixture.catalog()
+        let fm = FileManager.default
+        let tmp = fm.temporaryDirectory.appendingPathComponent("reclaimer-s12-\(UUID().uuidString)")
+        defer { try? fm.removeItem(at: tmp) }
+        try fm.createDirectory(at: tmp.appendingPathComponent("Documents/code"), withIntermediateDirectories: true)
+        let suite = "reclaimer-s12-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
+        let b = Bridge(catalog: catalog, home: tmp.path, tildeHome: tmp.path, defaults: defaults)
+        try b.addProjectRoot(path: tmp.path + "/Documents/code")
+        let expand = { (p: String) in p.hasPrefix("~") ? tmp.path + p.dropFirst() : p }
+        for e in catalog.entries where ["safe", "regen", "decide"].contains(e.bucket) && !e.isManual {
+            if let g = e.glob {
+                let name = g.name ?? g.names?.first ?? "match"
+                let roots = g.root == "$PROJECTS" ? [tmp.path + "/Documents/code"] : [expand(g.root)]
+                for root in roots {
+                    var match = root + "/proj/" + name
+                    if let then = g.then { match += "/" + then }
+                    #expect(b.isSafeToDelete(match), Comment(rawValue: "\(e.id): \(match)"))
+                }
+            }
+            if e.children == true, let p = e.path {
+                #expect(b.isSafeToDelete(expand(p) + "/child"), Comment(rawValue: "\(e.id): child of \(p)"))
+            }
+        }
+    }
+
     @Test("S7 — every static path of a deletable catalog entry passes the gate")
     func catalogPathsPassGate() throws {
         let catalog = try Fixture.catalog()

@@ -30,6 +30,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | S5 | traversal: `~/Library/Caches/../../Documents` normalises to a refused path | refused |
 | S6 | relative path | refused |
 | S7 | every static `path`/`paths` of a deletable catalog entry (with a home-relative or allowed root) passes the gate — the catalog can never name something the gate refuses |
+| S12 | glob roots and `children` parents (R27) | every fixed glob root and every `children` parent path in the catalog is inside an allowed root (so their matches/children can pass the gate); a representative match under each glob root (`<root>/x/<name>[/then]`) and a child under each `children` path pass the gate; `$PROJECTS` globs pass for a match inside a configured project folder |
 | S8 | user-data deny-list (R3) | refused anywhere under: `~/Documents`, `~/Desktop`, `~/Pictures`, `~/Movies`, `~/Music`, `~/Public`, `~/Library/Mail`, `~/Library/Messages`, `~/Library/Keychains`, `~/Library/Mobile Documents`, `~/Library/CloudStorage`, `~/Library/Group Containers`, `~/Library/Accounts`, `~/Library/Cookies`, `~/Library/Safari`, `~/.ssh`, `~/.gnupg`, and any `*.photoslibrary`; a path inside a configured project folder is exempt (`~/Documents/mycode/app/node_modules` once `~/Documents/mycode` is added as a root) |
 | S9 | case folding | `~/library/MAIL/x` is refused on the case-insensitive default file system; `~/Library/Caches` in any case is allowed |
 | S10 | roots need a separator | `/System/Volumes/Data/macOS Install Data-2` refused; `…/macOS Install Data/x` allowed |
@@ -46,6 +47,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C15 | catalog text is plain (R27): no `<` in any `label`, `note` or bucket `blurb` — they are rendered through `esc()` and would show literally | pass |
 | C14 | every entry whose path is under `~/Library/Containers`, `~/Library/Group Containers`, `~/Library/Messages`, `~/Library/Mail`, `~/Library/Safari` or `MobileSync` carries `fda: true`; the new Mail-downloads, Teams-cache and Messages-attachments entries exist with the right buckets | pass |
 | C13 | `android-avd` is a `children` entry with `companion: ".ini"`; `companion` only appears with `children` | pass |
 | C12 | `cache-logs` is a `children` entry excluding `Reclaimer` and `DiagnosticReports` (R21); `exclude` only ever appears with `children` | pass |
@@ -66,6 +68,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | Q1 | plain path | wrapped in single quotes |
 | Q2 | path containing `'` | quote closed, escaped, reopened (`'a'\''b'`) |
 | Q3 | path with spaces, `$`, backticks, `;` | inert inside single quotes (no other escaping) |
+| Q4 | path with a newline (R27) | stays one shell word: `sh -c "printf %s <quoted>"` prints the original bytes back |
 
 ### CatalogCommandTests — catalog shell commands, run for real through `Shell.run`
 Integration tests: a fake `brew` on `PATH` and a temp Cellar stand in for Homebrew. Nothing touches the real system.
@@ -228,10 +231,10 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 
 | Suite | Cases | State |
 |---|---|---|
-| SafetyGateTests | S1–S11 | passing |
-| CatalogTests | C1–C14 | passing |
+| SafetyGateTests | S1–S12 | passing |
+| CatalogTests | C1–C15 | passing |
 | PrefTests | P1–P3 | passing |
-| ShellTests | Q1–Q3 | passing |
+| ShellTests | Q1–Q4 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I16 | passing |
 | ProjectRootTests | R1–R6 | passing |

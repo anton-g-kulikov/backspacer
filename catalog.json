@@ -179,7 +179,7 @@
     { "id": "regen-nvm", "group": "Toolchain caches", "bucket": "decide", "manual": true,
       "label": "Node versions (nvm)", "path": "~/.nvm/versions/node",
       "infoCmd": "ls -1 ~/.nvm/versions/node",
-      "note": "Remove old ones with: nvm uninstall <version>." },
+      "note": "Remove old ones with: nvm uninstall VERSION." },
     { "id": "regen-docker", "group": "Toolchain caches", "bucket": "regen", "manual": true, "fda": true,
       "label": "Docker Desktop VM disk",
       "path": "~/Library/Containers/com.docker.docker/Data/vms",
