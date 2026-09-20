@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Internal: releases are built, signed, notarized and published by a GitHub Actions workflow when a version tag is pushed, with the DMG's SHA-256 in the notes and a build-provenance attestation; the manual path stays as a fallback.
 - About → "Check for updates" (also in the app menu): asks GitHub for the latest release and shows a Download link when there is a newer one. Only when you click — the app never checks on its own or sends anything else.
 - Internal: the test suite no longer writes into `~/Library/Logs/Backspacer/Backspacer.log`.
 - The scan verbs (measuring, rummaging…) now run inside the Scan button; the theme switch and size slider sit centred between the brand and the button, and the header stacks on narrow windows.

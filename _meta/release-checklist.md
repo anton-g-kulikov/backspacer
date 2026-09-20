@@ -26,26 +26,50 @@ and a universal binary (`UNIVERSAL=0/1` overrides); the version comes from
 On a rejected submission `scripts/notarize.sh` prints the notary log, which
 names every offending file.
 
-## Steps
-1. `swift test` is green; `git status` is clean; CHANGELOG has the version's entry.
-2. Tag: `git tag -a vX.Y.Z -m "Backspacer X.Y.Z"` — `build-app.sh` reads the
-   version from `git describe --tags`. Tag the *final* commit: an amend after
-   tagging makes the version read `X.Y.Z-1-g…`; re-tag with `git tag -f -a`.
-3. Build: `IDENTITY="Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)" scripts/build-app.sh`
+## Steps (tag-triggered — the normal path)
+1. `swift test` and the node suites are green; `git status` is clean; CHANGELOG has
+   a `## X.Y.Z — date` section (the workflow refuses a tag without one).
+2. Smoke-test a local build once: `scripts/build-app.sh && open -n build/Backspacer.app`
+   — scans, theme switch, one delete with confirm/cancel.
+3. Tag the *final* commit and push it:
+   `git tag -a vX.Y.Z -m "Backspacer X.Y.Z" && git push origin main --tags`.
+   An amend after tagging makes the version read `X.Y.Z-1-g…`; re-tag with `git tag -f -a`.
+4. Watch `.github/workflows/release.yml` (`gh run list --workflow Release`): it runs the
+   tests, builds the universal app signed with the certificate from the secrets in a
+   temporary keychain, notarizes app and DMG, staples, asks Gatekeeper, publishes the
+   GitHub release with the changelog section and the DMG's SHA-256, and attaches a
+   build-provenance attestation. A rejected notarization prints Apple's log in the run.
+5. Check the release page: DMG present, notes right, `gh attestation verify
+   Backspacer-X.Y.Z.dmg --owner anton-g-kulikov` passes.
+
+### Secrets the workflow needs (once, Settings → Secrets and variables → Actions)
+| Secret | Value |
+|---|---|
+| `MACOS_CERT_P12` | the Developer ID Application certificate **with its private key**, exported from Keychain Access as `.p12`, then `base64 -i cert.p12 \| pbcopy` |
+| `MACOS_CERT_PASSWORD` | the password chosen at export |
+| `APPLE_ID` | `anton.g.kulikov@gmail.com` |
+| `APPLE_APP_PASSWORD` | an app-specific password (account.apple.com → Sign-In and Security); the one behind the local `Backspacer` profile works too |
+| `APPLE_TEAM_ID` | `R9BBCR3NF6` |
+Rotate `APPLE_APP_PASSWORD` by revoking it at account.apple.com and storing a new one;
+the certificate expires May 2031. Never paste any of these into a script or a commit.
+
+## Steps (manual fallback — when Actions is down or the secrets aren't set)
+1. Tag as above, but don't push yet.
+2. Build: `IDENTITY="Developer ID Application: ANTON KULIKOV (R9BBCR3NF6)" scripts/build-app.sh`
    — expect `arch: x86_64 arm64` and `signature OK`.
-4. Smoke-test `open build/Backspacer.app`: scans, theme switch, one delete with confirm/cancel.
-5. Notarize: `scripts/notarize.sh` — expect `status: Accepted` twice (app, DMG)
-   and "notarized and stapled". On rejection the script prints the notary log.
-6. Verify from a user's point of view:
-   `spctl --assess --type open --context context:primary-signature -v build/Backspacer-X.Y.Z.dmg`
+3. Notarize: `scripts/notarize.sh` (uses the `Backspacer` keychain profile) — expect
+   `status: Accepted` twice (app, DMG) and "notarized and stapled".
+4. Verify: `spctl --assess --type open --context context:primary-signature -v build/Backspacer-X.Y.Z.dmg`
    and, with the DMG mounted, `spctl --assess --type execute -v /Volumes/Backspacer/Backspacer.app` → `accepted`.
-7. Push: `git push origin main --tags`.
-8. Release: `gh release create vX.Y.Z build/Backspacer-X.Y.Z.dmg --title "Backspacer X.Y.Z" --notes-file <notes>`.
-9. Remove the previous version's `.dmg`/`.zip` from `build/`.
+5. Push: `git push origin main --tags`. The Release workflow will run and fail at the
+   secrets if they aren't set — that's expected on this path.
+6. Release: `gh release create vX.Y.Z build/Backspacer-X.Y.Z.dmg --title "Backspacer X.Y.Z" --notes-file <notes>`
+   (if the workflow already created it, upload with `gh release upload` instead).
+7. Remove the previous version's `.dmg`/`.zip` from `build/`.
 
 ## Rollback
-- A bad DMG: delete the GitHub release asset, fix, bump the build number
-  (`BUILD_NUM` is a timestamp, so a rebuild is enough), re-run from step 3.
+- A bad DMG: delete the GitHub release and the tag (`gh release delete vX.Y.Z --yes`,
+  `git push origin :refs/tags/vX.Y.Z`), fix, re-tag the fixed commit and push again.
 - Notarization can't be revoked by us; a rejected build never staples, so it
   never ships.
 

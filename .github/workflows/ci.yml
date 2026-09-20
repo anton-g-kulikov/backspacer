@@ -33,7 +33,7 @@ jobs:
       - name: Tests
         run: swift test 2>&1 | tail -30
       - name: Web logic, accessibility and brand tests (node)
-        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js'
+        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'
       - name: Catalog parses and validates
         run: |
           python3 -c "import json; json.load(open('catalog.json')); json.load(open('catalog.schema.json'))"

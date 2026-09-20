@@ -1,0 +1,98 @@
+name: Release
+
+# Pushing a version tag builds, signs, notarizes and publishes the DMG — the manual steps 3–8 of
+# _meta/release-checklist.md. Needs five repository secrets (see the checklist):
+#   MACOS_CERT_P12        base64 of the Developer ID Application certificate + key (.p12)
+#   MACOS_CERT_PASSWORD   the .p12's password
+#   APPLE_ID              the Apple ID that owns the team
+#   APPLE_APP_PASSWORD    an app-specific password for it
+#   APPLE_TEAM_ID         the team id (R9BBCR3NF6)
+# Without them the signing step fails before anything is published.
+
+on:
+  push:
+    tags: ['v*']
+
+# contents: write publishes the release; id-token: write signs the provenance attestation.
+permissions:
+  contents: write
+  id-token: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: build, notarize, publish
+    runs-on: macos-15
+    env:
+      KEYCHAIN: ${{ runner.temp }}/release.keychain-db
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # build-app.sh reads the version from git describe --tags
+      - name: Select the newest Xcode 16 on the runner
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)"
+          test -n "$XCODE" || { echo "no Xcode 16 on this runner"; exit 1; }
+          sudo xcode-select -s "$XCODE"
+      - name: Tests
+        run: swift test 2>&1 | tail -30
+      - name: Web tests (node)
+        run: node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'
+      - name: Changelog has this version
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          grep -q "^## $V " CHANGELOG.md || { echo "CHANGELOG.md has no '## $V' section"; exit 1; }
+
+      # The certificate goes into a throwaway keychain; the always() step below removes it.
+      - name: Import the Developer ID certificate
+        env:
+          CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+        run: |
+          test -n "$CERT_P12" || { echo "secret MACOS_CERT_P12 is not set — see .github/workflows/release.yml"; exit 1; }
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 1800 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "${{ secrets.MACOS_CERT_PASSWORD }}" -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -1)"
+          test -n "$IDENTITY" || { echo "no Developer ID Application identity in the certificate"; exit 1; }
+          echo "IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Build (universal, signed)
+        run: scripts/build-app.sh
+      - name: Notarize, staple, DMG
+        env:
+          NOTARY_APPLE_ID: ${{ secrets.APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          NOTARY_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: scripts/notarize.sh
+      - name: Verify as a user would
+        run: |
+          DMG="build/Backspacer-${GITHUB_REF_NAME#v}.dmg"
+          spctl --assess --type open --context context:primary-signature -v "$DMG"
+          xcrun stapler validate "$DMG"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          DMG="build/Backspacer-$V.dmg"
+          SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
+          { sed -n "/^## $V /,/^## /p" CHANGELOG.md | sed '1d;$d' | sed '/^$/d'; echo; echo "SHA-256 \`Backspacer-$V.dmg\`: \`$SHA\`"; } > "$RUNNER_TEMP/notes.md"
+          gh release create "${GITHUB_REF_NAME}" "$DMG" --title "Backspacer $V" --notes-file "$RUNNER_TEMP/notes.md"
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: build/Backspacer-*.dmg
+
+      - name: Remove the temporary keychain
+        if: always()
+        run: security delete-keychain "$KEYCHAIN" 2>/dev/null || true

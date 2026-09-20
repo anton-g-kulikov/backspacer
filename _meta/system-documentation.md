@@ -268,7 +268,13 @@ were green without compiling. Xcode 16 is the floor: its Swift 6.0 compiler is
 stricter about actor inference than Xcode 26/27, so a local build proves less
 than CI does. The token is read-only, actions are
 SHA-pinned and Dependabot bumps them monthly. Signing and notarization
-are not part of CI — they need the local keychain (see `release-checklist.md`).
+live in `.github/workflows/release.yml`, which runs on a `v*` tag: tests, then the
+Developer ID certificate from the repository secrets goes into a throwaway keychain,
+`build-app.sh` signs the universal app, `notarize.sh` notarizes with credentials from
+the environment (the same script uses the keychain profile locally), Gatekeeper is
+asked, and `gh release create` publishes the DMG with the changelog section and its
+SHA-256, followed by a build-provenance attestation (`gh attestation verify`). The
+secrets and the manual fallback are in `release-checklist.md`.
 
 ## Repository layout
 

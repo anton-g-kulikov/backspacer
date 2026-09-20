@@ -251,6 +251,17 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | U4 | failures | a thrown fetch or a non-release body makes the op throw with a message that names GitHub |
 | N3 | test hygiene | every `Bridge(` in the test target passes `diagnostics:` (the suite must never write to `~/Library/Logs/Backspacer`) |
 
+### Release workflow — `Tests/web/release.test.js` (shape checks over `release.yml` and `notarize.sh`)
+| # | Case | Expect |
+|---|---|---|
+| Y1 | trigger | `v*` tags only; no branches, no pull_request |
+| Y2 | permissions | exactly `contents: write` and `id-token: write` |
+| Y3 | supply chain | every `uses:` pinned to a 40-hex commit SHA |
+| Y4 | order | `shell: bash` (pipefail); swift tests → node tests → keychain → build → notarize → release, in that order |
+| Y5 | keychain | created with a random password, the certificate imported with the secret, deleted in an `if: always()` step; the login keychain is never touched |
+| Y6 | notarization | credentials come from `NOTARY_*` env (the three secrets), never `--keychain-profile` in CI; `notarize.sh` builds `AUTH` from the env when set, else from the profile, and never echoes the password |
+| Y7 | artefact | DMG hashed with `shasum -a 256`, the hash in the notes, the DMG as the asset, Gatekeeper asked first, `attest-build-provenance` on the DMG |
+
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
 |---|---|---|
@@ -313,5 +324,6 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | Web accessibility (node) | A1–A13 | passing |
 | Site (node) | W1–W12 | passing |
 | Brand (node) | K1–K8 | passing |
+| Release workflow (node) | Y1–Y7 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

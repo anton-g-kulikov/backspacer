@@ -14,7 +14,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 APP="build/Backspacer.app"
-PROFILE="${PROFILE:-Backspacer}"          # notarytool keychain profile name
+PROFILE="${PROFILE:-Backspacer}"          # notarytool keychain profile name (local releases)
+# CI passes credentials in the environment instead (release.yml); they are never echoed.
+if [ -n "${NOTARY_APPLE_ID:-}" ]; then
+  AUTH=(--apple-id "$NOTARY_APPLE_ID" --password "$NOTARY_PASSWORD" --team-id "$NOTARY_TEAM_ID")
+else
+  AUTH=(--keychain-profile "$PROFILE")
+fi
 [ -d "$APP" ] || { echo "run scripts/build-app.sh first"; exit 1; }
 
 if codesign -dv "$APP" 2>&1 | grep -q "Signature=adhoc"; then
@@ -25,12 +31,12 @@ fi
 # so grep the status and pull the log (lists every rejected file) when it isn't Accepted.
 notarize() {
   local out
-  out=$(xcrun notarytool submit "$1" --keychain-profile "$PROFILE" --wait 2>&1) || true
+  out=$(xcrun notarytool submit "$1" "${AUTH[@]}" --wait 2>&1) || true
   echo "$out"
   if ! grep -q "status: Accepted" <<<"$out"; then
     local sub_id; sub_id=$(sed -n 's/^ *id: \([0-9a-f-]*\)$/\1/p' <<<"$out" | head -1)
     echo "✗ notarization of $1 was not accepted"
-    [ -n "$sub_id" ] && xcrun notarytool log "$sub_id" --keychain-profile "$PROFILE"
+    [ -n "$sub_id" ] && xcrun notarytool log "$sub_id" "${AUTH[@]}"
     exit 1
   fi
 }
