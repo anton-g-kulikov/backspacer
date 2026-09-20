@@ -228,3 +228,49 @@ overrides). Costs accepted: one dependency (~5 MB, an embedded framework with
 XPC services that must be signed inside out — the nested-code guard in
 `build-app.sh` becomes a real signing step), an EdDSA key to keep, and
 notarization of nested code in the release workflow.
+
+## ADR-22 — Linux and Windows: a second host in Tauri, the Mac app stays native (decided 2026-09-20, not scheduled)
+The product is the catalog and the page; the host is the part that touches
+the machine. Of the 83 catalog entries, about two thirds are tool caches and
+project build output that exist on every OS (npm, Gradle, Cargo, Go, pip,
+conda, NuGet, the AI tools' sessions, `node_modules`); a further quarter are
+the same tool at a different path per OS (VS Code, Electron apps); only the
+Xcode/simulator/system entries are macOS-only. The web UI (`web/`, with its
+own Node tests) and the 25-op bridge contract (`api-design.md`) are already
+platform-neutral. A port is therefore a second host that speaks the same
+contract over the same catalog, not a second app.
+
+Options considered:
+- **Swift on Linux and Windows.** The pure bridge (safety gate, catalog,
+  parsers) would compile; nothing else would. No first-party web view on
+  either platform (WebKitGTK and WebView2 through C interop, by hand), trash,
+  admin and settings rewritten three times, and the hardest packaging story
+  of the three. Rejected.
+- **Tauri everywhere, retiring Swift.** One host, cleanest end state; but it
+  regresses the best-tested platform (Sparkle, menus, context menu, ~130
+  Swift tests) to make the others possible. Wrong trade for an app whose
+  reputation is "careful". Rejected.
+- **Electron for the second host.** Known from LensSense (packaging, updater,
+  the Windows SmartScreen fight); the page logic is already Node. Costs a
+  150 MB disk cleaner whose own cache folders are catalog entries. Rejected
+  on weight; would have been the choice if shipping date outranked product.
+
+Chosen: **the macOS app stays native Swift; one Tauri 2 (Rust) host serves
+Linux and Windows.** The system web view on each OS, a ~10 MB binary, Tauri's
+updater plugin (signed manifests, the Sparkle role), bundling and signing for
+both platforms built in. `web/` and `catalog.json` are shared files, not
+copies; both hosts pass the same conformance suite driven from Node against
+the bridge contract. Linux first (shares the shell tools and the dot-folder
+caches with macOS, and the audience), Windows second (its extra cost is all
+Windows-specific: a native size walker, the Recycle Bin, UAC, a code-signing
+certificate and the SmartScreen wait).
+
+Preconditions that land before any host and change nothing visible on macOS:
+the catalog becomes platform-aware (`platforms` per entry, per-OS path
+variables resolved by the host), and the safety gate's test runs over every
+platform's paths.
+
+Not scheduled: the decision fixes the shape so that catalog and site work
+done now doesn't have to be undone; development starts only after the
+maintainer validates demand (see the roadmap entry in `project-task-list.md`).
+The design is in `_meta/multi-platform.md`.

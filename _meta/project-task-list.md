@@ -17,6 +17,15 @@ what remains is grounded follow-up work.
 
 ## Roadmap (ideas, not grounded)
 
+**Linux and Windows** — decided (ADR-22, 2026-09-20) but **not scheduled**:
+the maintainer validates demand first. Design in `_meta/multi-platform.md`.
+When it starts, the order is: platform-aware catalog (ships in a normal macOS
+release, no visible change) → bridge conformance suite run against the Swift
+host → Tauri host for Linux → Windows → site. Demand signals to watch:
+issues asking for Linux/Windows, referrers from Linux/Windows forums in the
+repository traffic, Search Console queries with "linux" or "windows".
+
+
 From the 2026-09-20 review: in-app updates (Sparkle 2 or a "Check for updates"
 against the GitHub releases API); Homebrew cask; a tag-triggered release
 workflow (temp keychain, notarytool, DMG upload, SLSA provenance, SHA-256 in

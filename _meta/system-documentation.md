@@ -315,6 +315,16 @@ github.com/anton-g-kulikov/homebrew-tap (its own audit CI, and a workflow that b
 verifying the DMG's SHA-256 against the release notes). The app itself is unchanged by
 this; `brew upgrade` covers updates for that audience.
 
+## Other platforms
+
+macOS only today. The design for Linux and Windows — a second host in Tauri
+that implements the same bridge contract over the same page and catalog, with
+the Mac app untouched — is decided in ADR-22 and written up in
+`_meta/multi-platform.md`; it is not scheduled. Two consequences already bind
+current work: new catalog fields must stay optional (the schema gains
+`platforms` and per-OS `os` blocks later), and platform differences belong in
+the host behind the bridge, never in `web/`.
+
 ## Repository layout
 
 ```
@@ -328,6 +338,6 @@ SECURITY.md               how to report a deletion-safety problem
 scripts/                  build-app.sh, notarize.sh, entitlements.plist, make-icon.sh, pages-dns.sh, site-csp.mjs
 site/                     the promo page (index.html + assets/), published to backspacer.dev by pages.yml
 assets/                   AppIcon.svg (source), AppIcon.icns + preview-512.png (built by scripts/make-icon.sh)
-_meta/                    this file, api-design, architecture-decisions, project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of)
+_meta/                    this file, api-design, architecture-decisions, multi-platform (Linux/Windows design, ADR-22), project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of)
 .claude/                  agent workflow (ignored by git) and launch.json for the UI dev server
 ```
