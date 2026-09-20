@@ -27,6 +27,7 @@ sips -Z 512 "$TMP/1024.png" --out assets/preview-512.png >/dev/null
 sips -Z 512 "$TMP/1024.png" --out site/assets/icon-512.png >/dev/null
 sips -Z 180 "$TMP/1024.png" --out site/assets/apple-touch-icon.png >/dev/null
 sips -Z 64  "$TMP/1024.png" --out site/assets/icon-64.png >/dev/null
+magick "$TMP/1024.png" -define icon:auto-resize=48,32,16 site/favicon.ico   # browsers ask for /favicon.ico first
 cp assets/AppIcon.svg web/icon.svg   # the page header shows the same mark (web/ is copied into the bundle)
 echo "  bump the ?v= on the icon URLs in site/index.html so caches miss"
 echo "✓ assets/AppIcon.icns, assets/preview-512.png, site/assets/icon-{512,64}.png, apple-touch-icon.png, web/icon.svg"
