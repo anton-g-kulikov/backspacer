@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- By project: the Project folders island can show build output per project — each project under your folders with its node_modules, Pods, .next and build folders summed, and when you last touched it (last commit, or the newest source file), stalest first. Reveal the folder or delete its build output in one go; source files are never touched.
+
 ## 1.0.3 — 2026-09-20
 - Glass: the header and footer are frosted glass the list scrolls under, edge to edge with the title bar; header, islands and footer line up exactly; the window can be dragged by the title-bar strip and the header; the About dialog's close cross is centred.
 - Internal: the app reads those fields and shows only entries meant for macOS — no visible change until Linux/Windows-only entries exist.

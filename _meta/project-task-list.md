@@ -40,12 +40,12 @@ a VoiceOver pass on the release checklist; localization scaffolding.
 From the 0.1.0 README:
 
 - "Explain" panel per entry with the full reasoning from the catalog notes.
-- Per-project view for `~/Projects` with last-touched dates.
 - Optional launch-at-login menu-bar mode that warns below a free-space threshold.
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
 
+- 2026-09-20 — By-project view (PJ1–PJ4, J20–J21, A19): `projects`/`revealProject` ops, `groupByProject`/`ago`, toggle + card, per-project delete through per-item `delete`.
 - 2026-09-20 — Feed seam fixed: the release run's site job fetches this tag's appcast (`releases/download/<tag>/`), not "latest", which lagged behind `gh release create` on 1.0.3 and briefly served 1.0.2; the appcast log line reads the element form. Site screenshots are the maintainer's real window captures (light, dark, Terminal), no drawn frame; README image likewise.
 
 - 2026-09-20 — 1.0.3 released: Glass frosted bars (list scrolls under header/footer), aligned edges, drag strip; catalog platform-awareness (ADR-22 step 1) rides along.

@@ -38,7 +38,7 @@ function mockBridge() {
               let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === s.items.length - 1 ? left : Math.round(left * .5); left -= it.bytes; });
             } else if (e.glob || e.paths || e.children) {   // granular: invent 2–6 items that add up
               const n = rnd(2, 6), base = e.glob ? `${e.glob.root === '$PROJECTS' ? roots[0] || '~/Projects' : e.glob.root}/proj-` : e.paths ? '' : `${e.path}/`;
-              s.items = Array.from({ length: n }, (_, i) => ({ path: e.paths ? e.paths[i % e.paths.length] + (i >= e.paths.length ? '-' + i : '') : `${base}${i + 1}/${e.glob ? e.glob.name : 'item-' + (i + 1)}`, bytes: 0 }));
+              s.items = Array.from({ length: n }, (_, i) => ({ path: e.paths ? e.paths[i % e.paths.length] + (i >= e.paths.length ? '-' + i : '') : `${base}${i + 1}/${e.glob ? (e.glob.name || (e.glob.names || [])[i % ((e.glob.names || []).length || 1)] || (e.glob.pathPatterns ? e.glob.pathPatterns[0].replace(/^\*\//, '') : 'build')) : 'item-' + (i + 1)}`, bytes: 0 }));
               let left = s.bytes; s.items.forEach((it, i) => { it.bytes = i === n - 1 ? left : Math.round(left * Math.random() * .6); left -= it.bytes; });
             }
             sizes.set(args.id, s);
@@ -62,6 +62,8 @@ function mockBridge() {
         case 'logPath': case 'revealLog': return { path: '~/Library/Logs/Backspacer/Backspacer.log' };
         case 'checkUpdate': return { skipped: 'unconfigured' };
         case 'projectRoots': return { roots: roots.map(r => ({ path: r, display: r })) };
+        case 'projects': { const r = roots[0] || '~/Projects', now = Math.floor(Date.now() / 1000); return { projects: [1, 2, 3, 4, 5, 6].map(i => ({ path: `${r}/proj-${i}`, display: `${r}/proj-${i}`, touched: i === 6 ? null : now - [3, 40, 200, 500, 900, 0][i - 1] * 86400, source: i % 2 ? 'git' : 'mtime' })) }; }
+        case 'revealProject': return { ok: true };
         case 'addProjectRoot': { const r = window.prompt('Folder (mock):', '~/Developer'); if (r && !roots.includes(r)) roots.push(r); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'removeProjectRoot': { const i = roots.indexOf(args.path); if (i < 0) throw new Error('Not a project folder'); roots.splice(i, 1); return { roots: roots.map(r => ({ path: r, display: r })) }; }
         case 'prefGet': return { value: localStorage.getItem('pref.' + args.key) };
@@ -74,7 +76,7 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
 // fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
@@ -163,6 +165,7 @@ async function init() {
   if (q) window.__setTheme(q);
   else bridge.call('prefGet', { key: 'theme' }).then(r => { if (r.value) applyTheme(r.value); }).catch(() => {});
   bridge.call('prefGet', { key: 'minSize' }).then(r => { if (r.value != null) setThreshold(r.value, false); }).catch(() => {});
+  bridge.call('prefGet', { key: 'projectView' }).then(r => { if (r.value) setProjectView(r.value, false); }).catch(() => {});
   bridge.call('appInfo').then(r => { $('#aboutVersion').textContent = r.version; $('#aboutVersion').title = 'build ' + r.build; }).catch(() => {});
   bridge.call('logPath').then(r => { $('#logPath').textContent = r.path.replace(/^\/Users\/[^/]+/, '~'); }).catch(() => {});
   $('#revealLog').onclick = () => bridge.call('revealLog').catch(err => log(err.message, 'err'));
@@ -288,6 +291,7 @@ async function scan(only) {
   await Promise.all(workers);
   state.scanning = false; state.scanned = true; $('#scan').setAttribute('aria-busy', 'false'); updateScanBtn();
   announce('Scan complete');
+  await refreshProjects();
   stopScanWords();   // no "reclaimable" total — how much to reclaim is the user's call
   log('scan complete');
 }
@@ -304,6 +308,7 @@ function updateTotals() {
 
 function applyThreshold() {
   state.showSmall.clear();
+  renderProjects();
   for (const id of state.items.keys()) { const out = document.querySelector(`[data-infoout="${id}"]`); if (out && !out.hidden) renderItems(id); }
   for (const id of [...state.selected]) if (!visible(id)) { state.selected.delete(id); const cb = document.querySelector(`[data-sel="${id}"]`); if (cb) cb.checked = false; }
   for (const sec of document.querySelectorAll('section.bucket')) {
@@ -342,6 +347,81 @@ function stopScanWords() { clearInterval(scanTimer); scanTimer = null; updateSca
 function updateScanBtn() { $('#scan').textContent = state.scanning ? 'Scanning…' : state.scanned ? 'Rescan' : 'Scan'; }
 $('#scan').onclick = () => scan();
 $('#thr').oninput = e => setThreshold(e.target.value, true);
+// The by-project view (A19): build output folded into the project it belongs to, stalest first.
+// The bridge lists the projects (and when each was last touched); the page only regroups items
+// it already has from the $PROJECTS entries. Deleting a project's output is the per-item delete,
+// one validated call per item, after one confirmation listing them all.
+async function refreshProjects() {
+  try { state.projects = (await bridge.call('projects')).projects || []; } catch { state.projects = []; }
+  renderProjects();
+}
+function setProjectView(v, save) {
+  state.projectView = v === 'project' ? 'project' : 'tool';
+  document.querySelectorAll('#projView button').forEach(b => { const on = b.dataset.view === state.projectView; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  renderProjects();
+  if (save) bridge.call('prefSet', { key: 'projectView', value: state.projectView }).catch(() => {});
+}
+$('#projView').onclick = e => { const v = e.target.dataset.view; if (v) setProjectView(v, true); };
+function renderProjects() {
+  const sec = $('#projects'), body = $('#projects-body');
+  const on = state.projectView === 'project' && state.scanned;
+  sec.hidden = !on; if (!on) return;
+  const groups = groupByProject(state.projects, projectEntries(), state.items).filter(g => g.bytes >= minBytes() || g.path === '');
+  const now = Math.floor(Date.now() / 1000);
+  $('#projectsTotal').textContent = fmt(groups.reduce((a, g) => a + g.bytes, 0));
+  if (!groups.length) { body.innerHTML = `<div class="empty">No build output ${fmt(minBytes())} or larger in your project folders${state.roots.length ? '' : ' — add a folder above'}.</div>`; return; }
+  body.innerHTML = groups.map(p => {
+    const stale = p.touched != null && now - p.touched > 180 * 86400;
+    const what = p.items.map(it => `${esc(it.name)} ${fmt(it.bytes)}`).join(' · ');
+    const canDel = p.items.some(it => itemDeletable(entry(it.entryId)));
+    return `
+    <div class="prow" data-project="${esc(p.path)}">
+      <span></span>
+      <div>
+        <div class="name">${esc(p.display)}</div>
+        <div class="what" title="${what}">${what}</div>
+      </div>
+      <span class="age${stale ? ' stale' : ''}" aria-label="Last touched ${esc(ago(p.touched, now))}" title="${p.source === 'git' ? 'Last commit' : p.source === 'mtime' ? 'Newest source file' : 'Unknown'}">${esc(ago(p.touched, now))}</span>
+      <div class="acts">
+        <span class="size">${fmt(p.bytes)}</span>
+        <button class="btn small" data-pitems="${esc(p.path)}" aria-expanded="false">Details</button>
+        ${p.path ? `<button class="btn small" data-revealproject="${esc(p.path)}">Reveal</button>` : ''}
+        ${canDel ? `<button class="btn small danger" data-delproject="${esc(p.path)}">Delete</button>` : ''}
+      </div>
+      <div class="pitems" data-pitemsof="${esc(p.path)}" hidden>${p.items.map(it => `
+        <div class="item">
+          <span class="ipath" title="${esc(it.path)}">${esc(it.label)} — ${esc(it.path.startsWith(p.path + '/') ? it.path.slice(p.path.length + 1) : it.path)}</span>
+          <span class="size${it.bytes ? '' : ' zero'}">${fmt(it.bytes)}</span>
+          ${itemDeletable(entry(it.entryId)) ? `<button class="btn small danger" data-delitem="${it.entryId}" data-path="${esc(it.path)}">Delete</button>` : '<span></span>'}
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+async function confirmAndDeleteProject(path) {
+  const g = groupByProject(state.projects, projectEntries(), state.items).find(x => x.path === path);
+  if (!g) return;
+  const items = g.items.filter(it => itemDeletable(entry(it.entryId)));
+  if (!items.length) return;
+  $('#dlgTitle').textContent = `Delete the build output of ${g.display}?`;
+  $('#dlgText').textContent = `About ${fmt(items.reduce((a, it) => a + it.bytes, 0))} across ${items.length} item${items.length === 1 ? '' : 's'} will be removed. Your source files stay; the next build recreates the rest. This can't be undone.`;
+  $('#dlgOk').textContent = 'Delete';
+  $('#dlgList').innerHTML = items.map(it => `<li>${esc(it.label)} — ${esc(it.path)} — ${fmt(it.bytes)}</li>`).join('');
+  if (!await confirmDialog($('#dlg'))) return;
+  for (const it of items) {
+    log(`deleting ${it.path}…`);
+    try {
+      const r = await bridge.call('delete', { id: it.entryId, item: it.path });
+      log(`  freed ${fmt(r.freedBytes ?? it.bytes)} — ${it.path}`, 'ok');
+      state.items.set(it.entryId, (state.items.get(it.entryId) || []).filter(x => itemId(x) !== it.path));
+      state.size.set(it.entryId, Math.max(0, (state.size.get(it.entryId) || 0) - it.bytes));
+      const el = document.querySelector(`[data-size="${it.entryId}"]`); if (el) { el.textContent = fmt(state.size.get(it.entryId)); el.className = 'size' + (state.size.get(it.entryId) ? '' : ' zero'); }
+      if (state.items.has(it.entryId) && document.querySelector(`[data-infoout="${it.entryId}"]`)) renderItems(it.entryId);
+    } catch (err) { log(`  failed — ${it.path}: ${err.message}`, 'err'); }
+  }
+  announce(`${g.display}: build output deleted`);
+  updateTotals(); renderProjects(); refreshDisk();
+}
+
 // Footer panel: Log. (About is a dialog; the app menu and __openAbout open it.)
 document.querySelector('.tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -399,6 +479,9 @@ document.addEventListener('click', async e => {
   if (t.dataset.reveal) bridge.call('reveal', { id: t.dataset.reveal }).catch(err => log(err.message, 'err'));
   if (t.dataset.del) confirmAndDelete([t.dataset.del]);
   if (t.dataset.delitem) confirmAndDeleteItem(t.dataset.delitem, t.dataset.path);
+  if (t.dataset.delproject !== undefined) confirmAndDeleteProject(t.dataset.delproject);
+  if (t.dataset.revealproject) bridge.call('revealProject', { path: t.dataset.revealproject }).catch(err => log(err.message, 'err'));
+  if (t.dataset.pitems !== undefined) { const el = document.querySelector(`[data-pitemsof="${CSS.escape(t.dataset.pitems)}"]`); el.hidden = !el.hidden; t.setAttribute('aria-expanded', String(!el.hidden)); }
 });
 $('#deleteSel').onclick = () => confirmAndDelete([...state.selected]);
 
@@ -446,7 +529,7 @@ async function confirmAndDeleteItem(id, path) {
     state.items.set(id, (state.items.get(id) || []).filter(x => itemId(x) !== path));
     state.size.set(id, Math.max(0, (state.size.get(id) || 0) - it.bytes));
     const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
-    renderItems(id); updateTotals(); refreshDisk(); if (r.trashed) afterTrash();
+    renderItems(id); updateTotals(); renderProjects(); refreshDisk(); if (r.trashed) afterTrash();
   } catch (err) { log(`  failed — ${name}: ${err.message}`, 'err'); }
 }
 

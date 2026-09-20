@@ -147,7 +147,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     // MARK: Dispatch
 
     /// Ops too frequent or too dull to log.
-    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget", "checkUpdate"]
+    private static let quietOps: Set<String> = ["catalog", "disk", "fdaStatus", "prefGet", "prefSet", "projectRoots", "appInfo", "log", "logPath", "scanHints", "dragWindow", "contextTarget", "checkUpdate", "projects"]
 
     // MARK: Scan hints — how long each entry took last time, so the page can start the slow ones first.
 
@@ -204,6 +204,13 @@ final class Bridge: NSObject, @unchecked Sendable {
             if key == "ui.autoUpdateCheck" { Task { @MainActor in self.updater?.setAutomaticChecks(Updater.automaticChecks(pref: value)) } }
             return ["ok": true]
         case "projectRoots":      return rootsReply()
+        case "projects":          return ["projects": projects().map { ["path": $0.path, "display": $0.display, "touched": $0.touched.map { $0 as Any } ?? NSNull(), "source": $0.source.map { $0 as Any } ?? NSNull()] }]
+        case "revealProject":
+            // The page names a project by the path the `projects` op gave it; only a current listing member opens.
+            guard let path = args["path"] as? String, projects().contains(where: { $0.path == path }) else { throw BridgeError.failed("Not one of your project folders.") }
+            let url = URL(fileURLWithPath: path)
+            DispatchQueue.main.async { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            return ["ok": true]
         case "addProjectRoot":    if let p = chooseFolder() { try addProjectRoot(path: p) }; return rootsReply()
         case "removeProjectRoot": try removeProjectRoot(path: args["path"] as? String ?? ""); return rootsReply()
         case "log":
@@ -238,7 +245,7 @@ final class Bridge: NSObject, @unchecked Sendable {
 
     // MARK: Prefs — UI settings that should survive relaunch (the arm switch deliberately doesn't).
 
-    private static let prefKeys: Set<String> = ["theme", "minSize", "autoUpdateCheck"]
+    private static let prefKeys: Set<String> = ["theme", "minSize", "autoUpdateCheck", "projectView"]
 
     func prefKey(_ args: [String: Any]) throws -> String {
         guard let k = args["key"] as? String, Self.prefKeys.contains(k) else {
@@ -555,6 +562,45 @@ final class Bridge: NSObject, @unchecked Sendable {
         }
         opener(URL(fileURLWithPath: path), with)
         return ["path": path]
+    }
+
+    // MARK: Projects (the by-project view)
+
+    struct Project { let path: String; let display: String; let touched: Int?; let source: String? }
+
+    /// Folder names that are build output or dependencies, never a sign the project was worked on.
+    private static let buildOutputNames: Set<String> = ["node_modules", "Pods", "build", "target", ".next", ".nuxt", "dist", "out", ".build",
+        "DerivedData", ".gradle", ".dart_tool", "bin", "obj", "coverage", ".cache", ".turbo", ".parcel-cache", "vendor", ".venv", "venv", "__pycache__"]
+
+    /// Every direct folder of every project root, with when it was last touched: the last commit
+    /// date where there is a repository, else the newest modification among its top-level entries
+    /// that are not build output. Hidden folders and files are not projects.
+    func projects() -> [Project] {
+        var out: [Project] = []
+        for root in projectRoots() {
+            guard let names = try? fm.contentsOfDirectory(atPath: root) else { continue }
+            for name in names.sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }) where !name.hasPrefix(".") {
+                let path = root + "/" + name
+                var isDir: ObjCBool = false
+                guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { continue }
+                let (touched, source) = lastTouched(path)
+                out.append(Project(path: path, display: path.hasPrefix(tildeHome + "/") ? "~" + path.dropFirst(tildeHome.count) : path, touched: touched, source: source))
+            }
+        }
+        return out
+    }
+
+    private func lastTouched(_ path: String) -> (Int?, String?) {
+        if fm.fileExists(atPath: path + "/.git") {
+            let r = shell.run("git -C \(Shell.q(path)) log -1 --format=%ct 2>/dev/null", timeout: 10, login: false)
+            if r.ok, let t = Int(r.stdout.trimmingCharacters(in: .whitespacesAndNewlines)) { return (t, "git") }
+        }
+        guard let names = try? fm.contentsOfDirectory(atPath: path) else { return (nil, nil) }
+        var newest: Date?
+        for name in names where !Self.buildOutputNames.contains(name) && name != ".git" {
+            if let date = (try? fm.attributesOfItem(atPath: path + "/" + name))?[.modificationDate] as? Date, newest.map({ date > $0 }) ?? true { newest = date }
+        }
+        return newest.map { (Int($0.timeIntervalSince1970), "mtime") } ?? (nil, nil)
     }
 
     // MARK: Path resolution

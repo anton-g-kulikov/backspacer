@@ -130,6 +130,16 @@
   .notice p { margin: 0; color: var(--muted); }
   .notice b { color: var(--fg); }
   .notice[hidden] { display: none; }
+  .roots-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+  .projects .prow { display: grid; grid-template-columns: 18px minmax(0,1fr) 110px auto; gap: 0 14px; align-items: center; padding: 9px 16px; border-top: 1px solid var(--sep); }
+  .projects .prow .name { font-weight: 600; }
+  .projects .prow .what { color: var(--faint); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .projects .prow .age { color: var(--muted); font-size: 12px; }
+  .projects .prow .age.stale { color: var(--danger); font-weight: 600; }
+  .projects .prow .acts { display: flex; gap: 8px; align-items: center; }
+  .projects .prow .acts .size { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 64px; text-align: right; }
+  .projects .pitems { grid-column: 2 / -1; padding: 2px 0 6px; }
+  .projects .empty { padding: 12px 16px; color: var(--muted); }
   .notice .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 10px; border-radius: 999px; background: var(--track); font-family: var(--mono); font-size: 11.5px; }
   .chip button { border: 0; background: none; padding: 0 2px; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; }
@@ -342,6 +352,16 @@
   .notice.roots { border-color: var(--line-strong); color: var(--muted); }
   .notice.roots b { color: var(--fg); }
   .notice.roots p::before { content: ""; }
+  .roots-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+  .projects .prow { display: grid; grid-template-columns: 18px minmax(0,1fr) 110px auto; gap: 0 12px; align-items: center; padding: 6px 12px; border-top: 1px solid var(--line); }
+  .projects .prow .name { color: var(--fg); font-weight: 700; }
+  .projects .prow .what { color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .projects .prow .age { color: var(--muted); }
+  .projects .prow .age.stale { color: var(--danger); }
+  .projects .prow .acts { display: flex; gap: 8px; align-items: center; }
+  .projects .prow .acts .size { min-width: 64px; text-align: right; color: var(--fg); }
+  .projects .pitems { grid-column: 2 / -1; padding: 2px 0 4px; }
+  .projects .empty { padding: 8px 12px; color: var(--muted); }
   .notice .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; color: var(--fg); }
   .chip::before { content: "["; color: var(--faint); } .chip::after { content: "]"; color: var(--faint); }
@@ -481,8 +501,22 @@
       <p id="rootsText"></p>
       <div class="chips" id="rootsChips"></div>
     </div>
-    <button class="btn small" id="rootsAdd">Add folder…</button>
+    <div class="roots-actions">
+      <div class="seg" id="projView" title="Build output by tool, or by the project it belongs to">
+        <button data-view="tool" aria-pressed="true">By tool</button><button data-view="project" aria-pressed="false">By project</button>
+      </div>
+      <button class="btn small" id="rootsAdd">Add folder…</button>
+    </div>
   </div>
+  <section class="bucket projects" id="projects" hidden>
+    <div class="bucket-head">
+      <span class="dot" style="background:var(--regen)"></span>
+      <h2><button type="button" aria-expanded="true" aria-controls="projects-body">Projects</button><small>Build output by project, stalest first. Deleting a project's output leaves its source alone.</small></h2>
+      <span class="total" id="projectsTotal" style="--c:var(--regen)">—</span>
+      <span></span>
+    </div>
+    <div class="bucket-body" id="projects-body"></div>
+  </section>
   <div id="buckets"></div>
 </main>
 

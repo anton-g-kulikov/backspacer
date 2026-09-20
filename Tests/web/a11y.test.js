@@ -184,3 +184,16 @@ test('A18 Glass: the list scrolls under a frosted header and footer; the overlap
   assert.match(app, /new ResizeObserver\(syncBars\)/, 'header and footer heights are observed (stacked header, Log panel open)');
   assert.match(app, /--header-h', .*offsetHeight/);
 });
+
+test('A19 the by-project view: a toggle in the Project folders island, one card, rows per project with age and their own Reveal/Delete', () => {
+  assert.match(html, /<div class="seg" id="projView"[^>]*>\s*<button data-view="tool" aria-pressed="true">By tool<\/button><button data-view="project" aria-pressed="false">By project<\/button>/);
+  assert.match(html, /<section class="bucket projects" id="projects" hidden>/);
+  assert.match(app, /bridge\.call\('projects'\)/);
+  assert.match(app, /groupByProject\(state\.projects, projectEntries\(\), state\.items\)/);
+  assert.match(app, /data-delproject="\$\{esc\(p\.path\)\}"/, 'per-project delete carries the project path as the key');
+  assert.match(app, /data-revealproject="\$\{esc\(p\.path\)\}"/);
+  assert.match(app, /bridge\.call\('revealProject', \{ path/, 'reveal goes through a validated op, not a page-named path');
+  assert.match(app, /bridge\.call\('delete', \{ id: it\.entryId, item: it\.path \}\)/, 'per-project delete is the existing per-item delete, one validated call per item');
+  assert.match(app, /prefSet', \{ key: 'projectView'/);
+  assert.match(app, /aria-label="Last touched \$\{[^}]+\}"/, 'the age has an accessible name');
+});

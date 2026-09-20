@@ -30,7 +30,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `delete` | `{id, item?}` | `{ok, freedBytes, trashed?: true}` | refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: one item of a granular entry — a path (then `rm -rf`, never for entries with a `deleteCmd`) or a key (then `deleteItemCmd` with `{key}` replaced by the shell-quoted key). Either way `item` is a selector, accepted only if it is in a fresh resolve / fresh `itemsCmd` run |
 | `reveal` | `{id}` | `{ok}` | Finder-selects the first resolved path |
 | `appInfo` | — | `{version, build}` | `CFBundleShortVersionString`, `CFBundleVersion` |
-| `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize`, `autoUpdateCheck` (the last one also flips Sparkle's `automaticallyChecksForUpdates`) |
+| `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize`, `autoUpdateCheck` (the last one also flips Sparkle's `automaticallyChecksForUpdates`), `projectView` (`tool`/`project`) |
 | `prefSet` | `{key, value}` | `{ok}` | value ≤ 32 chars |
 | `projectRoots` | — | `{roots: [{path, display}]}` | folders `$PROJECTS` globs search; `display` abbreviates home as `~` |
 | `addProjectRoot` | — | `{roots}` | opens the macOS folder picker; the chosen folder must be inside home and not under `~/Library`; de-duplicated; persisted (`ui.projectRoots`) |
@@ -42,6 +42,8 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `contextTarget` | `{id, item?}` | `{ok}` | sent by the page on right-click over a row (entry id) or a Details item (its selector); the bridge notes it on the main thread before queuing, so the native context menu that follows can offer an action for it; quiet |
 | `open` | `{id, item?, with}` | `{path}` | the context menu's path action: opens the entry's first path, or one of its current Details items (any other selector is refused), with `with: "terminal"` (the only app the page may name — Finder is the row's Reveal) |
 | `checkUpdate` | — | `{ok}` or `{skipped: unconfigured}` | asks Sparkle to check now (it shows its own window); a build without a feed says `unconfigured`. Sparkle → page goes the other way: `window.__updateFound(version)` when a newer version has been found and downloaded |
+| `projects` | — | `{projects: [{path, display, touched, source}]}` | every direct folder of every project root (files and hidden folders skipped), with when it was last touched — `touched` is a unix time from `git log -1` where a `.git` exists (`source: "git"`), else the newest modification among its top-level entries that are not build output (`"mtime"`), else null. The by-project view regroups the `$PROJECTS` entries' items by these paths |
+| `revealProject` | `{path}` | `{ok}` | reveals a project folder in Finder; the path must be a member of a fresh `projects` listing |
 | `dragWindow` | — | `{ok}` | the page's header is a window drag region: sent on mouse-down there, the bridge calls `NSWindow.performDrag(with:)` on the event still in flight (WKWebView has no drag regions of its own); quiet, no-op without a window |
 
 ## Host → page calls

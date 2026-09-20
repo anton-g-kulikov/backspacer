@@ -181,6 +181,8 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J17 | `taglineText` | `0`/`undefined` → the plain tagline; otherwise `I got some [<fmt(bytes)> of space] if you need it`; `RECLAIMABLE` is exactly `safe, regen, decide` |
 | J19 | `splitItems` | items at or above the threshold (or unmeasured) are shown; the rest are set aside with their byte total; a zero threshold hides nothing |
 | J18 | `updateText` | newer → "X is available." plus a Download link; current → "You’re up to date."; no result → the error text; links only when there is something to get |
+| J20 | `groupByProject` | items fold into the project whose path is their longest prefix (a nested project keeps its own), named by folder and labelled by entry, largest first; groups sorted oldest-touched first, unknown dates after known, "Elsewhere" (no project) last; nothing measured → `[]` |
+| J21 | `ago` | today / yesterday / N days / N weeks / N months / a year / N years ago; null → "never measured" |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
@@ -233,6 +235,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A16 | automatic check UI | `#updNotice` sits between Log and About; About has the `#autoUpd` opt-out bound to `prefSet autoUpdateCheck`; `autoCheckUpdates()` runs once per session right after the first scan completes, never at init |
 | A17 | About dialog | `<dialog id="about" aria-labelledby="aboutTitle">` with a labelled close button; icon → name → version → status → Check for updates → opt-out → help/log → License/GitHub/Buy me a book; no About tab in the footer; styled in both themes; `__openAbout` uses `showModal` (Escape closes) |
 | A18 | Glass frosted bars | `header`/`footer` are absolutely positioned over the list with a translucent `--band` fill and a backdrop blur; `main` pads by `--header-h`/`--footer-h`, which `syncBars` sets from the bars' measured heights through `ResizeObserver` (stacked header, open Log panel); Terminal keeps the bars in flow |
+| A19 | by-project view | the `#projView` segment in the Project folders island (`aria-pressed`), the `#projects` card, rows with an accessible age, per-project Reveal via `revealProject` and Delete as the existing per-item `delete` per item; the view is a `projectView` preference |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; the Log tab carries `aria-expanded`; About is a `<dialog>` (A17); theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -274,6 +277,14 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Y9 | Sparkle signing guard | CI's package step builds with `build-app.sh` (which signs Sparkle's nested code inside out) and deep-strict-verifies the bundle on every push, so a Sparkle bump that breaks the signing order or the XPC entitlements fails before a tag |
 | Y8 | site deploy | `release.yml` has a `site` job that `needs: release` and calls `pages.yml` as a reusable workflow with `required: true` and `tag: github.ref_name` (the "latest" pointer lagged behind on 1.0.3, so the site fetches this tag's asset) (a GITHUB_TOKEN-created release never triggers `release: published`); `pages.yml` declares `workflow_call` and treats the flag like a release event |
 | Y7 | artefact | DMG hashed with `shasum -a 256`, the hash in the notes, the DMG as the asset, Gatekeeper asked first, `attest-build-provenance` on the DMG |
+
+### Projects — `Tests/BackspacerTests/ProjectsTests.swift` (the by-project view's data)
+| # | Case | Expect |
+|---|---|---|
+| PJ1 | listing | every direct folder of every configured root, `~`-relative display, sorted; files and hidden folders are not projects |
+| PJ2 | git | with a `.git`, `touched` is `git log -1 --format=%ct` (plain shell, no login), `source` "git" |
+| PJ3 | mtime | without one, the newest top-level entry that is not build output (`node_modules` fresh, `src` old → old), `source` "mtime"; no git call |
+| PJ4 | no roots | an empty list |
 
 ### Brand — `Tests/BackspacerTests/BrandTests.swift` and `Tests/web/brand.test.js` (ADR-20)
 | # | Case | Expect |
@@ -336,7 +347,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 |---|---|---|
 | SafetyGateTests | S1–S12 | passing |
 | CatalogTests | C1–C16 | passing |
-| PrefTests | P1–P3 (P1 × theme, minSize, autoUpdateCheck) | passing |
+| PrefTests | P1–P3 (P1 × theme, minSize, autoUpdateCheck, projectView) | passing |
+| ProjectsTests | PJ1–PJ4 | passing |
 | ShellTests | Q1–Q4 | passing |
 | CatalogCommandTests | B1–B5, T1–T8 | passing |
 | ItemTests | I1–I16 | passing |
@@ -351,8 +363,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J19 | passing |
-| Web accessibility (node) | A1–A18 | passing |
+| Web logic (node) | J1–J21 | passing |
+| Web accessibility (node) | A1–A19 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |
 | Brand (node) | K1–K8 | passing |

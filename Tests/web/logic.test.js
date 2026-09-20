@@ -184,3 +184,39 @@ test('J19 splitItems: the size threshold applies to Details items, unknown sizes
   assert.equal(r.hiddenBytes, 99e6);
   assert.deepEqual(splitItems(items, 0).hidden, [], 'a zero threshold hides nothing');
 });
+
+test('J20 groupByProject: build-output items fold into their project by longest path prefix; the rest is "elsewhere"; stalest first', () => {
+  const { groupByProject } = require('../../web/logic.js');
+  const projects = [
+    { path: '/h/Projects/alpha', display: '~/Projects/alpha', touched: 1789000000, source: 'git' },
+    { path: '/h/Projects/beta', display: '~/Projects/beta', touched: 1700000000, source: 'mtime' },
+    { path: '/h/Projects/beta/nested', display: '~/Projects/beta/nested', touched: null, source: null },
+  ];
+  const entries = [{ id: 'nm', label: 'node_modules' }, { id: 'next', label: '.next cache' }];
+  const items = new Map([
+    ['nm', [{ path: '/h/Projects/alpha/node_modules', bytes: 2e9 }, { path: '/h/Projects/beta/nested/node_modules', bytes: 5e8 }, { path: '/h/Projects/beta/node_modules', bytes: 1e9 }, { path: '/h/elsewhere/node_modules', bytes: 1e8 }]],
+    ['next', [{ path: '/h/Projects/alpha/.next/cache', bytes: 3e8 }]],
+  ]);
+  const g = groupByProject(projects, entries, items);
+  assert.deepEqual(g.map((x) => x.display), ['~/Projects/beta', '~/Projects/alpha', '~/Projects/beta/nested', 'Elsewhere'], 'oldest first, unknown dates after known, elsewhere last');
+  const alpha = g.find((x) => x.display === '~/Projects/alpha');
+  assert.equal(alpha.bytes, 2.3e9);
+  assert.deepEqual(alpha.items.map((i) => [i.entryId, i.label, i.name, i.bytes]), [['nm', 'node_modules', 'node_modules', 2e9], ['next', '.next cache', 'cache', 3e8]], 'largest first, labelled by entry, named by folder');
+  assert.equal(g.find((x) => x.display === '~/Projects/beta/nested').items[0].path, '/h/Projects/beta/nested/node_modules', 'longest prefix wins');
+  assert.equal(g.find((x) => x.display === '~/Projects/beta').items.length, 1);
+  assert.equal(g.find((x) => x.display === 'Elsewhere').bytes, 1e8);
+  assert.deepEqual(groupByProject(projects, entries, new Map()), [], 'nothing measured, nothing to show');
+});
+
+test('J21 ago: how long since a project was touched, in words', () => {
+  const { ago } = require('../../web/logic.js');
+  const now = 1_800_000_000;
+  assert.equal(ago(null, now), 'never measured');
+  assert.equal(ago(now - 3600, now), 'today');
+  assert.equal(ago(now - 86400 * 1.5, now), 'yesterday');
+  assert.equal(ago(now - 86400 * 5, now), '5 days ago');
+  assert.equal(ago(now - 86400 * 20, now), '3 weeks ago');
+  assert.equal(ago(now - 86400 * 70, now), '2 months ago');
+  assert.equal(ago(now - 86400 * 400, now), 'a year ago');
+  assert.equal(ago(now - 86400 * 800, now), '2 years ago');
+});

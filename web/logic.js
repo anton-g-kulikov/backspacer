@@ -91,6 +91,44 @@ const RECLAIMABLE = ['safe', 'regen', 'decide'];
 function taglineText(bytes) {
   return bytes > 0 ? `I got some [${fmt(bytes)} of space] if you need it` : TAGLINE;
 }
+// The by-project view: build-output items (from the $PROJECTS entries) folded into the project
+// folder they live in — longest path prefix wins, so a nested project keeps its own — sorted
+// stalest first (unknown dates after known ones), with everything outside any project last.
+function groupByProject(projects, entries, itemsByEntry) {
+  const byPath = new Map();
+  const labelOf = new Map(entries.map(e => [e.id, e.label]));
+  const sorted = [...projects].sort((a, b) => b.path.length - a.path.length);   // longest prefix first
+  for (const e of entries) {
+    for (const it of itemsByEntry.get(e.id) || []) {
+      const home = sorted.find(p => it.path.startsWith(p.path + '/'));
+      const key = home ? home.path : '';
+      if (!byPath.has(key)) byPath.set(key, { path: key, display: home ? home.display : 'Elsewhere', touched: home ? home.touched : null, source: home ? home.source : null, bytes: 0, items: [] });
+      const g = byPath.get(key);
+      g.items.push({ entryId: e.id, label: labelOf.get(e.id), name: it.path.slice(it.path.lastIndexOf('/') + 1), path: it.path, bytes: it.bytes || 0 });
+      g.bytes += it.bytes || 0;
+    }
+  }
+  const groups = [...byPath.values()];
+  for (const g of groups) g.items.sort((a, b) => b.bytes - a.bytes);
+  return groups.sort((a, b) => {
+    if (a.path === '') return 1; if (b.path === '') return -1;
+    if (a.touched == null && b.touched == null) return b.bytes - a.bytes;
+    if (a.touched == null) return 1; if (b.touched == null) return -1;
+    return a.touched - b.touched;
+  });
+}
+// "Last touched": a rough, honest age in words.
+function ago(ts, now) {
+  if (ts == null) return 'never measured';
+  const days = Math.floor(Math.max(0, now - ts) / 86400);
+  if (days < 1) return 'today';
+  if (days < 2) return 'yesterday';
+  if (days < 14) return `${days} days ago`;
+  if (days < 60) return `${Math.round(days / 7)} weeks ago`;
+  if (days < 365) return `${Math.round(days / 30)} months ago`;
+  const years = Math.floor(days / 365);
+  return years < 2 ? 'a year ago' : `${years} years ago`;
+}
 const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
 const shuffled = (words, rng = Math.random) => { const a = [...words]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -111,5 +149,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, groupByProject, ago, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }
