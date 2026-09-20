@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- New app icon: a ring whose segments are the five buckets in the app's colours. It also leads the header in Glass (Terminal keeps its bare `$ Backspacer` prompt).
+
 ## 0.8.1 — 2026-09-20
 - Right-click on a path: the menu is Search with Google, Copy and New Terminal at Folder (which opens that row's folder — or the Details item you clicked — in Terminal). Look Up, Translate, Share, Writing Tools, Speech and the Services submenu are gone; the page background has no menu.
 - The tagline carries a live count of reclaimable space — "I got some [35.9 GB reclaimable] if you need it" — the sum of the Safe, Regenerable and Your-call buckets as shown on their badges (visible rows above the size threshold), updating as the scan measures and after every delete. Keep and Managed by macOS never count.

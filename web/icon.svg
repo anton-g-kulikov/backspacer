@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Backspacer app icon. macOS icon grid: 824×824 squircle centred in 1024. The ring is the
+       disk; its segments are the five buckets in the app's colours, clockwise from the top in
+       list order (Safe, Regenerable, Your call, Keep, Managed by macOS); the light remainder is
+       everything else. Rasterise with scripts/make-icon.sh. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a67"/>
+      <stop offset="1" stop-color="#101a33"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 285 C100 155 155 100 285 100 H739 C869 100 924 155 924 285 V739 C924 869 869 924 739 924 H285 C155 924 100 869 100 739 Z" fill="url(#bg)"/>
+  <g fill="none" stroke-width="96" stroke-linecap="butt">
+    <path d="M512.00 272.00 A240 240 0 0 1 740.25 586.16" stroke="#30d158"/><!-- safe 108° -->
+    <path d="M734.52 601.91 A240 240 0 0 1 520.38 751.85" stroke="#ff9f0a"/><!-- regen 66° -->
+    <path d="M503.62 751.85 A240 240 0 0 1 333.65 672.59" stroke="#bf5af2"/><!-- decide 46° -->
+    <path d="M322.88 659.76 A240 240 0 0 1 275.65 553.68" stroke="#8e8e93"/><!-- keep 28° -->
+    <path d="M273.31 537.09 A240 240 0 0 1 277.24 462.10" stroke="#636366"/><!-- locked 18° -->
+    <path d="M281.30 445.85 A240 240 0 0 1 495.26 272.58" stroke="#f2f4f8"/><!-- other 70° -->
+  </g>
+</svg>

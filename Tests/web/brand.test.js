@@ -64,10 +64,20 @@ test('K6 the old name is history only', () => {
 
 test('K7 the tagline sits under the wordmark; scan verbs keep their own slot beside the name', () => {
   const html = read('web/index.html');
-  assert.match(html, /<div class="brand"><div class="name"><h1>Backspacer<\/h1><span class="sub" id="host">[^<]*<\/span><\/div><span class="tagline">I got some if you need it<\/span><\/div>/);
-  assert.match(html, /\.brand \{ display: flex; flex-direction: column;/, 'stacked: name row, then tagline');
+  assert.match(html, /<div class="text"><div class="name"><h1>Backspacer<\/h1><span class="sub" id="host">[^<]*<\/span><\/div><span class="tagline">I got some if you need it<\/span><\/div>/);
+  assert.match(html, /\.brand \.text \{ display: flex; flex-direction: column;/, 'stacked: name row, then tagline');
   assert.doesNotMatch(html, /Pearl Jam|Got Some/, 'the line is a wink, not an attribution');
   const app = read('web/app.js');
   assert.match(app, /function updateTotals\(\) \{[\s\S]*?\$\('\.tagline'\)\.textContent = taglineText\(RECLAIMABLE\.reduce\(\(a, b\) => a \+ bucketTotal\(b\), 0\)\)/,
     'the counter follows the bucket badges and updates with every size');
+});
+
+test('K8 the app icon leads the header brand block and never drifts from the icon source', () => {
+  const html = read('web/index.html');
+  assert.match(html, /<div class="brand"><img class="mark" src="icon.svg" alt=""><div class="text">/, 'icon first, empty alt (the h1 is the name)');
+  assert.equal(read('web/icon.svg'), read('assets/AppIcon.svg'), 'web/icon.svg is a copy of the icon source');
+  assert.match(read('scripts/make-icon.sh'), /cp assets\/AppIcon\.svg web\/icon\.svg/, 'make-icon.sh refreshes the copy');
+  assert.match(html, /\.brand \.mark \{[^}]*width: 42px/, 'a touch bigger than the two-line brand in Glass');
+  assert.match(html, /\.brand \.mark \{ display: none; \}/, 'hidden in Terminal: a colour icon breaks the $ prompt idiom');
+  assert.match(html, /img-src 'self'/, 'CSP lets the page load it');
 });

@@ -250,6 +250,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | K4 | `notarize.sh` | `build/Backspacer.app`, keychain profile `Backspacer`, `Backspacer-$VERSION.zip/.dmg`, volume `Backspacer` |
 | K5 | LICENSE and catalog | the preamble reserves "Backspacer"; `cache-logs` excludes `Backspacer` (its own log folder) |
 | K7 | tagline | `.brand` stacks a name row (`<h1>` + the `#host` slot for scan verbs) over `<span class="tagline">I got some if you need it</span>`; the page never names the band; `updateTotals` rewrites it with `taglineText(sum of bucketTotal over RECLAIMABLE)`, so the number always equals the sum of the three bucket badges and moves with every measured size |
+| K8 | header icon | `.brand` starts with `<img class="mark" src="icon.svg" alt="">`; `web/icon.svg` is byte-identical to `assets/AppIcon.svg` and `make-icon.sh` refreshes it; 42 px in Glass, `display: none` in Terminal; CSP `img-src 'self'` |
 | K6 | old-name guard | a case-insensitive `git grep` for the old name lists only the allow-listed history files (CHANGELOG, README note, ADRs, task log, this test, the site test) |
 
 ### Site — `Tests/web/site.test.js` (static checks over `site/index.html` and `pages.yml`)
@@ -298,6 +299,6 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | Web logic (node) | J1–J17 | passing |
 | Web accessibility (node) | A1–A11 | passing |
 | Site (node) | W1–W12 | passing |
-| Brand (node) | K1–K7 | passing |
+| Brand (node) | K1–K8 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |

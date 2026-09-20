@@ -69,11 +69,12 @@
     border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
     display: grid; grid-template-columns: 1fr auto; gap: 10px 24px; align-items: center; position: relative; z-index: 2;
   }
-  .brand { display: flex; flex-direction: column; gap: 1px; }
+  .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .brand .mark { width: 42px; height: 42px; flex: none; border-radius: 10px; }
+  .brand .text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .brand .name { display: flex; align-items: baseline; gap: 10px; }
   .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.02em; line-height: 1.15; }
   .brand .sub { color: var(--muted); font-size: 12.5px; font-weight: 500; }
-  .brand { min-width: 0; }
   .brand .tagline { color: var(--muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .disk { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
   .disk .lbl { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
@@ -248,9 +249,10 @@
     padding: 12px calc(18px + var(--sb, 0px)) 10px; border-bottom: 1px solid var(--line);
     display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center;
   }
-  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand { display: flex; min-width: 0; }
+  .brand .mark { display: none; }
+  .brand .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .brand .name { display: flex; align-items: baseline; gap: 12px; }
-  .brand { min-width: 0; }
   .brand .tagline { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand .tagline::before { content: "// "; color: var(--faint); }
   .brand h1 { font-size: 13px; font-weight: 700; margin: 0; color: var(--accent); letter-spacing: .02em; }
@@ -408,7 +410,7 @@
 <body>
 
 <header>
-  <div class="brand"><div class="name"><h1>Backspacer</h1><span class="sub" id="host">scanning your Mac</span></div><span class="tagline">I got some if you need it</span></div>
+  <div class="brand"><img class="mark" src="icon.svg" alt=""><div class="text"><div class="name"><h1>Backspacer</h1><span class="sub" id="host">scanning your Mac</span></div><span class="tagline">I got some if you need it</span></div></div>
   <div class="controls">
     <div class="seg" id="theme" title="Look. Remembered between launches.">
       <button data-theme="glass" aria-pressed="true">Glass</button><button data-theme="terminal" aria-pressed="false">Terminal</button>
