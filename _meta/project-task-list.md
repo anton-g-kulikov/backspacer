@@ -37,12 +37,12 @@ workflow and the accessibility audit are done.)
 
 From the 0.1.0 README:
 
-- "Explain" panel per entry with the full reasoning from the catalog notes.
 - Optional launch-at-login menu-bar mode that warns below a free-space threshold.
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
 
+- 2026-09-20 — Explain (C17, J22, A29): `explain { what, why, after, keep }` in the schema and on all 93 entries, a `note` on the 28 that lacked one, Details opens with the block. One note corrected on the way (Claude's per-project memory notes live in `~/.claude/projects` too); the new Codex and Gemini notes say their folders hold config and login.
 - 2026-09-20 — Accessibility audit (A21–A28, ADR-23): axe-core over the rendered page in every state, in CI (`npm ci`; first and only test dependencies); screen-reader pass over the app's AX tree and the page's accessibility tree — row actions name their row, buckets are named regions, headings are titles alone, the arrow is silent, segments are groups, the project age is text; VoiceOver step on the release checklist. Unpushed, rides the next release.
 - 2026-09-20 — 1.1.0 released: the by-project view.
 - 2026-09-20 — By-project view (PJ1–PJ4, J20–J21, A19): `projects`/`revealProject` ops, `groupByProject`/`ago`, toggle + card, per-project delete through per-item `delete`.

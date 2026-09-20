@@ -18,7 +18,13 @@ const deletable = e => DELETABLE_BUCKETS.includes(e.bucket) && !e.manual && !!(e
 /** Resolves to several items the user can act on one at a time. */
 const granular = e => !!(e.glob || e.paths || e.children || e.itemsCmd);
 /** Has something to show under Details. */
-const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob || e.itemsCmd);
+const hasInfo = e => !!(e.infoCmd || e.path || e.paths || e.glob || e.itemsCmd || e.explain);
+/** The reasoning block Details opens with: what lives there, why this bucket, what happens after, when to keep. */
+function explainHTML(e, buckets) {
+  const x = e.explain; if (!x) return '';
+  const line = (dt, dd) => dd ? `<div><dt>${dt}</dt><dd>${esc(dd)}</dd></div>` : '';
+  return `<dl class="explain">${line('What', x.what)}${line(`Why ${esc(buckets[e.bucket]?.title || e.bucket)}`, x.why)}${line('After deleting', x.after)}${line('Keep if', x.keep)}</dl>`;
+}
 /** Items can be removed one at a time: by path (rm) or by the entry's deleteItemCmd. */
 const itemDeletable = e => DELETABLE_BUCKETS.includes(e.bucket) && !e.manual && (!!e.deleteItemCmd || (deletable(e) && !e.deleteCmd && !e.itemsCmd));
 const itemId = it => it.key ?? it.path;
@@ -149,5 +155,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, groupByProject, ago, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, groupByProject, ago, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, explainHTML, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

@@ -5,6 +5,7 @@ import Testing
 @Suite struct CatalogTests {
     let catalog = try! Fixture.catalog()
     static let buckets: Set<String> = ["safe", "regen", "decide", "keep", "locked"]
+    static let deletableBuckets: Set<String> = ["safe", "regen", "decide"]
 
     @Test("C1 — the shipped catalog decodes")
     func decodes() {
@@ -87,6 +88,8 @@ import Testing
         for e in catalog.entries {
             #expect(!e.label.contains("<"), Comment(rawValue: e.id))
             #expect(!(e.note ?? "").contains("<"), Comment(rawValue: e.id))
+            let texts: [String?] = [e.explain?.what, e.explain?.why, e.explain?.after, e.explain?.keep]
+            for t in texts { #expect(!(t ?? "").contains("<"), Comment(rawValue: e.id)) }
         }
         let raw = catalog.rawJSON
         #expect(!raw.contains("\"blurb\": \"<"))
@@ -132,6 +135,20 @@ import Testing
         #expect("~/x".expandingTilde == home + "/x")
         #expect("a/~/x".expandingTilde == "a/~/x")
         #expect("/abs".expandingTilde == "/abs")
+    }
+
+    @Test("C17 — every entry is explained: a note, and an explain with what, why, and after for anything deletable")
+    func explained() {
+        for e in catalog.entries {
+            let id = Comment(rawValue: e.id)
+            #expect(!(e.note ?? "").isEmpty, id)
+            guard let x = e.explain else { Issue.record(Comment(rawValue: "\(e.id): no explain")); continue }
+            let sentence = { (t: String?) in (t?.count ?? 0) >= 20 && (t?.hasSuffix(".") ?? false) }
+            #expect(sentence(x.what), id); #expect(sentence(x.why), id)
+            if Self.deletableBuckets.contains(e.bucket) { #expect(sentence(x.after), id) }
+            if let k = x.keep { #expect(k.count >= 8 && k.hasSuffix("."), id) }   // "Models you use." is a fine answer
+            #expect(x.what != e.note && x.why != e.note && x.after != e.note, id)   // the block adds to the note, not repeats it
+        }
     }
 
     @Test("C16 — the Mac host keeps only entries that list macOS (or don't say); loadAll keeps every entry")

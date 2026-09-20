@@ -178,6 +178,11 @@
   .info-out { grid-column: 2 / -1; margin: 6px 0 6px; padding: 6px 12px; background: var(--track); border-radius: 12px; max-height: 260px; overflow: auto; }
   .info-out[hidden] { display: none; }
   .info-out pre { margin: 4px 0; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .explain { margin: 4px 0 8px; padding: 0 0 6px; border-bottom: 1px solid var(--sep); display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; font-size: 12px; line-height: 1.45; }
+  .explain div { display: contents; }
+  .explain dt { color: var(--faint); font-weight: 600; font-size: 11px; letter-spacing: .02em; padding-top: 1px; }
+  .explain dd { margin: 0; color: var(--fg); -webkit-user-select: text; user-select: text; }
+  .explain:last-child { border-bottom: 0; padding-bottom: 2px; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 12px; align-items: center; padding: 5px 0; border-top: 1px solid var(--sep); }
   .item:first-child { border-top: 0; }
   .item.more { grid-template-columns: 1fr; }
@@ -403,6 +408,12 @@
   .info-out { grid-column: 2 / -1; margin: 4px 0 6px; padding: 4px 10px; background: var(--panel); border-left: 2px solid var(--line-strong); max-height: 260px; overflow: auto; color: var(--muted); }
   .info-out[hidden] { display: none; }
   .info-out pre { margin: 4px 0; font: inherit; font-size: 11px; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .explain { margin: 4px 0 6px; padding: 0 0 6px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: 11.5px; line-height: 1.5; }
+  .explain div { display: contents; }
+  .explain dt { color: var(--faint); text-transform: uppercase; letter-spacing: .06em; font-size: 10px; padding-top: 2px; }
+  .explain dt::before { content: "# " / ""; }
+  .explain dd { margin: 0; color: var(--fg); -webkit-user-select: text; user-select: text; }
+  .explain:last-child { border-bottom: 0; }
   .item { display: grid; grid-template-columns: minmax(0,1fr) 84px 78px; gap: 0 10px; align-items: center; padding: 3px 0; border-top: 1px solid var(--line); }
   .item:first-child { border-top: 0; }
   .item.more { grid-template-columns: 1fr; }

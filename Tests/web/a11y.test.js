@@ -232,3 +232,11 @@ test('A28 the two segmented controls are groups with names, not tooltips on a di
   assert.match(html, /<div class="seg" id="theme" role="group" aria-label="Look" title="/);
   assert.match(html, /<div class="seg" id="projView" role="group" aria-label="Build output view" title="/);
 });
+
+test('A29 Details opens with the Explain block, above the items, the command output and the empty case', () => {
+  assert.match(app, /out\.innerHTML = explainHTML\(e, state\.catalog\.buckets\) \+ '<pre>Nothing found\.<\/pre>'/);
+  assert.match(app, /out\.innerHTML = explainHTML\(e, state\.catalog\.buckets\) \+ shown\.map\(row\)\.join\(''\) \+ more/);
+  assert.match(app, /out\.innerHTML = explainHTML\(entry\(id\), state\.catalog\.buckets\) \+ '<pre>…<\/pre>'/);
+  assert.match(html, /\.explain \{[^}]*display: grid/, 'a definition list laid out as label + text');
+  assert.equal((html.match(/\.explain dt \{/g) || []).length, 2, 'styled in both themes');
+});

@@ -154,7 +154,13 @@ editor picks it up from the `$schema` line; `swift test` checks it too). The fie
   "childLabel": { "file": "workspace.json", "keys": ["folder"] },  // name each subfolder from a JSON or .plist file inside it
   "exclude": ["DiagnosticReports"],  // with children: subfolders never listed nor removed
   "companion": ".ini",               // with children: <stem>.ini is removed together with each child
-  "note": "Rebuilt on next build.",  // optional, shown under the label
+  "note": "Rebuilt on next build.",  // one line, shown under the label
+  "explain": {                       // the reasoning, shown at the top of Details (every entry has one)
+    "what": "Build intermediates, indexes and module caches for every project Xcode has opened.",
+    "why": "Purely derived from your source; Xcode's own Clean Build Folder deletes the same thing.",
+    "after": "The next build of each project is a full one.",     // required for safe / regen / decide
+    "keep": "You are mid-debugging on a big project."              // optional
+  },
   "sudo": false,                     // needs admin to measure/delete
   "fda": false,                      // lives behind Full Disk Access: size shows "needs access" until granted
   "manual": false,                   // measure + explain, never delete

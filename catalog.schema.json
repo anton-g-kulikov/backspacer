@@ -77,7 +77,19 @@
           "properties": { "linux": { "$ref": "#/$defs/override" }, "windows": { "$ref": "#/$defs/override" } },
           "description": "Per-OS overrides of the location and command fields. A platform with an override must also be listed in platforms. The macOS host ignores this block."
         },
-        "note":   { "type": "string", "description": "Shown under the label." },
+        "note":   { "type": "string", "description": "Shown under the label: the one-line summary." },
+        "explain": {
+          "type": "object",
+          "required": ["what", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "what":  { "type": "string", "description": "What lives there, in a sentence or two." },
+            "why":   { "type": "string", "description": "Why the entry sits in its bucket." },
+            "after": { "type": "string", "description": "What happens once it is gone: what regrows, what is re-downloaded, what is lost. Required for safe, regen and decide (C17)." },
+            "keep":  { "type": "string", "description": "When to leave it alone." }
+          },
+          "description": "The reasoning behind the row, shown at the top of Details. The note is the summary; this is the argument. Every entry has one (C17)."
+        },
         "path":   { "type": "string", "description": "One path. ~ is the home folder; $PROJECTS the user's project folders. In os overrides also $HOME, $XDG_CACHE_HOME, $XDG_CONFIG_HOME, $XDG_DATA_HOME (Linux) and $LOCALAPPDATA, $APPDATA, $TEMP (Windows)." },
         "paths":  { "type": "array", "minItems": 1, "items": { "type": "string" },
                     "description": "Several fixed paths measured and removed together (~ is home). Use path for one, glob to search." },

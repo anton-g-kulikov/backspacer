@@ -80,7 +80,7 @@ function mockBridge() {
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
-// fmt, esc, deletable, granular, hasInfo, itemDeletable, itemId, trashes, itemName, isVisible,
+// fmt, esc, deletable, granular, hasInfo, explainHTML, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
 const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
@@ -481,7 +481,7 @@ document.addEventListener('click', async e => {
     if (!out.hidden) { out.hidden = true; t.setAttribute('aria-expanded', 'false'); return; }
     out.hidden = false; t.setAttribute('aria-expanded', 'true');
     if (state.items.has(id)) { renderItems(id); return; }
-    out.innerHTML = '<pre>…</pre>';
+    out.innerHTML = explainHTML(entry(id), state.catalog.buckets) + '<pre>…</pre>';
     try { out.querySelector('pre').textContent = (await bridge.call('info', { id })).text || '(no output)'; } catch (err) { out.querySelector('pre').textContent = err.message; }
   }
   if (t.dataset.showsmall) { state.showSmall.add(t.dataset.showsmall); renderItems(t.dataset.showsmall); }
@@ -500,7 +500,7 @@ function entry(id) { return state.catalog.entries.find(e => e.id === id); }
 // size and, when the entry is deletable by path, its own Delete.
 function renderItems(id) {
   const e = entry(id), out = document.querySelector(`[data-infoout="${id}"]`), items = state.items.get(id) || [];
-  if (!items.length) { out.innerHTML = '<pre>Nothing found.</pre>'; return; }
+  if (!items.length) { out.innerHTML = explainHTML(e, state.catalog.buckets) + '<pre>Nothing found.</pre>'; return; }
   items.sort((a, b) => (b.bytes || 0) - (a.bytes || 0));   // largest first; the host names them
   const show = itemName;
   const canDel = itemDeletable(e);
@@ -516,7 +516,7 @@ function renderItems(id) {
     <div class="item more">
       <button class="btn small" data-showsmall="${e.id}">${hidden.length} smaller item${hidden.length === 1 ? '' : 's'}, ${fmt(hiddenBytes)} — below ${fmt(minBytes())}</button>
     </div>` : '';
-  out.innerHTML = shown.map(row).join('') + more;
+  out.innerHTML = explainHTML(e, state.catalog.buckets) + shown.map(row).join('') + more;
 }
 
 async function confirmAndDeleteItem(id, path) {

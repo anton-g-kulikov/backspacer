@@ -220,3 +220,19 @@ test('J21 ago: how long since a project was touched, in words', () => {
   assert.equal(ago(now - 86400 * 400, now), 'a year ago');
   assert.equal(ago(now - 86400 * 800, now), '2 years ago');
 });
+
+test('J22 explainHTML: the reasoning block Details opens with — labelled lines, only the ones present, escaped', () => {
+  const { explainHTML, hasInfo } = L;
+  const e = { id: 'x', bucket: 'safe', explain: { what: 'Build <b>intermediates</b>.', why: 'Rebuilt by the next build.', after: 'One slow build.', keep: 'Mid-build.' } };
+  const h = explainHTML(e, { safe: { title: 'Safe to delete' } });
+  assert.match(h, /^<dl class="explain">/);
+  assert.match(h, /<dt>What<\/dt><dd>Build &lt;b&gt;intermediates&lt;\/b&gt;\.<\/dd>/);
+  assert.match(h, /<dt>Why Safe to delete<\/dt><dd>Rebuilt by the next build\.<\/dd>/);
+  assert.match(h, /<dt>After deleting<\/dt><dd>One slow build\.<\/dd>/);
+  assert.match(h, /<dt>Keep if<\/dt><dd>Mid-build\.<\/dd>/);
+  const partial = explainHTML({ bucket: 'keep', explain: { what: 'Swap.', why: 'In use.' } }, { keep: { title: 'Keep' } });
+  assert.doesNotMatch(partial, /After deleting|Keep if/);
+  assert.match(partial, /Why Keep/);
+  assert.equal(explainHTML({ bucket: 'safe' }, {}), '', 'no block without explain');
+  assert.ok(hasInfo({ explain: { what: 'a', why: 'b' } }), 'explain alone earns a Details button');
+});

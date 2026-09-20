@@ -18,6 +18,12 @@ Thanks for looking. Two kinds of contribution help most:
    - **Any catch?** Needs the app quit first? Admin? Full Disk Access? Nested in
      another entry?
 
+   The answers go into the entry itself: a one-line `note` under the label, and an
+   `explain` block — `what` (what is it), `why` (which bucket, and why), `after`
+   (what brings it back, what is lost meanwhile) and, when there is one, `keep`
+   (when to leave it alone). Details shows the block; `swift test` (C17) refuses an
+   entry without it.
+
 ## Before you open a pull request
 
 - `swift test` and `npm ci && node --test 'Tests/web/logic.test.js' 'Tests/web/a11y.test.js' 'Tests/web/axe.test.js' 'Tests/web/brand.test.js' 'Tests/web/release.test.js'`

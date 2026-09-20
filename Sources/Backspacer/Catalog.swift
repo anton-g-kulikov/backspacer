@@ -34,6 +34,15 @@ struct Catalog: Decodable {
         var deleteItemCmd: String?
     }
 
+    /// The reasoning behind a row (Details shows it): what lives there, why this bucket, what
+    /// happens once it is gone, when to keep it. Every entry carries one (C17).
+    struct Explain: Decodable {
+        var what: String
+        var why: String
+        var after: String?
+        var keep: String?
+    }
+
     struct Entry: Decodable {
         var id: String
         var group: String
@@ -50,6 +59,7 @@ struct Catalog: Decodable {
         var sudo: Bool?
         var manual: Bool?
         var note: String?
+        var explain: Explain?
         var sizeCmd: String?
         var infoCmd: String?
         var deleteCmd: String?

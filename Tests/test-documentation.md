@@ -47,6 +47,7 @@ fails even when the values are equal — bind the expected value to a typed `let
 | C6 | `entry(id)` returns the entry; unknown id → nil | pass |
 | C7 | `String.expandingTilde` expands only a leading `~` | `~/x` → `$HOME/x`; `a/~/x` unchanged |
 | C9 | every `children: true` entry has a single `path`, no `paths`/`glob`/`deleteCmd` (per-item delete is `rm` on a subfolder) | pass |
+| C17 | every entry is explained | every entry has a non-empty `note` and an `explain` whose `what` and `why` are sentences (≥ 20 chars, end with a period); `after` likewise for `safe` / `regen` / `decide`; `keep`, when present, ends with a period; none of the three repeats the note verbatim. C15 also keeps the explain texts free of markup |
 | C16 | platform filter (ADR-22) | in a fixture with an all-platform entry, an unannotated one, a Linux-only and a Windows-only one: `Catalog.load` keeps the first two (`platforms` absent means macOS), `rawJSON` — what the `catalog` op sends — is rebuilt from the filtered array and never mentions the foreign path, `version` survives, `loadAll` keeps all four, `os` overrides decode but are not read |
 | C15 | catalog text is plain (R27): no `<` in any `label`, `note` or bucket `blurb` — they are rendered through `esc()` and would show literally | pass |
 | C14 | every entry whose path is under `~/Library/Containers`, `~/Library/Group Containers`, `~/Library/Messages`, `~/Library/Mail`, `~/Library/Safari` or `MobileSync` carries `fda: true`; the new Mail-downloads, Teams-cache and Messages-attachments entries exist with the right buckets | pass |
@@ -183,6 +184,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J18 | `updateText` | newer → "X is available." plus a Download link; current → "You’re up to date."; no result → the error text; links only when there is something to get |
 | J20 | `groupByProject` | items fold into the project whose path is their longest prefix (a nested project keeps its own), named by folder and labelled by entry, largest first; groups sorted oldest-touched first, unknown dates after known, "Elsewhere" (no project) last; nothing measured → `[]` |
 | J21 | `ago` | today / yesterday / N days / N weeks / N months / a year / N years ago; null → "never measured" |
+| J22 | `explainHTML` | a `<dl class="explain">` with `<dt>What</dt>`, `<dt>Why <bucket title></dt>`, `<dt>After deleting</dt>`, `<dt>Keep if</dt>`, each only when the field is present, text escaped; empty string without `explain`; `hasInfo` is true for an entry with only `explain` |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
 | J12 | `rowSizeText` | `in Trash` for a trashed row; otherwise `fmt` |
 | J10 | `scanFrame` | the verb changes every 8 ticks and wraps; dots cycle 0→3; 3–8 distinct words |
@@ -240,6 +242,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
 | A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
 | A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+| A29 | Explain in Details | `explainHTML(e, state.catalog.buckets)` is prepended in all three Details renders — items, "Nothing found.", command output — and `.explain` is a grid styled in both themes |
 
 ### Web accessibility, rendered — `Tests/web/axe.test.js` (axe-core over jsdom; `npm ci` first)
 jsdom loads `web/index.html` with the mock bridge (the same one a browser gets; its catalog is filtered to macOS entries like the host's), `fetch`/`matchMedia`/`ResizeObserver` stubbed and the mock's latency compressed; each case drives the page into a state and asserts axe reports no violations. `color-contrast` is disabled (jsdom has no layout; A7 computes it). Rules and tags are axe's defaults (WCAG 2.x A/AA + best practices).
@@ -361,7 +364,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | Suite | Cases | State |
 |---|---|---|
 | SafetyGateTests | S1–S12 | passing |
-| CatalogTests | C1–C16 | passing |
+| CatalogTests | C1–C17 | passing |
 | PrefTests | P1–P3 (P1 × theme, minSize, autoUpdateCheck, projectView) | passing |
 | ProjectsTests | PJ1–PJ4 | passing |
 | ShellTests | Q1–Q4 | passing |
@@ -378,8 +381,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J21 | passing |
-| Web accessibility (node) | A1–A20, A26–A28 | passing |
+| Web logic (node) | J1–J22 | passing |
+| Web accessibility (node) | A1–A20, A26–A29 | passing |
 | Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |
