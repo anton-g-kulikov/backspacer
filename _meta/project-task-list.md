@@ -46,6 +46,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 1.0.3 released: Glass frosted bars (list scrolls under header/footer), aligned edges, drag strip; catalog platform-awareness (ADR-22 step 1) rides along.
 - 2026-09-20 — Sparkle signing guard: already covered by CI's package step (deep-strict verify of the ad-hoc bundle on every push); pinned by Y9 and documented rather than duplicated.
 - 2026-09-20 — Site: "Updates itself" in the download meta line (W19); the 0.9.x footnote was added and then dropped the same day — three users, all known.
 

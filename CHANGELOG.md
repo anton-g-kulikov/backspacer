@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.3 — 2026-09-20
 - Glass: the header and footer are frosted glass the list scrolls under, edge to edge with the title bar; header, islands and footer line up exactly; the window can be dragged by the title-bar strip and the header; the About dialog's close cross is centred.
 - Internal: the app reads those fields and shows only entries meant for macOS — no visible change until Linux/Windows-only entries exist.
 - Catalog: entries may declare `platforms` and per-OS `os.linux` / `os.windows` overrides (ADR-22, step 1); 40 entries are marked portable with Linux and Windows locations. No change to what the macOS app shows.
