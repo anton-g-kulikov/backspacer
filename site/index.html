@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-+Y91bW9uY44bRYJYCY4K6ibETHydiOdTM3d7sNflrnY=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-XE4XcvXZ4a2gcqCEHtf1HM/hgoZiiNxBFqrQpAVX3IA=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -171,8 +171,9 @@
   .ftotals li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: var(--dot); vertical-align: 1px; }
   .ftotals b { color: var(--fg); font-variant-numeric: tabular-nums; }
   .rcap { margin: 14px 0 0; font-size: 14px; color: var(--faint); max-width: 52ch; }
-  .shot.app { margin: 28px 0 0; }
-  .shot.app figcaption { padding: 10px 14px 12px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--border); }
+  .shot.app { margin: 28px 0 0; border: 0; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+  .shot.app img { width: 100%; height: auto; }
+  .shot.app figcaption { padding: 4px 24px 0; font-size: 13.5px; color: var(--muted); }
   .storage { margin: 0; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2px 16px; }
   .storage .row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(128,128,128,.18); font-size: 16px; }
   .storage .row:first-child { border-top: 0; }
@@ -397,14 +398,13 @@ brew install --cask backspacer</code></pre>
         <article class="bucket locked"><h3><i aria-hidden="true"></i>Managed by macOS</h3><p>macOS manages these itself — purged automatically or SIP-protected. Shown for accounting.</p><span class="tag">read-only</span></article>
       </div>
       <figure class="shot app">
-        <div class="win" aria-hidden="true"><i></i><i></i><i></i></div>
         <picture>
           <source srcset="assets/screenshot-terminal.webp" type="image/webp" media="not all" data-skin="terminal">
           <source srcset="assets/screenshot-terminal.png" media="not all" data-skin="terminal">
           <source srcset="assets/screenshot-dark.webp" type="image/webp" media="(prefers-color-scheme: dark)">
           <source srcset="assets/screenshot-dark.png" media="(prefers-color-scheme: dark)">
           <source srcset="assets/screenshot-light.webp" type="image/webp">
-          <img src="assets/screenshot-light.png" width="2134" height="1676" alt="Backspacer after a scan: the icon and tagline with 100.5 GB of space found, a disk meter, then the Safe to delete bucket listing Claude session data, ~/Library/Caches and ~/.cache with sizes and Details, Reveal and Delete buttons on each row" loading="lazy">
+          <img src="assets/screenshot-light.png" width="2274" height="1963" alt="Backspacer after a scan: the icon and tagline with 100.5 GB of space found, a disk meter, then the Safe to delete bucket listing Claude session data, ~/Library/Caches and ~/.cache with sizes and Details, Reveal and Delete buttons on each row" loading="lazy">
         </picture>
         <figcaption>A real scan. Xcode, simulators, npm, Gradle, Docker, Electron apps and the AI tools' own caches — every row says what it is, where it lives and how much, with its own Details, Reveal and Delete.</figcaption>
       </figure>

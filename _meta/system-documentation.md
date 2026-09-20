@@ -233,9 +233,12 @@ the "reveal": the macOS Storage list ending in System Data, then a findings
 card with seven of this Mac's largest entries and the three bucket totals
 — markup, not an image, measured with `du` over the catalog on 2026-09-20,
 so it stays legible at any size and follows the look and colour scheme.
-The real window capture sits full width under the bucket cards (light,
-dark and Terminal variants, chosen by `prefers-color-scheme` and the
-look); `og.png` is the share card.
+The real window captures sit full width under the bucket cards — the
+maintainer's own screenshots from `_meta/marketing/` (local, not in git),
+trimmed to the window shadow and served as WebP with PNG fallback — in
+light, dark and Terminal, chosen by `prefers-color-scheme` and the look;
+the page draws no frame around them. `og.png` is cut from the light one;
+the README uses it untrimmed.
 
 Look: the same two skins as the app. Glass follows the OS light/dark
 setting; Terminal is always dark. The header switcher sets
