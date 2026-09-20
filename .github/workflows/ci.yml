@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# `shell: bash` runs steps with `-eo pipefail`; the default `bash -e` lets `cmd | tail`
+# hide cmd's failure behind tail's exit code.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   test:
     name: swift test + release build
@@ -24,6 +30,11 @@ jobs:
           sudo xcode-select -s "$XCODE"
       - name: Toolchain
         run: swift --version && xcodebuild -version
+      - name: Diagnose (temporary)
+        run: |
+          ls /Applications | grep Xcode
+          swift package describe --type json | head -5 || true
+          swift build --build-tests 2>&1 | grep -v 'warning:\|^ *[0-9]* |\|^ *|\|^$' | tail -60 || true
       - name: Tests
         run: swift test 2>&1 | tail -30
       - name: Web logic and accessibility tests (node)
