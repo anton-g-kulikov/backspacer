@@ -21,9 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-23. **R22 · CI hardening**: `permissions: contents: read`; SHA-pin actions;
-    on tags run an ad-hoc `build-app.sh` + `codesign --verify --strict` +
-    `plutil -lint`; `dependabot.yml`; the `Xcode_16.4` fallback is brittle.
 24. **R27 · Test gaps**: S7 only covers static `path`/`paths` — extend to
     glob roots/`then` and `children` items; `Shell.runAsAdmin` escaping;
     `Shell.q` with newline; catalog `note` free of HTML; every glob root
@@ -58,6 +55,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R22: CI hardened (read-only token, SHA-pinned actions, lint steps, tag-time package check, Dependabot).
 - 2026-09-20 — App data round two: `fda` flag, needs-access state, Mail downloads / Teams cache / Messages attachments (F12, C14, J16).
 - 2026-09-20 — AVD per-item delete via `companion` on children entries (I16, C13).
 - 2026-09-20 — 0.6.3 released: accessibility tier (R10–R17).
