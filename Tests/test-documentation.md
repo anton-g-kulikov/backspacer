@@ -232,6 +232,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A15 | default threshold | `state.thr` is 0 (10 MB), the slider starts at 0 with `aria-valuetext="10 MB"`, the label reads 10 MB |
 | A16 | automatic check UI | `#updNotice` sits between Log and About; About has the `#autoUpd` opt-out bound to `prefSet autoUpdateCheck`; `autoCheckUpdates()` runs once per session right after the first scan completes, never at init |
 | A17 | About dialog | `<dialog id="about" aria-labelledby="aboutTitle">` with a labelled close button; icon → name → version → status → Check for updates → opt-out → help/log → License/GitHub/Buy me a book; no About tab in the footer; styled in both themes; `__openAbout` uses `showModal` (Escape closes) |
+| A18 | Glass frosted bars | `header`/`footer` are absolutely positioned over the list with a translucent `--band` fill and a backdrop blur; `main` pads by `--header-h`/`--footer-h`, which `syncBars` sets from the bars' measured heights through `ResizeObserver` (stacked header, open Log panel); Terminal keeps the bars in flow |
 | A6 | states (R17) | Details buttons toggle `aria-expanded`; the Log tab carries `aria-expanded`; About is a `<dialog>` (A17); theme buttons carry `aria-pressed`; the dialog has `aria-labelledby`/`aria-describedby`; a `:focus-visible` rule exists in both themes; badges are ≥ 11 px; About's heading is an `<h3>` after the page's `<h2>`s; paths are selectable |
 
 ### Window drag — `Tests/BackspacerTests/WindowDragTests.swift`
@@ -351,7 +352,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
-| Web accessibility (node) | A1–A17 | passing |
+| Web accessibility (node) | A1–A18 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |
 | Brand (node) | K1–K8 | passing |

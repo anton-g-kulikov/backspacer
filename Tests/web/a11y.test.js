@@ -94,7 +94,7 @@ test('A9 the scrollbar is styled, not hidden', () => {
 
 test('A10 the header drags the window; selection only starts on selectable text', () => {
   assert.match(app, /addEventListener\('mousedown'/);
-  assert.match(app, /bridge\.call\('dragWindow'\)/, 'a mouse-down on the header asks the window to follow');
+  assert.match(app, /if \(e\.target\.closest\('header'\) \|\| e\.target === document\.body \|\| e\.target === document\.documentElement\) bridge\.call\('dragWindow'\)/, 'a mouse-down on the header or the bare page (the title-bar strip) asks the window to follow');
   assert.match(app, /SELECTABLE_OR_INTERACTIVE = '[^']*\.path[^']*'/, 'paths stay selectable by dragging inside them');
   assert.match(app, /SELECTABLE_OR_INTERACTIVE = '[^']*input[^']*'/, 'controls keep their default mouse-down');
   assert.match(app, /e\.preventDefault\(\);\s*\/\/ no selection sweep/);
@@ -118,9 +118,11 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
   assert.equal((html.match(/\.controls \{[^}]*justify-self: center/g) || []).length, 2);
   assert.match(html, /#scan \{ justify-self: end; min-width: 11em; \}/, 'Glass: wider than the longest verb frame in the system font');
   assert.match(html, /#scan \{ justify-self: end; min-width: 22ch;/, 'Terminal: ch units — "[ investigating... ]" is 20 monospace characters');
-  assert.equal((html.match(/main \{ overflow-y: scroll;/g) || []).length, 2, 'a permanent scrollbar track in both themes: the gutter never appears or disappears, so the header never shifts');
+  assert.equal((html.match(/main \{[^}]*overflow-y: scroll;/g) || []).length, 2, 'a permanent scrollbar track in both themes: the gutter never appears or disappears, so the header never shifts');
   assert.doesNotMatch(html, /scrollbar-gutter/, 'WebKit ignores it; overflow-y: scroll is the reservation');
   assert.match(app, /window\.addEventListener\('resize', syncGutter\);\nsyncGutter\(\);/, 'measured once at load');
+  assert.match(app, /--sb', \(m\.offsetWidth - m\.clientWidth\) \+ 'px'/, '--sb is the full track width');
+  assert.equal((html.match(/main \{[^}]*overflow-y: scroll; padding: [^;]* calc\(1[68]px \+ var\(--sb, 0px\)\); \}/g) || []).length, 2, 'the list pads its left by the track width, so its content lines up with the header and footer, which inset both sides by the same amount');
   const stacks = html.match(/@media \(max-width: 959px\) \{\s*header \{ grid-template-columns: 1fr auto; \}\s*\.brand \{ grid-column: 1 \/ -1; \}/g) || [];
   assert.equal(stacks.length, 2, 'below 960 px the header stacks: brand row, then controls + button, in both themes');
 });
@@ -170,4 +172,15 @@ test('A17 About is a proper dialog: centred card, close button, Escape, opened f
   assert.match(app, /window\.__openAbout = \(\) => \{ const d = \$\('#about'\); if \(!d\.open\) \{ d\.showModal\(\); d\.querySelector\('\.card'\)\.focus\(\); \} \};/, 'modal (Escape closes); focus lands on the card so the × shows no ring until Tab');
   assert.match(html, /<div class="card" tabindex="-1">/);
   assert.match(app, /\$\('#aboutClose'\)\.onclick = \(\) => \$\('#about'\)\.close\(\)/);
+});
+
+test('A18 Glass: the list scrolls under a frosted header and footer; the overlap is measured, not guessed', () => {
+  const glass = html.slice(html.indexOf('<style id="css-glass">'), html.indexOf('</style>', html.indexOf('<style id="css-glass">')));
+  assert.match(glass, /header \{[^}]*position: absolute; top: 0; left: 0; right: 0;/);
+  assert.match(glass, /footer \{[^}]*position: absolute; bottom: 0; left: 0; right: 0;/);
+  assert.match(glass, /main \{[^}]*padding: var\(--header-h, 0px\) 16px var\(--footer-h, 0px\) calc\(16px \+ var\(--sb, 0px\)\)/, 'the list pads by the bars\' heights');
+  assert.match(glass, /--band: rgba\(255,255,255,\.[0-9]+\)/);
+  assert.match(glass, /backdrop-filter: blur\(\d+px\)[^;]*;\n\s+display: grid; grid-template-columns/, 'the header is frosted so what scrolls beneath shows through');
+  assert.match(app, /new ResizeObserver\(syncBars\)/, 'header and footer heights are observed (stacked header, Log panel open)');
+  assert.match(app, /--header-h', .*offsetHeight/);
 });

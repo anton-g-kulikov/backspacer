@@ -107,15 +107,29 @@ function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   document.querySelectorAll('#theme button').forEach(b => { b.classList.toggle('on', b.dataset.theme === t); b.setAttribute('aria-pressed', String(b.dataset.theme === t)); });
   try { localStorage.setItem('theme', t); } catch {}
-  requestAnimationFrame(syncGutter);
+  requestAnimationFrame(() => { syncGutter(); syncBars(); });
 }
 window.__setTheme = t => { applyTheme(t); bridge.call('prefSet', { key: 'theme', value: t }).catch(() => {}); };
-// Scrollbar gutter: main always shows its track (overflow-y: scroll), so the gutter is a constant
-// per theme; the header and footer widen their side margins by half of it so the columns line up.
-// Measured at load and on theme/resize — never as a side effect of the list changing.
-function syncGutter() { const m = document.querySelector('main'); document.documentElement.style.setProperty('--sb', ((m.offsetWidth - m.clientWidth) / 2) + 'px'); }
+// Scrollbar track: main always shows it (overflow-y: scroll), so its width is a constant per theme.
+// --sb is that width; main pads its left by it and the header/footer inset both sides by it, so
+// all three share the same edges. Measured at load and on theme/resize — never as a side effect of
+// the list changing.
+function syncGutter() { const m = document.querySelector('main'); document.documentElement.style.setProperty('--sb', (m.offsetWidth - m.clientWidth) + 'px'); }
 window.addEventListener('resize', syncGutter);
 syncGutter();
+// Glass overlays the list with the header and footer; the list pads itself by their heights so the
+// first and last rows start in the clear. Observed, because the header stacks on narrow windows and
+// the footer grows when the Log panel opens. Terminal keeps the bars in flow (padding stays 0).
+function syncBars() {
+  const h = document.querySelector('header'), f = document.querySelector('footer');
+  const overlay = getComputedStyle(h).position === 'absolute';
+  // 26 px of clear space below the header, the same as above the footer (10 + the last card's 16 margin).
+  document.documentElement.style.setProperty('--header-h', overlay ? (h.offsetHeight + 26) + 'px' : '0px');
+  document.documentElement.style.setProperty('--footer-h', overlay ? (f.offsetHeight + 10) + 'px' : '0px');
+}
+new ResizeObserver(syncBars).observe(document.querySelector('header'));
+new ResizeObserver(syncBars).observe(document.querySelector('footer'));
+syncBars();
 $('#theme').onclick = e => { const t = e.target.dataset.theme; if (t) window.__setTheme(t); };
 
 /* ── project folders ────────────────── */
@@ -352,7 +366,9 @@ const SELECTABLE_OR_INTERACTIVE = 'button, input, select, textarea, a, label, su
 document.addEventListener('mousedown', e => {
   if (e.button !== 0 || e.target.closest(SELECTABLE_OR_INTERACTIVE)) return;
   e.preventDefault();   // no selection sweep
-  if (e.target.closest('header')) bridge.call('dragWindow').catch(() => {});
+  // Drag regions: the header, and the bare page around it — the title-bar strip above it in
+  // particular, which is body padding under the transparent title bar.
+  if (e.target.closest('header') || e.target === document.body || e.target === document.documentElement) bridge.call('dragWindow').catch(() => {});
 });
 
 // Right-click: tell the bridge which row (entry id) or Details item (its selector) is under the
