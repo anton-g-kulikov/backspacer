@@ -282,8 +282,9 @@ stapled DMG and `scripts/make-appcast.sh` writes a one-item appcast (`sparkle:ve
 `CFBundleVersion`, `shortVersionString` = the marketing version, minimum system 13.0,
 release-notes link), published as a release asset — so
 `https://github.com/anton-g-kulikov/backspacer/releases/latest/download/appcast.xml` is
-always the current feed. The site republishes that file at `backspacer.dev/appcast.xml`
-(the site's workflow, on release). Sparkle verifies the EdDSA signature and refuses an
+always the current feed. The release run then calls the site's workflow as a reusable workflow to republish that
+file at `backspacer.dev/appcast.xml` (a release created with `GITHUB_TOKEN` never triggers
+`release: published` on its own). Sparkle verifies the EdDSA signature and refuses an
 update whose code signature or Team ID differs from the running app's.
 
 ## Continuous integration

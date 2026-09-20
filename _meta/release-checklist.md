@@ -43,8 +43,8 @@ names every offending file.
    Backspacer-X.Y.Z.dmg --owner anton-g-kulikov` passes.
 6. Updates: the workflow signed the DMG and attached `appcast.xml` to the release; check
    `https://github.com/anton-g-kulikov/backspacer/releases/latest/download/appcast.xml`
-   names this version, and that backspacer.dev/appcast.xml matches once the site has
-   redeployed. Installed apps see the update within a day (or on Check for Updates…).
+   names this version, and that backspacer.dev/appcast.xml matches once the release run's
+   `site` job has redeployed (it calls pages.yml; the release event alone never would). Installed apps see the update within a day (or on Check for Updates…).
 7. Homebrew: the tap (github.com/anton-g-kulikov/homebrew-tap) bumps its cask to the
    latest release by itself within six hours, after checking the DMG's SHA-256 against
    the release notes and auditing the cask. To bump it now:
