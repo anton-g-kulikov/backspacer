@@ -257,8 +257,8 @@ HTTPS" are repository settings, set once by the maintainer.
 
 `.github/workflows/ci.yml` runs `swift test`, the Node logic and accessibility
 tests, a catalog/schema parse plus `plutil -lint`, and a universal release
-build on a macOS 15 runner with the newest Xcode 16 for every push to `main`,
-every tag and every pull request, then assembles the app ad-hoc from that same
+build on a macOS 15 runner with the newest Xcode 16 for every push to `main`
+and every pull request (tags go to `release.yml`, which runs the same tests first), then assembles the app ad-hoc from that same
 universal build (`UNIVERSAL=1`) and runs `codesign --verify --strict`. The
 package step runs on every push, not only tags, so a broken guard shows up on
 the commit that broke it rather than at the next release. Steps run under
