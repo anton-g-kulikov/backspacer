@@ -45,6 +45,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 1.1.0 released: the by-project view.
 - 2026-09-20 — By-project view (PJ1–PJ4, J20–J21, A19): `projects`/`revealProject` ops, `groupByProject`/`ago`, toggle + card, per-project delete through per-item `delete`.
 - 2026-09-20 — Feed seam fixed: the release run's site job fetches this tag's appcast (`releases/download/<tag>/`), not "latest", which lagged behind `gh release create` on 1.0.3 and briefly served 1.0.2; the appcast log line reads the element form. Site screenshots are the maintainer's real window captures (light, dark, Terminal), no drawn frame; README image likewise.
 

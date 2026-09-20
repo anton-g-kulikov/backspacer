@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 — 2026-09-20
 - By project: the Project folders island can show build output per project — each project under your folders with its node_modules, Pods, .next and build folders summed, and when you last touched it (last commit, or the newest source file), stalest first. Reveal the folder or delete its build output in one go; source files are never touched. In that view the "Project build output" rows move out of the buckets into the card, so nothing is counted twice.
 
 ## 1.0.3 — 2026-09-20
