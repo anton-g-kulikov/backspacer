@@ -103,9 +103,10 @@
       },
       "anyOf": [
         { "required": ["path"] }, { "required": ["paths"] }, { "required": ["glob"] },
-        { "required": ["sizeCmd"] }, { "required": ["infoCmd"] }, { "required": ["itemsCmd"] }
+        { "required": ["sizeCmd"] }, { "required": ["infoCmd"] }, { "required": ["itemsCmd"] },
+        { "required": ["os"] }
       ],
-      "description": "an entry needs something to measure or show: path, paths, glob, sizeCmd, infoCmd or itemsCmd",
+      "description": "an entry needs something to measure or show: path, paths, glob, sizeCmd, infoCmd or itemsCmd — or, for a Linux/Windows-only entry, an os override carrying them (base fields are macOS)",
       "dependentRequired": {
         "children":      ["path"],
         "childLabel":    ["children"],

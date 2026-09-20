@@ -62,8 +62,21 @@ test('X3 path variables come from the allowed set, and platform-specific ones on
   }
 });
 
-test('X4 until the Mac host filters by platform, every entry still lists macos (nothing foreign can show up in the app)', () => {
-  for (const e of catalog.entries) if (e.platforms) assert.ok(e.platforms.includes('macos'), `${e.id}: drops macos before the host filter exists (ADR-22 step 1b)`);
+test('X4 the Mac host filters by platform now (C16): platform-only entries exist, live in os blocks, and never carry a base location', () => {
+  const foreign = catalog.entries.filter(e => e.platforms && !e.platforms.includes('macos'));
+  assert.ok(foreign.length >= 8, `Linux/Windows-only entries (${foreign.length})`);
+  assert.ok(foreign.some(e => e.platforms.includes('linux')) && foreign.some(e => e.platforms.includes('windows')), 'both platforms represented');
+  for (const e of foreign) {
+    assert.ok(pathsOf(e).length === 0 && !COMMANDS.some(k => e[k]), `${e.id}: base fields are macOS — a platform-only entry keeps everything in os.<p>`);
+    for (const p of e.platforms) {
+      const ov = e.os && e.os[p];
+      assert.ok(ov && (pathsOf(ov).length || COMMANDS.some(k => ov[k])), `${e.id}: no location or command for ${p}`);
+    }
+    assert.ok(!e.children, `${e.id}: children needs a base path; not available to platform-only entries yet`);
+  }
+  for (const e of catalog.entries.filter(e => !e.platforms || e.platforms.includes('macos'))) {
+    assert.ok(pathsOf(e).length || COMMANDS.some(k => e[k]), `${e.id}: a macOS entry needs a base location or command`);
+  }
 });
 
 test('X5 an entry with a command is portable only where the command is defined for that platform', () => {
@@ -72,6 +85,18 @@ test('X5 an entry with a command is portable only where the command is defined f
     for (const p of (e.platforms || []).filter(p => p !== 'macos')) {
       if (hasCmd) assert.ok(e.os && e.os[p] && COMMANDS.some(k => e.os[p][k]), `${e.id}: lists ${p} but its shell command has no ${p} version — hide it there or add os.${p}`);
     }
+  }
+});
+
+test('X7 the first Linux and Windows entries are the expected ones, in existing groups, with sane buckets', () => {
+  const groups = new Set(catalog.entries.filter(e => !e.platforms || e.platforms.includes('macos')).map(e => e.group));
+  const want = { 'linux-apt-cache': 'safe', 'linux-dnf-cache': 'safe', 'linux-snap-cache': 'safe', 'linux-thumbnails': 'safe', 'linux-journal': 'decide', 'linux-trash': 'safe',
+                 'win-temp': 'safe', 'win-update-download': 'safe', 'win-delivery-optimization': 'safe', 'win-crash-dumps': 'safe' };
+  for (const [id, bucket] of Object.entries(want)) {
+    const e = catalog.entries.find(x => x.id === id);
+    assert.ok(e, id); assert.equal(e.bucket, bucket, id);
+    assert.ok(groups.has(e.group), `${id}: group "${e.group}" exists on the Mac too (the page renders groups per bucket)`);
+    assert.ok(e.note && e.note.length > 20, `${id}: a note explaining it`);
   }
 });
 

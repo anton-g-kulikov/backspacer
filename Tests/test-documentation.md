@@ -294,8 +294,9 @@ Invariants over `catalog.json` and `catalog.schema.json` that the Swift `SchemaT
 | X1 | schema | `platforms` is an optional array (min 1) over `macos`/`linux`/`windows`; `os` allows only `linux`/`windows`, each a `#/$defs/override` carrying exactly the entry's location and command field names |
 | X2 | values | every `platforms` value is known and unique; every `os.<p>` key is a known platform that the entry also lists in `platforms` |
 | X3 | variables | only the allowed `$VARS` appear; XDG variables never in base paths or `os.windows`, `%APPDATA%`-style never in base paths or `os.linux`; no `~` in `os.windows` |
-| X4 | Mac safety | until the Swift host filters by platform, every `platforms` list includes `macos` |
+| X4 | platform-only entries | at least 8 entries omit `macos` (both Linux and Windows represented); each keeps every location/command in `os.<p>` with none at the base, and no `children`; conversely every macOS entry has a base location or command |
 | X5 | commands | an entry with a shell command lists a non-mac platform only if `os.<p>` provides a command for it |
+| X7 | first batch | the ten Linux/Windows entries exist with the expected buckets, in groups the Mac list also uses, each with a note |
 | X6 | coverage | the named dot-folder, `$PROJECTS` and AI-tool entries list `linux`; at least 25 entries are portable |
 
 ### Site — `Tests/web/site.test.js` (static checks over `site/index.html` and `pages.yml`)
@@ -349,7 +350,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J19 | passing |
 | Web accessibility (node) | A1–A17 | passing |
-| Catalog platform-awareness (node) | X1–X6 | passing |
+| Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W18 | passing |
 | Brand (node) | K1–K8 | passing |
 | Release workflow (node) | Y1–Y8 | passing |

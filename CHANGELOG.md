@@ -3,6 +3,7 @@
 ## Unreleased
 - Internal: the app reads those fields and shows only entries meant for macOS — no visible change until Linux/Windows-only entries exist.
 - Catalog: entries may declare `platforms` and per-OS `os.linux` / `os.windows` overrides (ADR-22, step 1); 40 entries are marked portable with Linux and Windows locations. No change to what the macOS app shows.
+- Catalog: the first ten Linux- and Windows-only entries (apt, dnf and snap caches, thumbnails, the Trash and the systemd journal; Windows temp, Windows Update downloads, Delivery Optimization, crash dumps). The Mac app hides them.
 
 ## 1.0.2 — 2026-09-20
 - The update window shows the release notes themselves instead of the GitHub page; the Log tab is a text tab again; the About dialog's close cross is centred and no longer opens focused.
