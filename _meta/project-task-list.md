@@ -18,10 +18,7 @@ what remains is grounded follow-up work.
    package guard — `codesign --verify --deep --strict` on the ad-hoc dev
    bundle — so a Sparkle revision bump that breaks the inside-out signing
    order or the XPC entitlements fails on push, not at tag time.
-3. **Site: one line for 0.9.x users** (PTM): under the download buttons —
-   "Updating from 0.9? Install once by hand; from 1.0 the app updates
-   itself." Their notice links to the DMG, but the step is manual once.
-4. **Site: re-measure the hero findings** whenever the catalog gains entries
+3. **Site: re-measure the hero findings** whenever the catalog gains entries
    that change this Mac's totals materially (the seven rows and three bucket
    totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
    not numbers). Also bump the "N entries" count (W5 fails when it drifts).
@@ -52,6 +49,8 @@ From the 0.1.0 README:
 - Hold-to-confirm on the dialog's Delete button (a second gate, if wanted after ADR-5).
 
 ## Done
+
+- 2026-09-20 — Site: "Updates itself from 1.0" in the download meta line and a one-line note for 0.9.x users (W19).
 
 - 2026-09-20 — ADR-22 step 1 complete: platform-aware catalog (schema `platforms` + `os` overrides, 40 portable entries, ten Linux/Windows-only entries), host filter on the Mac (C16), invariants X1–X7. No visible change on macOS. Hosts remain unscheduled.
 

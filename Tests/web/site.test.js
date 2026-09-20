@@ -213,6 +213,13 @@ test('W18 the appcast reaches backspacer.dev: Pages deploys on a published relea
   assert.match(ignore, /^site\/appcast\.xml$/m, 'the fetched feed is never committed');
 });
 
+test('W19 the download section tells 0.9.x users the one manual step, and says the app updates itself from 1.0', gate, () => {
+  const hero = html.match(/<section class="hero">([\s\S]*?)<\/section>/)[1];
+  assert.match(hero, /<li>Updates itself from 1\.0<\/li>/, 'the meta line says so');
+  assert.match(hero, /<p class="upgrade">Updating from 0\.9\? Install this one by hand; from then on the app checks daily and asks before installing\.<\/p>/, 'the 0.9.x note, once, after the meta line');
+  assert.equal((text.match(/Updating from 0\.9/g) || []).length, 1);
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);
