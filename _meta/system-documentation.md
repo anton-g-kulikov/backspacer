@@ -293,7 +293,7 @@ update whose code signature or Team ID differs from the running app's.
 tests, a catalog/schema parse plus `plutil -lint`, and a universal release
 build on a macOS 15 runner with the newest Xcode 16 for every push to `main`
 and every pull request (tags go to `release.yml`, which runs the same tests first), then assembles the app ad-hoc from that same
-universal build (`UNIVERSAL=1`) and runs `codesign --verify --strict`. The
+universal build (`UNIVERSAL=1`) and runs `codesign --verify --deep --strict` — since Sparkle is embedded, that is the check that a revision bump has not broken the inside-out signing of its XPC services and framework (Y9); a break fails the push, not the next release. The
 package step runs on every push, not only tags, so a broken guard shows up on
 the commit that broke it rather than at the next release. Steps run under
 `shell: bash`, i.e. `-eo pipefail`: with GitHub's default `bash -e`, `swift test

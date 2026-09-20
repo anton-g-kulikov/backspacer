@@ -70,3 +70,11 @@ test('Y8 the release run deploys the site itself: GITHUB_TOKEN events never trig
   const site = wf.slice(wf.indexOf('  site:'));
   assert.match(site, /permissions:\n      contents: read\n      pages: write\n      id-token: write/, 'the caller grants what Pages needs');
 });
+
+test('Y9 CI keeps a deep signature check on the packaged bundle, so a Sparkle bump that breaks the nested signing fails on push', () => {
+  const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+  const pkg = ci.slice(ci.indexOf('Package and verify the app bundle'));
+  assert.match(pkg, /UNIVERSAL=1 scripts\/build-app\.sh/, 'the real build script, which signs Sparkle inside out');
+  assert.match(pkg, /codesign --verify --deep --strict build\/Backspacer\.app/, 'deep-strict verification covers the XPC services and the framework');
+  assert.doesNotMatch(ci, /if: startsWith\(github\.ref, 'refs\/tags\/v'\)/, 'on every push, not only tags');
+});

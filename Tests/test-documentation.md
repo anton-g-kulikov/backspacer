@@ -270,6 +270,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | Y4 | order | `shell: bash` (pipefail); swift tests → node tests → keychain → build → notarize → release, in that order |
 | Y5 | keychain | created with a random password, the certificate imported with the secret, deleted in an `if: always()` step; the login keychain is never touched |
 | Y6 | notarization | credentials come from `NOTARY_*` env (the three secrets), never `--keychain-profile` in CI; `notarize.sh` builds `AUTH` from the env when set, else from the profile, and never echoes the password |
+| Y9 | Sparkle signing guard | CI's package step builds with `build-app.sh` (which signs Sparkle's nested code inside out) and deep-strict-verifies the bundle on every push, so a Sparkle bump that breaks the signing order or the XPC entitlements fails before a tag |
 | Y8 | site deploy | `release.yml` has a `site` job that `needs: release` and calls `pages.yml` as a reusable workflow with `required: true` (a GITHUB_TOKEN-created release never triggers `release: published`); `pages.yml` declares `workflow_call` and treats the flag like a release event |
 | Y7 | artefact | DMG hashed with `shasum -a 256`, the hash in the notes, the DMG as the asset, Gatekeeper asked first, `attest-build-provenance` on the DMG |
 
@@ -354,7 +355,7 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |
 | Brand (node) | K1–K8 | passing |
-| Release workflow (node) | Y1–Y8 | passing |
+| Release workflow (node) | Y1–Y9 | passing |
 | Sparkle (node) | Z1–Z5 | passing |
 | DiagnosticsTests | L1–L7 | passing |
 | ShellModeTests | M1–M10 | passing |
