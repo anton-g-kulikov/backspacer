@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-SF4uMcaYmKshddKbnYWkTt930mnpCot91awWKd2pcwU=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-xfH53QY9c34HQF234A6LCGhyz4/TPwOBAePUcGXKnSA='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-fIb3x5yP4Zz0uGoQ3HB/O6cJPWX3fJlmXgsU9Dl475I=' 'sha256-AR+Wsdoa5kMMGf/nr/jsxk/wFZ+Q1nUvMwWwU5Jyaak='; script-src 'sha256-xfH53QY9c34HQF234A6LCGhyz4/TPwOBAePUcGXKnSA='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="assets/icon-64.png" sizes="64x64" type="image/png">
 <link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
@@ -80,12 +80,17 @@
   header.top .wrap { display: flex; align-items: center; gap: 14px; min-height: 56px; }
   .mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: var(--fg); text-decoration: none; }
   .mark img { width: 28px; height: 28px; border-radius: 7px; }
-  nav ul { display: flex; gap: 4px 18px; flex-wrap: wrap; list-style: none; margin: 0 0 0 auto; padding: 0; }
+  nav ul { display: flex; gap: 4px 18px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
   nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
   nav a:hover { color: var(--fg); text-decoration: underline; }
-  .skins { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); }
+  .skins { display: inline-flex; margin-left: auto; padding: 3px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); }
   .skins button { border: 0; background: transparent; color: var(--muted); font: 600 13px var(--sans); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
   .skins button[aria-pressed="true"] { background: var(--card-strong); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  @media (max-width: 720px) {
+    header.top .wrap { flex-wrap: wrap; padding: 8px 0 10px; min-height: 0; }
+    nav { order: 3; flex-basis: 100%; }
+    nav ul { gap: 2px 14px; }
+  }
 
   .hero { padding: clamp(40px, 8vw, 96px) 0 24px; }
   .hero .grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
