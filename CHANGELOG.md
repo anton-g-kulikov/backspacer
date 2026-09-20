@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.2 — 2026-09-20
 - The app now notices new versions by itself: after the first scan of a session it asks GitHub once (at most once a day) and, only if there is a newer release, shows a one-line notice in the footer with a Download link. About → "Check for updates automatically" turns it off. Nothing is sent about you, and nothing shows when you're current.
 - Fixed: links in About (support, Buy me a book, the update check's Download) opened inside the app window — or, for the DMG, not at all — since 0.8.0. They go to your browser again.
 
