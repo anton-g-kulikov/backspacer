@@ -13,6 +13,8 @@ deletes only what you tick — after a confirmation that lists every item.
 **[Download the latest release →](https://github.com/anton-g-kulikov/reclaimer/releases/latest)**
 Open the DMG, drag Reclaimer to Applications. Notarized; no Gatekeeper warnings.
 
+![Reclaimer scanning a Mac: buckets of caches and build output with per-item Details, Reveal and Delete](assets/screenshot-glass.png)
+
 It grew out of a month of chasing "System Data" on a 245 GB MacBook Air. The
 knowledge from that chase lives in `catalog.json`; the app is a thin, careful
 shell around it.
