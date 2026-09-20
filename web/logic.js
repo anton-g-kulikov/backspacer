@@ -82,7 +82,7 @@ const scanOrder = (entries, durations) => entries
 const TAGLINE = 'I got some if you need it';
 const RECLAIMABLE = ['safe', 'regen', 'decide'];
 function taglineText(bytes) {
-  return bytes > 0 ? `I got some [${fmt(bytes)} reclaimable] if you need it` : TAGLINE;
+  return bytes > 0 ? `I got some [${fmt(bytes)} of space] if you need it` : TAGLINE;
 }
 const SCAN_WORDS = ['measuring', 'surveying', 'investigating', 'rummaging', 'sniffing', 'excavating', 'swooping', 'dowsing'];
 /** A fresh order for each scan (Fisher–Yates; `rng` is injectable for tests). */
