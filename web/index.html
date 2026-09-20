@@ -194,7 +194,10 @@
   .tabs { border-top: 1px solid var(--sep); display: flex; justify-content: space-between; padding: 0 18px; }
   .tabs .notice { align-self: center; font-size: 12px; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 600; }
-  .about .opt { margin-left: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .about .upd { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0; }
+  .about .opt { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+  .about .opt input { flex: none; }
+  .about #updResult:empty { display: none; }
   .tabs button { border: 0; background: none; padding: 7px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; }
   .tabs button::before { content: "▸ "; }
   .tabs button.on::before { content: "▾ "; }
@@ -391,7 +394,10 @@
   .tabs { border-top: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0 calc(18px + var(--sb, 0px)); }
   .tabs .notice { align-self: center; color: var(--muted); }
   .tabs .notice a { color: var(--accent); font-weight: 700; }
-  .about .opt { margin-left: 10px; color: var(--muted); white-space: nowrap; }
+  .about .upd { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0; }
+  .about .opt { display: inline-flex; align-items: baseline; gap: 8px; color: var(--muted); white-space: nowrap; cursor: pointer; }
+  .about .opt input { flex: none; height: auto; line-height: inherit; }
+  .about #updResult:empty { display: none; }
   .tabs button { border: 0; background: none; padding: 5px 0; cursor: pointer; color: var(--muted); font: inherit; font-size: 11.5px; text-transform: lowercase; }
   .tabs button::before { content: "▸ "; }
   .tabs button.on::before { content: "▾ "; }
@@ -484,8 +490,9 @@
        macOS's own password dialog.</p>
     <p>Version <span id="aboutVersion"></span> · © 2026 Anton Kulikov · Support: <a href="mailto:anton.g.kulikov@gmail.com">anton.g.kulikov@gmail.com</a>
        · <a href="https://buymeacoffee.com/antonkulikov">Buy me a book</a></p>
-    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button> <span id="updResult" aria-live="polite"></span>
-       <label class="opt"><input type="checkbox" id="autoUpd" checked> Check for updates automatically</label></p>
+    <p class="upd"><button class="btn small" id="checkUpd">Check for updates</button>
+       <label class="opt"><input type="checkbox" id="autoUpd" checked>Check for updates automatically</label>
+       <span id="updResult" aria-live="polite"></span></p>
     <p class="diag">Something odd? Backspacer keeps a log of what it did — attach it to your report.
        <code id="logPath"></code> <button class="btn small" id="revealLog">Reveal log</button></p>
     <div class="lic">

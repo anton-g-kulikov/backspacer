@@ -126,7 +126,7 @@ test('A12 the scan verbs run inside the Scan button; theme and size controls sit
 });
 
 test('A13 About offers a manual update check with a live result', () => {
-  assert.match(html, /<p class="upd"><button class="btn small" id="checkUpd">Check for updates<\/button>/, 'its own line, not squeezed into the credits');
+  assert.match(html, /<p class="upd"><button class="btn small" id="checkUpd">Check for updates<\/button>\s*<label class="opt">/, 'its own line: button, opt-out, then the result');
   assert.match(html, /<span id="updResult" aria-live="polite"><\/span>/);
   assert.match(app, /\$\('#checkUpd'\)\.onclick = /);
   assert.match(app, /bridge\.call\('checkUpdate'\)/);
@@ -149,7 +149,8 @@ test('A15 the size filter defaults to 10 MB (the slider\'s first stop) unless a 
 
 test('A16 Sparkle drives the notice: the page shows what the updater found and routes both controls to it', () => {
   assert.match(html, /<div class="tabs">\s*<button data-panel="log"[^>]*>Log<\/button>\s*<span class="notice" id="updNotice" hidden><\/span>\s*<button data-panel="about"/, 'the notice sits between Log and About');
-  assert.match(html, /<label class="opt"><input type="checkbox" id="autoUpd" checked> Check for updates automatically<\/label>/);
+  assert.match(html, /<label class="opt"><input type="checkbox" id="autoUpd" checked>Check for updates automatically<\/label>/);
+  assert.equal((html.match(/\.about \.upd \{ display: flex; align-items: (center|baseline); flex-wrap: wrap;/g) || []).length, 2, 'the update row is one aligned flex line in both themes');
   assert.match(app, /window\.__updateFound = /, 'Sparkle → page: a newer version was found');
   assert.match(app, /bridge\.call\('checkUpdate'\)/, 'page → Sparkle: the manual check');
   assert.match(app, /prefSet', \{ key: 'autoUpdateCheck'/);
