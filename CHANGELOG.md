@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 — 2026-09-20
 - Internal: Swift 6 language mode with strict concurrency; signing without `--deep`; the origin audit script moved under `_meta/`.
 - Window menu gets Zoom and Bring All to Front; a Help menu links to GitHub, the issue tracker and the diagnostics log.
 - App data behind Full Disk Access (Mail attachment downloads, Microsoft Teams cache, Messages attachments, plus Safari, Telegram, iPhone backups, UTM, Docker) is marked with a "disk access" badge and shows "needs access" instead of quietly disappearing when the permission isn't granted.
