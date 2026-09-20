@@ -32,6 +32,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — 1.0.0 released: the first version that updates itself (Sparkle 2); appcast as a release asset, republished by the site.
 - 2026-09-20 — In-app updates with Sparkle 2 (ADR-21): pinned dependency, inside-out signing (notarized locally), Updater wrapper + footer notice + opt-out, release workflow signs the DMG and ships appcast.xml as a release asset; the site republishes it at backspacer.dev/appcast.xml (site side: PTM). Tests W1–W3, Z1–Z5, A16.
 - 2026-09-20 — 0.9.3 released: six new catalog entries (rustup, CocoaPods specs, SDKMAN, Terraform, minikube, Vagrant), docs catch-up.
 - 2026-09-20 — 0.9.2 released: navigation-delegate fix (links open in the browser again), automatic update notice.

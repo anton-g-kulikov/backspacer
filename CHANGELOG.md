@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-09-20
 - In-app updates (Sparkle 2): Backspacer checks once a day, downloads a new version in the background and asks before installing and relaunching — never on its own. About → "Check for updates automatically" turns the check off; Check for Updates… in the app menu runs it now. Updates are verified against a key built into the app, on top of notarization. Users on 0.9.x install this one by hand; from here on it's in-app.
 - Header: the theme switch and size slider stay put while the scan runs and when the counter appears.
 
