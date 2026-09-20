@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.2 — 2026-09-20
+## 0.9.0 — 2026-09-20
 - New app icon: a ring whose segments are the five buckets in the app's colours. It also leads the header in Glass (Terminal keeps its bare `$ Backspacer` prompt).
 - About → "Check for updates" (also in the app menu): asks GitHub for the latest release and shows a Download link when there is a newer one. Only when you click — the app never checks on its own or sends anything else.
 - The scan verbs (measuring, rummaging…) now run inside the Scan button; the theme switch and size slider sit centred between the brand and the button, and the header stacks on narrow windows.
