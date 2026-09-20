@@ -21,8 +21,6 @@ file, then moved to Done.
 ### Moderate — accessibility (WCAG 2.2 AA, VoiceOver)
 ### Features (earlier queue)
 ### Hygiene — repo, release, open source
-27. **R18 · `scripts/mac-storage-review.sh`** is a personal script; move to
-    `_meta/` or delete.
 28. **R25 · Standard menus**: Help, Edit ▸ Undo/Cut/Paste, Window ▸ Zoom /
     Bring All to Front; `CFBundleInfoDictionaryVersion`.
 29. **R24 · `codesign --deep`** is discouraged by Apple; wrong once nested
@@ -47,6 +45,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-20 — R18: the origin audit script moved to `_meta/origin-storage-review.sh`, header de-personalised.
 - 2026-09-20 — R19: README screenshot (assets/screenshot-glass.png, captured from the app). preview-512.png is the icon preview, kept for the icon source.
 - 2026-09-20 — R26: CODE_OF_CONDUCT, FUNDING.yml, GitHub topics. LICENSE preamble kept: PolyForm isn't in GitHub's detector, so a pure text would still read "Other".
 - 2026-09-20 — R27: S12 (glob/children paths pass the gate), Q4 (newline in a path), C15 (plain catalog text); M6 already covers admin escaping.
