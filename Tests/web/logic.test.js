@@ -245,3 +245,11 @@ test('J23 sortProjects: by age keeps groupByProject\'s order; by size is largest
   assert.deepEqual(g.map(x => x.path), ['/a', '/b', '', '/c'], 'the input is not mutated');
   assert.deepEqual(sortProjects(g, 'bogus').map(x => x.path), ['/a', '/b', '', '/c'], 'anything else means age');
 });
+
+test('J24 deletingLabel: which item is in flight, only when there are several', () => {
+  const { deletingLabel } = L;
+  assert.equal(deletingLabel(1, 1), 'Deleting…');
+  assert.equal(deletingLabel(2, 5), 'Deleting 2 of 5…');
+  assert.equal(deletingLabel(1, 3, 'Moving'), 'Moving 1 of 3…');
+  assert.equal(deletingLabel(1, 1, 'Moving'), 'Moving…');
+});

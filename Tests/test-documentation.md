@@ -184,6 +184,7 @@ Pure functions from `web/logic.js` — the page's `index.html` keeps only DOM an
 | J18 | `updateText` | newer → "X is available." plus a Download link; current → "You’re up to date."; no result → the error text; links only when there is something to get |
 | J20 | `groupByProject` | items fold into the project whose path is their longest prefix (a nested project keeps its own), named by folder and labelled by entry, largest first; groups sorted oldest-touched first, unknown dates after known, "Elsewhere" (no project) last; nothing measured → `[]` |
 | J21 | `ago` | today / yesterday / N days / N weeks / N months / a year / N years ago; null → "never measured" |
+| J24 | `deletingLabel` | `Deleting…` for one, `Deleting 2 of 5…` for several, and the verb is a parameter (`Moving…` for a trash move) |
 | J23 | `sortProjects` | `'age'` returns groupByProject's order untouched; `'size'` is largest first with Elsewhere (`path === ''`) last; the input is not mutated; any other value means age |
 | J22 | `explainHTML` | a `<dl class="explain">` with `<dt>What</dt>`, `<dt>Why <bucket title></dt>`, `<dt>After deleting</dt>`, `<dt>Keep if</dt>`, each only when the field is present, text escaped; empty string without `explain`; `hasInfo` is true for an entry with only `explain` |
 | J16 | `rowSizeText` with an unknown size on an FDA entry | `needs access`; unknown size elsewhere stays `—` |
@@ -243,6 +244,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
 | A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
 | A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+| A31 | a delete in flight | all three loops (rows, one item, one project) guard re-entry on `state.deleting` and clear it in `finally`; `setBusy` sets `aria-busy` and writes `deleting…` into the size cell (a word, not only the blink — reduced motion); each loop announces the item when it starts; the footer button carries `deletingLabel` and is restored afterwards; nothing is disabled (A4's rule) and `updateTotals` leaves `#deleteSel.disabled` alone mid-loop; a busy row's actions dim in both themes |
 | A30 | Projects sort | `#projSort` is a `role="group"` "Sort projects" segment (Stalest / Largest, `aria-pressed`) in the card header; the blurb no longer says "stalest first"; `setProjectSort` saves the `projectSort` preference and `renderProjects` applies `sortProjects`; the segment is excluded from the head's collapse click like the "all" checkbox |
 | A29 | Explain in Details | `explainHTML(e, state.catalog.buckets)` is prepended in all three Details renders — items, "Nothing found.", command output — and `.explain` is a grid styled in both themes |
 
@@ -383,8 +385,8 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | DisposalTests | D1–D5 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
-| Web logic (node) | J1–J23 | passing |
-| Web accessibility (node) | A1–A20, A26–A30 | passing |
+| Web logic (node) | J1–J24 | passing |
+| Web accessibility (node) | A1–A20, A26–A31 | passing |
 | Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |

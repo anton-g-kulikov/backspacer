@@ -250,3 +250,20 @@ test('A30 the Projects card sorts by age or size: a named segment in its header,
   assert.match(app, /const groups = sortProjects\(groupByProject\(state\.projects, projectEntries\(\), state\.items\)\.filter\(.+\), state\.projectSort\);/);
   assert.match(app, /\$\('#projSort'\)\.onclick/);
 });
+
+test('A31 a delete in flight says so: busy rows, a counting label, nothing disabled, one pass at a time', () => {
+  assert.equal((app.match(/if \(state\.deleting\) return;/g) || []).length, 3, 'rows, items and projects all guard re-entry');
+  assert.match(app, /state\.deleting = true;/);
+  assert.match(app, /finally \{ state\.deleting = false;/, 'the guard clears however the loop ends');
+  assert.match(app, /function setBusy\(el, sizeEl, on\)/);
+  assert.equal((app.match(/setBusy\(/g) || []).length >= 7 ? 7 : 0, 7, 'set and cleared in each of the three loops');
+  assert.match(app, /sizeEl\.textContent = 'deleting…'/, 'a word, not only the blink — reduced motion shows it too (as startScanWords does)');
+  assert.match(app, /setAttribute\('aria-busy', 'true'\)/);
+  assert.equal((app.match(/announce\(`\$\{verb\} /g) || []).length, 3, 'each of the three loops announces when an item starts, not only when it ends');
+  assert.equal((app.match(/const btn = \$\('#deleteSel'\)/g) || []).length, 2, 'the footer button is the progress surface for both multi-item loops');
+  assert.equal((app.match(/btn\.textContent = deletingLabel\(/g) || []).length, 2, 'and it counts "2 of 5"');
+  assert.equal((app.match(/btn\.textContent = 'Delete selected';/g) || []).length, 2, 'restored however the loop ends');
+  assert.doesNotMatch(app, /\$\('#deleteSel'\)\.disabled = true/, 'disabling the control that has focus drops a screen reader to the body — the reason Scan uses aria-busy (A4)');
+  assert.match(app, /if \(!state\.deleting\) \$\('#deleteSel'\)\.disabled = !n/, 'the selection count does not fight the busy label mid-loop');
+  assert.ok((html.match(/\[aria-busy="true"\]/g) || []).length >= 2, 'a working row reads as non-interactive in both themes');
+});

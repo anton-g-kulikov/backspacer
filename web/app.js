@@ -79,8 +79,8 @@ function mockBridge() {
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', projectSort: 'age', scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
-// fmt, esc, deletable, granular, hasInfo, explainHTML, sortProjects, itemDeletable, itemId, trashes, itemName, isVisible,
+const state = { catalog: null, size: new Map(), items: new Map(), selected: new Set(), showSmall: new Set(), projects: [], projectView: 'tool', projectSort: 'age', deleting: false, scanning: false, scanned: false, thr: 0, disk: null, roots: [] };
+// fmt, esc, deletable, granular, hasInfo, explainHTML, sortProjects, deletingLabel, itemDeletable, itemId, trashes, itemName, isVisible,
 // buildNesting, ownSize, hasSelectedParent, meterSegments, ORDER, THR come from logic.js.
 const TRASH_NOTE = ' Put it back from Finder if you change your mind; empty the Trash to actually free the space.';
 const afterTrash = () => { const t = state.catalog.entries.find(e => e.id === 'cache-trash'); if (t) scan([t]); };
@@ -97,6 +97,22 @@ const own = id => ownSize(id, state.size, NEST);
 const selectedParent = id => hasSelectedParent(id, state.selected, NEST);
 /** Screen-reader announcements for things that otherwise only change visually. */
 function announce(text) { const l = $('#live'); l.textContent = ''; setTimeout(() => { l.textContent = text; }, 50); }
+/* A delete of gigabytes takes tens of seconds and the host says nothing until it returns, so the
+   row says it for itself: the size cell reads "deleting…" and blinks (the word matters — reduced
+   motion drops the blink), and the row is aria-busy. Nothing is disabled: state.deleting stops a
+   second pass, and disabling the control that has focus would drop a screen reader to the body —
+   the reason Scan uses aria-busy too (A4). */
+function setBusy(el, sizeEl, on) {
+  if (el) on ? el.setAttribute('aria-busy', 'true') : el.removeAttribute('aria-busy');
+  if (!sizeEl) return;
+  if (on) {
+    sizeEl.dataset.was = sizeEl.textContent; sizeEl.dataset.wasCls = sizeEl.className;
+    sizeEl.textContent = 'deleting…'; sizeEl.className = 'size pending';
+  } else if (sizeEl.dataset.was !== undefined) {   // a failed delete leaves the row as it was
+    sizeEl.textContent = sizeEl.dataset.was; sizeEl.className = sizeEl.dataset.wasCls;
+    delete sizeEl.dataset.was; delete sizeEl.dataset.wasCls;
+  }
+}
 const log = (msg, cls = '') => {
   const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight;
   bridge.call('log', { level: cls === 'err' ? 'error' : 'info', message: msg }).catch(() => {});   // also to the diagnostics file
@@ -313,7 +329,7 @@ function updateTotals() {
   $('.tagline').textContent = taglineText(RECLAIMABLE.reduce((a, b) => a + bucketTotal(b), 0) + projectBytes);
   const n = state.selected.size, bytes = [...state.selected].reduce((a, id) => a + (selectedParent(id) ? 0 : state.size.get(id) || 0), 0);
   $('#sum').innerHTML = n ? `<b>${n}</b> selected · <b>${fmt(bytes)}</b>` : 'Nothing selected';
-  $('#deleteSel').disabled = !n;
+  if (!state.deleting) $('#deleteSel').disabled = !n;   // mid-delete the button carries the busy label; the loop settles it at the end
 }
 
 function applyThreshold() {
@@ -415,6 +431,7 @@ function renderProjects() {
   }).join('');
 }
 async function confirmAndDeleteProject(path) {
+  if (state.deleting) return;
   const g = groupByProject(state.projects, projectEntries(), state.items).find(x => x.path === path);
   if (!g) return;
   const items = g.items.filter(it => itemDeletable(entry(it.entryId)));
@@ -424,7 +441,13 @@ async function confirmAndDeleteProject(path) {
   $('#dlgOk').textContent = 'Delete';
   $('#dlgList').innerHTML = items.map(it => `<li>${esc(it.label)} — ${esc(it.path)} — ${fmt(it.bytes)}</li>`).join('');
   if (!await confirmDialog($('#dlg'))) return;
-  for (const it of items) {
+  const prow = document.querySelector(`.prow[data-project="${CSS.escape(path)}"]`), psize = prow?.querySelector('.acts .size');
+  const btn = $('#deleteSel'), verb = 'Deleting';
+  btn.setAttribute('aria-busy', 'true'); state.deleting = true; setBusy(prow, psize, true);
+  try {
+  for (const [i, it] of items.entries()) {
+    btn.textContent = deletingLabel(i + 1, items.length, verb);
+    announce(`${verb} ${it.path}`);
     log(`deleting ${it.path}…`);
     try {
       const r = await bridge.call('delete', { id: it.entryId, item: it.path });
@@ -435,6 +458,7 @@ async function confirmAndDeleteProject(path) {
       if (state.items.has(it.entryId) && document.querySelector(`[data-infoout="${it.entryId}"]`)) renderItems(it.entryId);
     } catch (err) { log(`  failed — ${it.path}: ${err.message}`, 'err'); }
   }
+  } finally { state.deleting = false; setBusy(prow, psize, false); btn.removeAttribute('aria-busy'); btn.textContent = 'Delete selected'; }
   announce(`${g.display}: build output deleted`);
   updateTotals(); renderProjects(); refreshDisk();
 }
@@ -528,6 +552,7 @@ function renderItems(id) {
 }
 
 async function confirmAndDeleteItem(id, path) {
+  if (state.deleting) return;
   const e = entry(id), it = (state.items.get(id) || []).find(x => itemId(x) === path);
   if (!it || !itemDeletable(e)) return;
   const name = itemName(it);
@@ -538,6 +563,10 @@ async function confirmAndDeleteItem(id, path) {
   $('#dlgOk').textContent = trash ? 'Move to Trash' : 'Delete';
   $('#dlgList').innerHTML = `<li>${esc(it.key ? it.label : path)}</li>`;
   if (!await confirmDialog($('#dlg'))) return;
+  const itemEl = document.querySelector(`[data-item="${CSS.escape(path)}"]`), itemSize = itemEl?.querySelector('.size');
+  const verb = trash ? 'Moving' : 'Deleting';
+  state.deleting = true; setBusy(itemEl, itemSize, true);
+  announce(`${verb} ${name}`);
   log(`${trash ? 'moving to Trash' : 'deleting'} ${name}…`);
   try {
     const r = await bridge.call('delete', { id, item: path });
@@ -548,9 +577,11 @@ async function confirmAndDeleteItem(id, path) {
     const el = document.querySelector(`[data-size="${id}"]`); el.textContent = fmt(state.size.get(id)); el.className = 'size' + (state.size.get(id) ? '' : ' zero');
     renderItems(id); updateTotals(); renderProjects(); refreshDisk(); if (r.trashed) afterTrash();
   } catch (err) { log(`  failed — ${name}: ${err.message}`, 'err'); }
+  finally { state.deleting = false; setBusy(itemEl, itemSize, false); }
 }
 
 async function confirmAndDelete(ids) {
+  if (state.deleting) return;
   ids = ids.filter(id => deletable(entry(id)) && visible(id));
   if (!ids.length) return;
   const bytes = ids.reduce((a, id) => a + (ids.some(p => p !== id && (NEST.parent.get(id) === p)) ? 0 : state.size.get(id) || 0), 0);
@@ -563,20 +594,29 @@ async function confirmAndDelete(ids) {
   $('#dlgOk').textContent = toRm ? 'Delete' : 'Move to Trash';
   $('#dlgList').innerHTML = ids.map(id => `<li>${esc(entry(id).label)} — ${fmt(state.size.get(id))}</li>`).join('');
   if (!await confirmDialog($('#dlg'))) return;
-  for (const id of ids) {
-    const e = entry(id); const row = document.querySelector(`.row[data-id="${id}"]`);
-    log(`${trashes(e) ? 'moving to Trash' : 'deleting'} ${e.label}…`);
-    try {
-      const r = await bridge.call('delete', { id });
-      log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
-      announce(`${e.label}: ${r.trashed ? 'moved to Trash' : 'deleted'}, ${fmt(r.freedBytes ?? state.size.get(id))}`);
-      state.size.set(id, 0); row.classList.add('done');
-      const el = row.querySelector('[data-size]'); el.textContent = rowSizeText(0, !!r.trashed); el.className = 'size zero';
-      const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
-    } catch (err) { log(`  failed — ${e.label}: ${err.message}`, 'err'); }
-    updateTotals();
-  }
-  refreshDisk();
+  const btn = $('#deleteSel'); btn.setAttribute('aria-busy', 'true');
+  state.deleting = true;
+  try {
+    for (const [i, id] of ids.entries()) {
+      const e = entry(id); const row = document.querySelector(`.row[data-id="${id}"]`);
+      const el = row.querySelector('[data-size]'), verb = trashes(e) ? 'Moving' : 'Deleting';
+      btn.textContent = deletingLabel(i + 1, ids.length, verb);
+      setBusy(row, el, true);
+      announce(`${verb} ${e.label}`);   // at the start: the host reports nothing until it's done
+      log(`${trashes(e) ? 'moving to Trash' : 'deleting'} ${e.label}…`);
+      try {
+        const r = await bridge.call('delete', { id });
+        setBusy(row, el, false);
+        log(`  ${r.trashed ? 'moved to Trash' : 'freed'} ${fmt(r.freedBytes ?? state.size.get(id))} — ${e.label}`, 'ok');
+        announce(`${e.label}: ${r.trashed ? 'moved to Trash' : 'deleted'}, ${fmt(r.freedBytes ?? state.size.get(id))}`);
+        state.size.set(id, 0); row.classList.add('done');
+        el.textContent = rowSizeText(0, !!r.trashed); el.className = 'size zero';
+        const cb = row.querySelector('[data-sel]'); if (cb) cb.checked = false; state.selected.delete(id);
+      } catch (err) { setBusy(row, el, false); log(`  failed — ${e.label}: ${err.message}`, 'err'); }
+      updateTotals();
+    }
+  } finally { state.deleting = false; btn.removeAttribute('aria-busy'); btn.textContent = 'Delete selected'; }
+  updateTotals(); refreshDisk();
   if (ids.some(id => trashes(entry(id)))) afterTrash();
 }
 

@@ -128,6 +128,8 @@ function sortProjects(groups, by) {
   if (by !== 'size') return [...groups];
   return [...groups].sort((a, b) => (a.path === '') - (b.path === '') || b.bytes - a.bytes);
 }
+/** What the Delete button says while the loop runs: which one is in flight, but only when there are several. */
+const deletingLabel = (done, total, verb = 'Deleting') => total > 1 ? `${verb} ${done} of ${total}…` : `${verb}…`;
 // "Last touched": a rough, honest age in words.
 function ago(ts, now) {
   if (ts == null) return 'never measured';
@@ -160,5 +162,5 @@ function confirmDialog(dlg) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, groupByProject, sortProjects, ago, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, explainHTML, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
+  module.exports = { ORDER, THR, SCAN_WORKERS, scanOrder, TAGLINE, RECLAIMABLE, taglineText, groupByProject, sortProjects, deletingLabel, ago, SCAN_WORDS, shuffled, scanFrame, rowSizeText, confirmDialog, fmt, esc, deletable, granular, hasInfo, explainHTML, itemDeletable, itemId, trashes, itemName, isVisible, splitItems, buildNesting, ownSize, hasSelectedParent, meterSegments };
 }

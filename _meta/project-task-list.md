@@ -16,9 +16,12 @@ what remains is grounded follow-up work.
    after the confirm dialog closes, the row sits unchanged until the whole
    `delete` op resolves — tens of seconds for `node_modules` or DerivedData —
    and the only sign of life is a line in the collapsed Log panel. Two layers:
-   (a) a busy state on the row the instant the call goes out (the `.size.pending`
-   blink already exists), `aria-busy`, both delete affordances disabled against a
-   second click, and "2 of 5" for a multi-row delete; (b) real progress where the
+   (a) **done 2026-09-22** — a busy state on the row the instant the call goes
+   out, `aria-busy`, "2 of 5" for a multi-row delete, and a `state.deleting`
+   re-entry guard. Not disabled, against the original spec: A4 pins that the
+   control with focus is never disabled (a screen reader would drop to the body),
+   and the guard gives the same guarantee — agreed with the manager session;
+   (b) real progress where the
    host can give it — permanent deletes remove the top-level children one at a
    time and push `__backspacerProgress(id, freed, total)` the way `__updateFound`
    is pushed, so the row counts down; trash and admin deletes stay indeterminate

@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Deleting something large now shows that it's working: the row blinks "deleting…" while the app is busy with it, the button counts "Deleting 2 of 5…" through a multi-row delete, each item is announced as it starts, and a second click can't start a second pass.
+
 ## 1.2.1 — 2026-09-20
 - By project: the Projects card can be sorted largest first as well as stalest first (Stalest | Largest in its header; remembered).
 
