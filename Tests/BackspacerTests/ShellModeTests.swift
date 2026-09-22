@@ -48,7 +48,7 @@ import Testing
         let tail = { (c: String) in c.components(separatedBy: "; ").last ?? c }
         let plain = shell.modes.filter { !$0.login }.map(\.command), login = shell.modes.filter { $0.login }.map { tail($0.command) }
         #expect(plain.allSatisfy { $0.hasPrefix("du ") || $0.hasPrefix("find ") || $0.hasPrefix("rm -rf ") }, Comment(rawValue: plain.joined(separator: " | ")))
-        #expect(plain.contains { $0.hasPrefix("du -skxc") } && plain.contains { $0.hasPrefix("find ") } && plain.contains { $0.hasPrefix("rm -rf") })
+        #expect(plain.contains { $0.hasPrefix("du -skxc") } && plain.contains { $0.hasPrefix("find ") } && plain.contains { $0.contains("rm -rf") })   // a sweep's rm follows its du in one plain call
         // sizeCmd runs twice: once for `size`, once inside `delete` for the before-bytes
         #expect(login.sorted() == ["brew cleanup", "brew info", "brew size", "brew size", "xcrun list", "xcrun list", "xcrun rm 'k1'"], Comment(rawValue: login.joined(separator: " | ")))
     }

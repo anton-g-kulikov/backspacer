@@ -12,24 +12,9 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done. The 2026-09-20 review queue (R1–R27) is complete;
 what remains is grounded follow-up work.
 
-1. **Delete gives no feedback while it runs** (2026-09-22, maintainer):
-   after the confirm dialog closes, the row sits unchanged until the whole
-   `delete` op resolves — tens of seconds for `node_modules` or DerivedData —
-   and the only sign of life is a line in the collapsed Log panel. Two layers:
-   (a) **done 2026-09-22** — a busy state on the row the instant the call goes
-   out, `aria-busy`, "2 of 5" for a multi-row delete, and a `state.deleting`
-   re-entry guard. Not disabled, against the original spec: A4 pins that the
-   control with focus is never disabled (a screen reader would drop to the body),
-   and the guard gives the same guarantee — agreed with the manager session;
-   (b) real progress where the
-   host can give it — permanent deletes remove the top-level children one at a
-   time and push `__backspacerProgress(id, freed, total)` the way `__updateFound`
-   is pushed, so the row counts down; trash and admin deletes stay indeterminate
-   (one `trashItem` per path, one sudo prompt). (b) touches the bridge contract
-   in `api-design.md`.
-2. **"Crashed but returned" report** (2026-09-20): now logged and
+1. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
-3. **Site: re-measure the hero findings** whenever the catalog gains entries
+2. **Site: re-measure the hero findings** whenever the catalog gains entries
    that change this Mac's totals materially (the seven rows and three bucket
    totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
    not numbers). Also bump the "N entries" count (W5 fails when it drifts).
@@ -57,6 +42,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-22 — Delete feedback (R28, D6–D10, J24, A31–A32): busy rows with a counting button, then a host-side sweep that measures each piece as it removes it and pushes `__backspacerProgress` — the whole-tree `du` before the delete is gone, so space starts coming back at once. Maintainer's report via the manager session.
 - 2026-09-20 — 1.2.1 released: Projects card sort.
 - 2026-09-20 — Projects card sort: Stalest | Largest segment, `projectSort` preference (J23, A30, P1).
 - 2026-09-20 — 1.2.0 released: Explain in Details, the accessibility audit (axe-core in CI, screen-reader fixes).

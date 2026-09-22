@@ -27,7 +27,7 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 | `openFDA` | — | `{ok}` | opens the Full Disk Access pane |
 | `size` | `{id}` | `{bytes: int\|null, paths: [string], items?: [{path, bytes, display} \| {key, label, bytes}], fda?: true}` | `null` when `sizeCmd` output is unparseable, the entry has no source, or (`fda: true` in the reply) the entry needs Full Disk Access that isn't granted. `items` only for granular entries, largest first: path items (`glob` / `paths` / `children: true`) carry `display` — relative to the project folder for glob matches, the `childLabel` value or folder name for children, `~`-abbreviated otherwise; keyed items (`itemsCmd`) carry `label` |
 | `info` | `{id}` | `{text}` | `infoCmd` output, capped at 20 000 chars; without an `infoCmd`, a size breakdown of the first path's contents, largest first (40 lines) |
-| `delete` | `{id, item?}` | `{ok, freedBytes, trashed?: true}` | refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: one item of a granular entry — a path (then `rm -rf`, never for entries with a `deleteCmd`) or a key (then `deleteItemCmd` with `{key}` replaced by the shell-quoted key). Either way `item` is a selector, accepted only if it is in a fresh resolve / fresh `itemsCmd` run |
+| `delete` | `{id, item?}` | `{ok, freedBytes, trashed?: true}` | a permanent, non-admin delete of a whole entry is swept piece by piece — measuring each as it removes it, pushing `__backspacerProgress` — instead of measuring the whole tree first and then removing it; the result is what one `rm -rf` left, and `freedBytes` is the sum. Refuses non-deletable entries and unsafe paths; admin entries prompt via macOS. With `item`: one item of a granular entry — a path (then `rm -rf`, never for entries with a `deleteCmd`) or a key (then `deleteItemCmd` with `{key}` replaced by the shell-quoted key). Either way `item` is a selector, accepted only if it is in a fresh resolve / fresh `itemsCmd` run |
 | `reveal` | `{id}` | `{ok}` | Finder-selects the first resolved path |
 | `appInfo` | — | `{version, build}` | `CFBundleShortVersionString`, `CFBundleVersion` |
 | `prefGet` | `{key}` | `{value: string\|null}` | keys: `theme`, `minSize`, `autoUpdateCheck` (the last one also flips Sparkle's `automaticallyChecksForUpdates`), `projectView` (`tool`/`project`) |
@@ -52,6 +52,8 @@ replies `window.__backspacerReply(id, ok, payload)`. Transport is
 |---|---|
 | `window.__backspacerReply(id, ok, payload)` | every reply |
 | `window.__setTheme("glass"\|"terminal")` | View menu |
+| `window.__updateFound(version)` | Sparkle has found and downloaded a newer version |
+| `window.__backspacerProgress(id, freedBytes)` | during a permanent, non-admin `delete` of a whole entry: bytes freed so far, once per piece swept. Cumulative and monotonic. The page counts the row down from the size *it* measured — the host does not send a total, because knowing one up front would mean the whole-tree `du` this replaced. Not sent for a trash or admin delete (one operation, indeterminate) or for a per-item delete (one item, already measured) |
 
 ## Mock bridge
 

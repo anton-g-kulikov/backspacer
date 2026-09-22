@@ -267,3 +267,10 @@ test('A31 a delete in flight says so: busy rows, a counting label, nothing disab
   assert.match(app, /if \(!state\.deleting\) \$\('#deleteSel'\)\.disabled = !n/, 'the selection count does not fight the busy label mid-loop');
   assert.ok((html.match(/\[aria-busy="true"\]/g) || []).length >= 2, 'a working row reads as non-interactive in both themes');
 });
+
+test('A32 the host pushes progress and the busy row counts down from its own measured size', () => {
+  assert.match(app, /window\.__backspacerProgress = \(id, freedBytes\) =>/, 'the host→page callback, alongside __updateFound');
+  assert.match(app, /const el = document\.querySelector\(`\.row\[data-id="\$\{id\}"\] \[data-size\]`\)/);
+  assert.match(app, /if \(!el \|\| el\.dataset\.was === undefined\) return;/, 'a stale push cannot rewrite a row that is not working');
+  assert.match(app, /Math\.max\(0, \(state\.size\.get\(id\) \|\| 0\) - freedBytes\)/, 'the denominator is the size the page already measured');
+});

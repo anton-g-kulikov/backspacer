@@ -23,6 +23,7 @@ final class Bridge: NSObject, @unchecked Sendable {
     private let trasher: (URL) throws -> Void
     private let shell: CommandRunner
     private let diagnostics: Diagnostics
+    private let onProgress: ((String, Int64) -> Void)?
     private let fm = FileManager.default
 
     enum Disposal { case permanent, trash }
@@ -38,6 +39,7 @@ final class Bridge: NSObject, @unchecked Sendable {
          trasher: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
          shell: CommandRunner = SystemShell(),
          diagnostics: Diagnostics = .standard,
+         onProgress: ((String, Int64) -> Void)? = nil,
          opener: @escaping @Sendable (URL, Opener) -> Void = Bridge.systemOpener) {
         self.catalog = catalog
         self.home = home
@@ -47,6 +49,7 @@ final class Bridge: NSObject, @unchecked Sendable {
         self.trasher = trasher
         self.shell = shell
         self.diagnostics = diagnostics
+        self.onProgress = onProgress
         self.opener = opener
     }
 
@@ -67,19 +70,76 @@ final class Bridge: NSObject, @unchecked Sendable {
     /// Removes paths according to the entry's disposal. Trashing that fails is an error, never a
     /// fallback to rm. Symlinks are never targets: a link's destination isn't what the catalog
     /// described, and `rm -rf link/` would follow it (R9).
-    private func remove(_ paths: [String], for e: Catalog.Entry) throws -> Bool {
+    /// `reportAs` is the entry id a permanent, non-admin removal reports progress under; nil
+    /// sweeps silently (a per-item delete, where the page is already showing that one item).
+    /// Returns whether the paths were trashed, and — when it swept — the bytes it measured.
+    @discardableResult
+    private func remove(_ paths: [String], for e: Catalog.Entry, reportAs id: String? = nil) throws -> (trashed: Bool, freed: Int64) {
         for p in paths where isSymlink(p) { throw BridgeError.failed("Refused: \(p) is a symbolic link.") }
         switch disposal(of: e) {
         case .trash:
             for p in paths { diagnostics.log(.info, "trash: " + p); try trasher(URL(fileURLWithPath: p)) }
-            return true
+            return (true, 0)
         case .permanent:
-            let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
-            diagnostics.log(.info, (e.needsAdmin ? "admin: " : "run: ") + cmd)
-            let r = e.needsAdmin ? shell.runAsAdmin(cmd) : shell.run(cmd, timeout: 1800, login: false)
-            guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
-            return false
+            // Admin stays one invocation: sweeping would ask for the password once per child.
+            if e.needsAdmin {
+                let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
+                diagnostics.log(.info, "admin: " + cmd)
+                let r = shell.runAsAdmin(cmd)
+                guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+                return (false, 0)
+            }
+            // Sweeping exists to report progress. A per-item delete has no row to count down and
+            // already measured the item itself, so it stays one rm — sweeping it would walk the
+            // same tree a second time, the cost this change was meant to avoid.
+            guard let id else {
+                let cmd = "rm -rf " + paths.map(Shell.q).joined(separator: " ")
+                diagnostics.log(.info, "run: " + cmd)
+                let r = shell.run(cmd, timeout: 1800, login: false)
+                guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+                return (false, 0)
+            }
+            return (false, try sweep(paths, reportAs: id))
         }
+    }
+
+    /// Removes a permanent entry a piece at a time, measuring each piece as it goes, so the page
+    /// hears about it while it happens (R28b). The units are the entry's own paths when there are
+    /// several (glob matches, a `paths` list); a single path is swept by its top-level contents —
+    /// everything in it, files included, or a loose file would survive a delete the user
+    /// confirmed — and the path itself goes last, so the result is what one `rm -rf` left.
+    /// The per-piece `du` replaces the whole-tree one `delete` used to run before removing
+    /// anything: the same walk, split, instead of an extra one.
+    private func sweep(_ paths: [String], reportAs id: String) throws -> Int64 {
+        var units = paths, parents: [String] = []
+        if paths.count == 1, let only = paths.first {
+            let names = ((try? fm.contentsOfDirectory(atPath: only)) ?? []).sorted()
+            if !names.isEmpty { units = names.map { only + "/" + $0 }; parents = [only] }
+        }
+        // A child the gate refuses (an app cache folder named "Documents") must not turn a
+        // delete the user confirmed into a failure: the parent it approved goes in one rm.
+        if let bad = units.first(where: { !isSafeToDelete($0) }) {
+            diagnostics.log(.info, "sweep: falling back to one rm — the gate refuses " + bad)
+            units = paths; parents = []
+        }
+        var freed: Int64 = 0
+        for u in units {
+            freed += try removeMeasuring(u)
+            emitProgress(id, freed)
+        }
+        for p in parents { try removeMeasuring(p) }   // empty by now
+        return freed
+    }
+
+    /// One `sh` call: measure the piece, then remove it. The exit status is `rm`'s.
+    @discardableResult
+    private func removeMeasuring(_ path: String) throws -> Int64 {
+        let q = Shell.q(path)
+        let cmd = "du -skx \(q) 2>/dev/null | tail -1; rm -rf \(q)"
+        diagnostics.log(.info, "run: " + cmd)
+        let r = shell.run(cmd, timeout: 1800, login: false)
+        guard r.ok else { throw BridgeError.failed(r.stderr.isEmpty ? "exit status \(r.status)" : r.stderr) }
+        return (Self.parseDu(r.stdout).first?.kb ?? 0) * 1024
     }
 
     /// Runs a command the catalog defines (sizeCmd, infoCmd, deleteCmd, itemsCmd, deleteItemCmd) —
@@ -141,6 +201,14 @@ final class Bridge: NSObject, @unchecked Sendable {
             json = #"{"error":"unserializable reply"}"#
         }
         let js = "window.__backspacerReply(\(id), \(ok), \(json));"
+        Task { @MainActor in self.webView?.evaluateJavaScript(js, completionHandler: nil) }
+    }
+
+    /// Bytes freed so far by a delete still running — pushed to the page the way `__updateFound`
+    /// is, so a row can count down instead of sitting still (R28b). Injectable for tests.
+    private func emitProgress(_ id: String, _ freed: Int64) {
+        if let onProgress { onProgress(id, freed); return }
+        let js = "window.__backspacerProgress && window.__backspacerProgress(\(id.debugDescription), \(freed));"
         Task { @MainActor in self.webView?.evaluateJavaScript(js, completionHandler: nil) }
     }
 
@@ -478,7 +546,11 @@ final class Bridge: NSObject, @unchecked Sendable {
         if let item, e.itemsCmd != nil { return try deleteCommandItem(e, key: item) }
         guard e.isDeletable else { throw BridgeError.notDeletable(e.label) }
         if let item { return try deleteItem(e, item) }
-        let before = ((try? size(e))?["bytes"] as? Int64) ?? 0
+        // A sweep measures each piece as it removes it, so the whole-tree `du` that used to run
+        // before anything was touched is skipped: the first feedback now arrives with the first
+        // child rather than after the measuring pass (R28b).
+        let sweeps = disposal(of: e) == .permanent && !e.needsAdmin && e.deleteCmd == nil
+        let before = sweeps ? 0 : (((try? size(e))?["bytes"] as? Int64) ?? 0)
 
         if let custom = e.deleteCmd {
             guard !e.needsAdmin else { throw BridgeError.failed("\(e.label): admin entries can't run commands.") }
@@ -490,8 +562,9 @@ final class Bridge: NSObject, @unchecked Sendable {
         let paths = (e.exclude ?? []).isEmpty ? resolvePaths(e) : resolveItems(e)
         guard !paths.isEmpty else { return ["ok": true, "freedBytes": 0] }
         for p in paths where !isSafeToDelete(p) { throw BridgeError.unsafePath(p) }
-        let trashed = try remove(paths, for: e)
-        return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
+        let out = try remove(paths, for: e, reportAs: e.id)
+        let freed = sweeps ? out.freed : before
+        return out.trashed ? ["ok": true, "freedBytes": freed, "trashed": true] : ["ok": true, "freedBytes": freed]
     }
 
     /// One command-listed item. `key` is a selector: it must appear in a fresh run of itemsCmd,
@@ -523,7 +596,7 @@ final class Bridge: NSObject, @unchecked Sendable {
             }
         }
         let before = (Self.parseDu(shell.run("du -skx \(Shell.q(item)) 2>/dev/null", timeout: 600, login: false).stdout).first?.kb ?? 0) * 1024
-        let trashed = try remove(targets, for: e)
+        let trashed = try remove(targets, for: e).trashed
         return trashed ? ["ok": true, "freedBytes": before, "trashed": true] : ["ok": true, "freedBytes": before]
     }
 

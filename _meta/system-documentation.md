@@ -138,6 +138,20 @@ catalog without), so every row has a Details button. The block sits above the
 item list, the command output or the "Nothing found." line, and is re-rendered
 with them.
 
+A permanent, non-admin delete of a whole entry is **swept** (R28b): the units are the entry's
+own paths when there are several (glob matches, a `paths` list), otherwise the single path's
+top-level contents — everything in it, files as well as folders, or a loose file would outlive a
+delete the user confirmed — and the path itself goes last, so the result is byte-for-byte what
+one `rm -rf` left (D5–D7). Each unit is one `sh` call that measures it and then removes it, and
+after each one the host pushes `window.__backspacerProgress(id, freedBytes)`. This *replaces* the
+whole-tree `du` that `delete` used to run before touching anything: the same walk, split, so
+feedback starts with the first piece instead of after the measuring pass. Measured cost of the
+split on a 137-child folder: 0.25 s → 0.46 s of `du`, against a delete that takes tens of seconds.
+A child the gate refuses (an app cache folder named `Documents`) does not fail the delete: the
+approved parent goes in one `rm`, as before. Trash (one `trashItem` per path) and admin (one
+`sudo` invocation — sweeping would ask for the password per child) stay single operations and
+report nothing, as does a per-item delete, which has already measured its one item.
+
 `delete {id, item}` re-resolves the entry and refuses any `item` not in that
 fresh set, then applies the normal safety gate, then `rm -rf` that one path.
 Tests I1–I8 run this against a temp directory used as `home`.

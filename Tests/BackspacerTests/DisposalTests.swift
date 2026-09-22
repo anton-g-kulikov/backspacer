@@ -5,8 +5,14 @@ import Testing
 /// Your-call items go to the Trash; caches are removed for good. A recording trasher stands in
 /// for FileManager.trashItem so the user's real Trash is never touched.
 @Suite struct DisposalTests {
-    final class Recorder: @unchecked Sendable { var trashed: [String] = []; var fail = false }
+    final class Recorder: @unchecked Sendable {
+        var trashed: [String] = []; var fail = false
+        private let lock = NSLock()
+        var progress: [(id: String, freed: Int64)] = []
+        func note(_ id: String, _ freed: Int64) { lock.lock(); progress.append((id, freed)); lock.unlock() }
+    }
     let home: URL
+    let cat: Catalog
     let bridge: Bridge
     let recorder = Recorder()
     let fm = FileManager.default
@@ -24,17 +30,19 @@ import Testing
           { "id": "data",  "group": "t", "bucket": "decide", "label": "app data", "path": "~/Library/Application Support/App/data" },
           { "id": "arch",  "group": "t", "bucket": "decide", "label": "archives", "path": "~/Library/Developer/Xcode/Archives", "children": true },
           { "id": "admin", "group": "t", "bucket": "decide", "label": "admin",    "path": "~/Library/Android/sdk/ndk", "sudo": true },
-          { "id": "cmd",   "group": "t", "bucket": "decide", "label": "by cmd",   "path": "~/Library/Android/sdk/ndk", "deleteCmd": "true" }
+          { "id": "cmd",   "group": "t", "bucket": "decide", "label": "by cmd",   "path": "~/Library/Android/sdk/ndk", "deleteCmd": "true" },
+          { "id": "multi", "group": "t", "bucket": "regen",  "label": "two places", "paths": ["~/Library/Caches/x", "~/Library/Developer/Xcode/Archives"] }
         ] }
         """
         var cat = try JSONDecoder().decode(Catalog.self, from: Data(json.utf8)); cat.rawJSON = json
+        self.cat = cat
         let rec = recorder
         self.home = home
         self.bridge = Bridge(catalog: cat, home: home.path, tildeHome: home.path,
                              trasher: { url in
                                  if rec.fail { throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "trash refused"]) }
                                  rec.trashed.append(url.path); try FileManager.default.removeItem(at: url)
-                             }, diagnostics: Fixture.quiet)
+                             }, diagnostics: Fixture.quiet, onProgress: { id, freed in rec.note(id, freed) })
     }
     func cleanup() { try? fm.removeItem(at: home) }
     func e(_ id: String) -> Catalog.Entry { bridge.catalogEntry(id)! }
@@ -86,5 +94,85 @@ import Testing
         #expect(recorder.trashed.isEmpty)
         #expect(!fm.fileExists(atPath: home.path + "/Library/Caches"))
         #expect(r?["trashed"] == nil)
+    }
+
+    // ── R28b: a long delete reports as it goes ───────────────────────────────
+
+    /// Children of ~/Library/Caches, plus a loose file beside them, each with a known size.
+    private func fillCaches() throws -> URL {
+        let caches = home.appendingPathComponent("Library/Caches")
+        for d in ["a", "b", "c"] {
+            try fm.createDirectory(at: caches.appendingPathComponent(d), withIntermediateDirectories: true)
+            try Data(repeating: 1, count: 40_960).write(to: caches.appendingPathComponent(d + "/f.bin"))
+        }
+        try Data(repeating: 1, count: 20_480).write(to: caches.appendingPathComponent("loose.bin"))
+        return caches
+    }
+
+    @Test("D6 — a permanent delete sweeps the children one at a time, reporting freed bytes as it goes")
+    func sweepReportsProgress() throws {
+        defer { cleanup() }
+        let caches = try fillCaches()
+        let r = try bridge.handle(op: "delete", args: ["id": "cache"]) as? [String: Any]
+        #expect(!fm.fileExists(atPath: caches.path), "the parent goes too — the same result rm -rf gave (D5)")
+        let freed = recorder.progress.filter { $0.id == "cache" }.map(\.freed)
+        #expect(freed.count >= 4, "one report per child (a, b, c, loose.bin, x), not one at the end")
+        #expect(freed == freed.sorted(), "cumulative, never going backwards")
+        #expect(freed.last == r?["freedBytes"] as? Int64, "the last report is what the reply carries")
+        #expect((r?["freedBytes"] as? Int64 ?? 0) >= 140_000, "every child counted")
+    }
+
+    @Test("D7 — loose files beside the folders are swept too, not just directories")
+    func sweepTakesLooseFiles() throws {
+        defer { cleanup() }
+        let caches = try fillCaches()
+        _ = try bridge.handle(op: "delete", args: ["id": "cache"])
+        #expect(!fm.fileExists(atPath: caches.appendingPathComponent("loose.bin").path))
+        #expect(!fm.fileExists(atPath: caches.path))
+    }
+
+    @Test("D8 — trash and admin stay one operation: no per-child sweep, no progress")
+    func indeterminateDisposals() throws {
+        defer { cleanup() }
+        _ = try bridge.handle(op: "delete", args: ["id": "data"])          // trash
+        #expect(recorder.progress.isEmpty, "a trashed entry is one trashItem per path, fast and indeterminate")
+
+        let fake = FakeShell()
+        fake.on("du -sk", stdout: "8\t/x\n")
+        let rec = Recorder()
+        let admin = Bridge(catalog: cat, home: home.path, tildeHome: home.path,
+                           trasher: { _ in }, shell: fake, diagnostics: Fixture.quiet,
+                           onProgress: { id, freed in rec.note(id, freed) })
+        _ = try admin.handle(op: "delete", args: ["id": "admin"])
+        #expect(rec.progress.isEmpty, "admin must stay one sudo invocation — no repeated password prompts")
+        #expect(fake.adminCalls.count == 1)
+        #expect(fake.adminCalls.first?.hasPrefix("rm -rf ") == true)
+    }
+
+    @Test("D9 — an entry with several paths reports each path, without enumerating inside them")
+    func sweepsSeveralPaths() throws {
+        defer { cleanup() }
+        _ = try fillCaches()
+        _ = try bridge.handle(op: "delete", args: ["id": "multi"])
+        #expect(recorder.progress.filter { $0.id == "multi" }.count == 2, "one report per listed path")
+        #expect(!fm.fileExists(atPath: home.path + "/Library/Caches/x"))
+        #expect(!fm.fileExists(atPath: home.path + "/Library/Developer/Xcode/Archives"))
+    }
+
+    @Test("D10 — a per-item delete stays one rm: it already measured the item, so it never sweeps it again")
+    func perItemDoesNotSweep() throws {
+        defer { cleanup() }
+        _ = try fillCaches()
+        let fake = FakeShell()
+        fake.on("du -sk", stdout: "40\t/x\n")
+        let rec = Recorder()
+        let b = Bridge(catalog: cat, home: home.path, tildeHome: home.path,
+                       trasher: { _ in }, shell: fake, diagnostics: Fixture.quiet,
+                       onProgress: { id, freed in rec.note(id, freed) })
+        _ = try b.handle(op: "delete", args: ["id": "cache", "item": home.path + "/Library/Caches"])
+        #expect(rec.progress.isEmpty, "no row is counting down for one item")
+        let removals = fake.calls.filter { $0.contains("rm -rf") }
+        #expect(removals.count == 1, Comment(rawValue: fake.calls.joined(separator: " | ")))
+        #expect(removals.first?.hasPrefix("rm -rf ") == true, "one removal, not a measure-and-remove sweep")
     }
 }

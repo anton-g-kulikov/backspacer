@@ -57,7 +57,7 @@ import Testing
         defer { cleanup() }
         shell.on("rm -rf", stderr: "rm: Permission denied", status: 1)
         #expect(throws: (any Error).self) { try bridge.handle(op: "delete", args: ["id": "p"]) }
-        #expect(shell.calls.contains { $0.hasPrefix("rm -rf '") })
+        #expect(shell.calls.contains { $0.contains("rm -rf '") })   // the sweep measures the piece first (R28b), so rm is no longer the head
         #expect(shell.adminCalls.isEmpty)
     }
 

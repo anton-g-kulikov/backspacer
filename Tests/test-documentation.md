@@ -136,6 +136,11 @@ Fixture: temp home with a `safe` cache, a `decide` folder, a `decide` `children`
 | D3 | per-item delete on a `decide` `children` entry | only that child is trashed; the sibling stays |
 | D4 | the trasher throws | the error surfaces, the source is untouched — no fallback to `rm` |
 | D5 | whole-entry delete of a `safe` folder | removed permanently, trasher not called, reply has no `trashed` |
+| D6 | the sweep reports as it goes | a permanent delete of a single-path entry emits one `onProgress` per child (not one at the end), cumulative and never decreasing, the last equal to the reply's `freedBytes`; the parent folder is gone, as in D5 |
+| D7 | loose files are swept too | a file sitting beside the folders inside the entry's path does not outlive the delete — the sweep enumerates everything, not just directories |
+| D8 | trash and admin stay indeterminate | a trashed entry reports no progress; an admin entry (fake shell) is exactly one `runAsAdmin` of one `rm -rf` and reports nothing — sweeping would prompt for the password per child |
+| D9 | several paths, several reports | an entry with a `paths` list reports once per listed path and does not enumerate inside them |
+| D10 | a per-item delete never sweeps | one `rm -rf` call and no progress: the item was already measured, so a sweep would walk it twice |
 
 ### SchemaTests — `catalog.schema.json`
 Validated with a small JSON-Schema subset validator in `Tests/BackspacerTests/Support/MiniSchema.swift` (type, required, properties, additionalProperties, enum, const, items, minItems, pattern, anyOf, not, dependentRequired, dependentSchemas — the keywords the schema uses).
@@ -244,6 +249,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
 | A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
 | A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+| A32 | progress reaches the row | `window.__backspacerProgress(id, freedBytes)` is defined beside the other host→page callbacks; it rewrites only a row that is working (`dataset.was` set, so a stale push is ignored) and shows the size the page measured minus what the host has freed, clamped at zero |
 | A31 | a delete in flight | all three loops (rows, one item, one project) guard re-entry on `state.deleting` and clear it in `finally`; `setBusy` sets `aria-busy` and writes `deleting…` into the size cell (a word, not only the blink — reduced motion); each loop announces the item when it starts; the footer button carries `deletingLabel` and is restored afterwards; nothing is disabled (A4's rule) and `updateTotals` leaves `#deleteSel.disabled` alone mid-loop; a busy row's actions dim in both themes |
 | A30 | Projects sort | `#projSort` is a `role="group"` "Sort projects" segment (Stalest / Largest, `aria-pressed`) in the card header; the blurb no longer says "stalest first"; `setProjectSort` saves the `projectSort` preference and `renderProjects` applies `sortProjects`; the segment is excluded from the head's collapse click like the "all" checkbox |
 | A29 | Explain in Details | `explainHTML(e, state.catalog.buckets)` is prepended in all three Details renders — items, "Nothing found.", command output — and `.explain` is a grid styled in both themes |
@@ -382,11 +388,11 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | ContextMenuTests | X1, X2, X5 | passing |
 | PathActionTests | O1–O3 | passing |
 | CommandItemTests | T1–T8 | passing |
-| DisposalTests | D1–D5 | passing |
+| DisposalTests | D1–D10 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F12 | passing |
 | Web logic (node) | J1–J24 | passing |
-| Web accessibility (node) | A1–A20, A26–A31 | passing |
+| Web accessibility (node) | A1–A20, A26–A32 | passing |
 | Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |

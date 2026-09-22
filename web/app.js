@@ -113,6 +113,13 @@ function setBusy(el, sizeEl, on) {
     delete sizeEl.dataset.was; delete sizeEl.dataset.wasCls;
   }
 }
+/* The host reports what it has freed while a delete is still running (R28b). The row counts down
+   from the size the page measured; a push for a row that is not working is ignored. */
+window.__backspacerProgress = (id, freedBytes) => {
+  const el = document.querySelector(`.row[data-id="${id}"] [data-size]`);
+  if (!el || el.dataset.was === undefined) return;
+  el.textContent = fmt(Math.max(0, (state.size.get(id) || 0) - freedBytes));
+};
 const log = (msg, cls = '') => {
   const p = $('#log'); p.insertAdjacentHTML('beforeend', `<span class="${cls}">${new Date().toTimeString().slice(0, 8)}  ${esc(msg)}</span>\n`); p.scrollTop = p.scrollHeight;
   bridge.call('log', { level: cls === 'err' ? 'error' : 'info', message: msg }).catch(() => {});   // also to the diagnostics file
