@@ -12,9 +12,21 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done. The 2026-09-20 review queue (R1–R27) is complete;
 what remains is grounded follow-up work.
 
-1. **"Crashed but returned" report** (2026-09-20): now logged and
+1. **Delete gives no feedback while it runs** (2026-09-22, maintainer):
+   after the confirm dialog closes, the row sits unchanged until the whole
+   `delete` op resolves — tens of seconds for `node_modules` or DerivedData —
+   and the only sign of life is a line in the collapsed Log panel. Two layers:
+   (a) a busy state on the row the instant the call goes out (the `.size.pending`
+   blink already exists), `aria-busy`, both delete affordances disabled against a
+   second click, and "2 of 5" for a multi-row delete; (b) real progress where the
+   host can give it — permanent deletes remove the top-level children one at a
+   time and push `__backspacerProgress(id, freed, total)` the way `__updateFound`
+   is pushed, so the row counts down; trash and admin deletes stay indeterminate
+   (one `trashItem` per path, one sudo prompt). (b) touches the bridge contract
+   in `api-design.md`.
+2. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
-2. **Site: re-measure the hero findings** whenever the catalog gains entries
+3. **Site: re-measure the hero findings** whenever the catalog gains entries
    that change this Mac's totals materially (the seven rows and three bucket
    totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
    not numbers). Also bump the "N entries" count (W5 fails when it drifts).
