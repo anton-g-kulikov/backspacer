@@ -42,6 +42,7 @@ From the 0.1.0 README:
 
 ## Done
 
+- 2026-09-23 — 1.3.0 released: delete feedback (busy rows, counting button, per-piece sweep with progress).
 - 2026-09-22 — Delete feedback (R28, D6–D10, J24, A31–A32): busy rows with a counting button, then a host-side sweep that measures each piece as it removes it and pushes `__backspacerProgress` — the whole-tree `du` before the delete is gone, so space starts coming back at once. Maintainer's report via the manager session.
 - 2026-09-20 — 1.2.1 released: Projects card sort.
 - 2026-09-20 — Projects card sort: Stalest | Largest segment, `projectSort` preference (J23, A30, P1).

@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
-- Deleting something large now counts down: the app removes it a piece at a time and the row's size falls as space comes back, instead of sitting still until the whole thing is gone. It also starts freeing space immediately — it used to measure everything first, which on a large folder was a long wait before anything happened. Moving to the Trash and admin deletes stay as they were (one step, one password prompt).
-- Deleting something large now shows that it's working: the row blinks "deleting…" while the app is busy with it, the button counts "Deleting 2 of 5…" through a multi-row delete, each item is announced as it starts, and a second click can't start a second pass.
+## 1.3.0 — 2026-09-23
+- Deleting something large now shows what it's doing: the row marks itself busy the moment you confirm, the button counts "Deleting 2 of 5…" through a multi-row delete, each item is announced as it starts, and a second click can't start a second pass.
+- And it counts down. A big folder is removed a piece at a time, so the row's size falls as the space comes back — and it starts freeing right away, where it used to measure the whole folder first and show nothing at all while it did. Moving to the Trash and admin deletes are unchanged: one step, one password prompt.
 
 ## 1.2.1 — 2026-09-20
 - By project: the Projects card can be sorted largest first as well as stalest first (Stalest | Largest in its header; remembered).
