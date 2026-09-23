@@ -208,7 +208,8 @@ test('W18 the appcast reaches backspacer.dev: Pages deploys on a published relea
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /release:\s*\n\s*types: \[published\]/, 'a published release triggers a deploy');
   assert.match(wf, /releases\/latest\/download\/appcast\.xml/, 'the feed comes from the latest release asset');
-  assert.match(wf, /xmllint --noout site\/appcast\.xml/, 'the fetched appcast is validated before upload');
+  assert.match(wf, /ET\.parse\('site\/appcast\.xml'\)/, 'the fetched appcast is parsed before upload');
+  assert.doesNotMatch(wf, /apt-get install/, 'nothing is installed from a package mirror in the release path (a 404 there failed the 1.3.0 deploy)');
   assert.match(wf, /github\.event_name == 'release'/, 'on a release event a missing appcast fails the deploy');
   assert.match(wf, /sparkle:version|<enclosure/, 'the check looks for Sparkle content, not just XML');
   const ignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');

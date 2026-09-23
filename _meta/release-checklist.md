@@ -94,3 +94,11 @@ the certificate expires May 2031. Never paste any of these into a script or a co
   was built and notarized locally, but fix the guard before the next release.
 - Move the task's entry in `_meta/project-task-list.md` to Done.
 - Note anything that surprised you in this checklist.
+
+Surprises so far:
+- 2026-09-23 (1.3.0): the `site` job failed after the DMG was already published —
+  `apt-get install libxml2-utils` 404'd on a rotated package, so backspacer.dev kept
+  serving the previous appcast while the release itself was complete. Installed apps
+  check the *site* feed, so that gap is what stops an update reaching anyone. The
+  appcast is now parsed with the runner's own `python3`; nothing is installed. If a
+  site deploy ever fails again, the release is fine — re-run the deploy, don't re-tag.
