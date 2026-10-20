@@ -2,6 +2,7 @@
 
 ## Unreleased
 - Fixed: the app could insist "Full Disk Access is off" while System Settings showed it switched on. It checked by reading one folder, `~/Library/Safari`, and treated every possible failure — including that folder simply not being there — as a refusal. It now tries several folders only Full Disk Access can read, treats a missing one as no answer rather than a refusal, and records in its log exactly what it was refused and why — so when the permission still doesn't arrive, the reason is there to read.
+- The Full Disk Access notice now says what actually has to happen — macOS takes this permission from you and from nobody else, no app can add itself, and it is the one permission with no prompt — and its button both opens the list and reveals Backspacer in Finder, ready to drag in.
 - Granting Full Disk Access now takes effect without restarting the app: the banner re-checks when a scan finishes and when you switch back to the window.
 
 ## 1.3.0 — 2026-09-23

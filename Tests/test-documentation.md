@@ -251,6 +251,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
 | A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
 | A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+| A34 | the FDA banner is honest about who grants | the notice says the user adds the app and names the **+** button; the old "Grant it once in System Settings" copy, which implied the button did it, is gone |
 | A33 | the FDA banner re-checks | `refreshFDA()` is called at init and again when a scan ends, and is bound to the window's `focus` event, so a grant made in System Settings takes effect without relaunching |
 | A32 | progress reaches the row | `window.__backspacerProgress(id, freedBytes)` is defined beside the other host→page callbacks; it rewrites only a row that is working (`dataset.was` set, so a stale push is ignored) and shows the size the page measured minus what the host has freed, clamped at zero |
 | A31 | a delete in flight | all three loops (rows, one item, one project) guard re-entry on `state.deleting` and clear it in `finally`; `setBusy` sets `aria-busy` and writes `deleting…` into the size cell (a word, not only the blink — reduced motion); each loop announces the item when it starts; the footer button carries `deletingLabel` and is restored afterwards; nothing is disabled (A4's rule) and `updateTotals` leaves `#deleteSel.disabled` alone mid-loop; a busy row's actions dim in both themes |
@@ -389,13 +390,13 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | UpdaterTests | W1–W3 | passing |
 | WindowDragTests | G1 | passing |
 | ContextMenuTests | X1, X2, X5 | passing |
-| PathActionTests | O1–O3 | passing |
+| PathActionTests | O1–O4 | passing |
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D10 | passing |
 | SchemaTests | V1–V3 | passing |
 | FakeShellTests | F1–F14 | passing |
 | Web logic (node) | J1–J24 | passing |
-| Web accessibility (node) | A1–A20, A26–A33 | passing |
+| Web accessibility (node) | A1–A20, A26–A34 | passing |
 | Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |

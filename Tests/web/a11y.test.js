@@ -281,3 +281,10 @@ test('A33 the Full Disk Access banner re-checks instead of waiting for a relaunc
   assert.equal((app.match(/refreshFDA\(\)/g) || []).length, 3, 'defined, called at init, and called again when a scan ends — the banner\'s own copy says "then rescan"');
   assert.match(app, /window\.addEventListener\('focus', refreshFDA\)/, 'granting in System Settings and switching back is the common path');
 });
+
+test('A34 the Full Disk Access banner says who can grant it, and never implies the button does', () => {
+  const notice = html.match(/<div class="notice" id="fdaNotice"[\s\S]*?<\/div>/)[0];
+  assert.match(notice, /only macOS can|only accepts this from you|add Backspacer/i, 'the copy says the user adds the app');
+  assert.match(notice, /\+/, 'it names the + button, which is what actually adds it');
+  assert.doesNotMatch(notice, /Grant it once in System Settings/, 'the old copy implied the button granted access');
+});

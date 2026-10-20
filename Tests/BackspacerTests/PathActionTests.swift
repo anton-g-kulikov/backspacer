@@ -56,4 +56,19 @@ import AppKit
         #expect(throws: (any Error).self) { try bridge.handle(op: "open", args: ["id": "x"]) }
         #expect(rec.opened.isEmpty)
     }
+
+    @Test("O4 — the Full Disk Access button opens the list and reveals the app, the only two things it can do")
+    func fdaButtonRevealsTheApp() throws {
+        defer { cleanup() }
+        // macOS takes this grant from the user and from nobody else: there is no API to add an
+        // app to the list and no prompt to raise, so the button opens the pane and puts the
+        // bundle in front of the user to drag in (R30).
+        let r = try bridge.handle(op: "openFDA", args: [:]) as? [String: Any]
+        #expect(r?["ok"] as? Bool == true)
+        let revealed = rec.opened.filter { $0.1 == .reveal }
+        #expect(revealed.count == 1, Comment(rawValue: "\(rec.opened)"))
+        // Its own bundle — /Applications/Backspacer.app when it is the app doing it, the test
+        // runner's bundle here, which is why this compares the URL rather than the extension.
+        #expect(revealed.first?.0 == Bundle.main.bundleURL, "the bundle the user has to drag in")
+    }
 }

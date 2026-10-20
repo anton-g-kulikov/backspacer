@@ -431,9 +431,16 @@ final class Bridge: NSObject, @unchecked Sendable {
         diagnostics.log(.info, granted ? "full disk access: yes" : "full disk access: no — " + why)
     }
 
+    /// Opens the Full Disk Access list and reveals this app beside it. That is the whole of what
+    /// an app may do here: the grant is written by System Settings on the user's click or by an
+    /// MDM profile, there is no API to add an app to the list, and Full Disk Access — alone among
+    /// the permissions — raises no prompt to answer. So the button does the two things it can:
+    /// it opens the pane, and it puts the bundle in the user's hands to drag in (R30).
     private func openFullDiskAccessSettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") else { return }
-        DispatchQueue.main.async { NSWorkspace.shared.open(url) }
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+            DispatchQueue.main.async { NSWorkspace.shared.open(url) }
+        }
+        opener(Bundle.main.bundleURL, .reveal)
     }
 
     private func size(_ e: Catalog.Entry) throws -> [String: Any] {
@@ -632,13 +639,13 @@ final class Bridge: NSObject, @unchecked Sendable {
 
     private func reveal(_ e: Catalog.Entry) throws -> [String: Any] {
         guard let first = resolvePaths(e).first else { throw BridgeError.failed("Nothing there to show.") }
-        let url = URL(fileURLWithPath: first)
-        DispatchQueue.main.async { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+        opener(URL(fileURLWithPath: first), .reveal)
         return ["ok": true]
     }
 
-    /// Apps the page may ask to open a path with. Anything else is refused by name.
-    enum Opener: String, Sendable { case terminal }
+    /// What the bridge may ask the system to do with a path it resolved itself. Anything else is
+    /// refused by name.
+    enum Opener: String, Sendable { case terminal, reveal }
     private let opener: @Sendable (URL, Opener) -> Void
     /// The Sparkle wrapper, attached by the app delegate on distribution builds; nil in dev builds.
     @MainActor weak var updater: Updater? { didSet { hasUpdater = updater != nil } }
@@ -647,6 +654,7 @@ final class Bridge: NSObject, @unchecked Sendable {
         DispatchQueue.main.async {
             switch with {
             case .terminal: NSWorkspace.shared.open([url], withApplicationAt: URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"), configuration: NSWorkspace.OpenConfiguration())
+            case .reveal: NSWorkspace.shared.activateFileViewerSelecting([url])
             }
         }
     }
