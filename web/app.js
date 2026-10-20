@@ -96,6 +96,11 @@ let NEST = { children: new Map(), parent: new Map() };
 const own = id => ownSize(id, state.size, NEST);
 const selectedParent = id => hasSelectedParent(id, state.selected, NEST);
 /** Screen-reader announcements for things that otherwise only change visually. */
+/* Full Disk Access can be granted while the app is running, and the banner tells the user to go
+   and do it — so the notice re-asks after a scan (its own copy says "then rescan") and whenever
+   the window comes back, instead of standing until the next launch (R29). */
+function refreshFDA() { bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {}); }
+window.addEventListener('focus', refreshFDA);
 function announce(text) { const l = $('#live'); l.textContent = ''; setTimeout(() => { l.textContent = text; }, 50); }
 /* A delete of gigabytes takes tens of seconds and the host says nothing until it returns, so the
    row says it for itself: the size cell reads "deleting…" and blinks (the word matters — reduced
@@ -221,7 +226,7 @@ async function init() {
   NEST = buildNesting(state.catalog.entries);
   render();
   refreshDisk();
-  bridge.call('fdaStatus').then(r => { $('#fdaNotice').hidden = !!r.granted; }).catch(() => {});
+  refreshFDA();
   bridge.call('projectRoots').then(r => renderRoots(r.roots)).catch(() => {});
   scan();
 }
@@ -323,6 +328,7 @@ async function scan(only) {
   state.scanning = false; state.scanned = true; $('#scan').setAttribute('aria-busy', 'false'); updateScanBtn();
   announce('Scan complete');
   await refreshProjects();
+  refreshFDA();      // the banner says "then rescan"; this is that rescan
   stopScanWords();   // no "reclaimable" total — how much to reclaim is the user's call
   log('scan complete');
 }

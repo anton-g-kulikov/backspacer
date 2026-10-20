@@ -274,3 +274,10 @@ test('A32 the host pushes progress and the busy row counts down from its own mea
   assert.match(app, /if \(!el \|\| el\.dataset\.was === undefined\) return;/, 'a stale push cannot rewrite a row that is not working');
   assert.match(app, /Math\.max\(0, \(state\.size\.get\(id\) \|\| 0\) - freedBytes\)/, 'the denominator is the size the page already measured');
 });
+
+test('A33 the Full Disk Access banner re-checks instead of waiting for a relaunch', () => {
+  assert.match(app, /function refreshFDA\(\)/);
+  assert.match(app, /\$\('#fdaNotice'\)\.hidden = !!r\.granted/);
+  assert.equal((app.match(/refreshFDA\(\)/g) || []).length, 3, 'defined, called at init, and called again when a scan ends — the banner\'s own copy says "then rescan"');
+  assert.match(app, /window\.addEventListener\('focus', refreshFDA\)/, 'granting in System Settings and switching back is the common path');
+});

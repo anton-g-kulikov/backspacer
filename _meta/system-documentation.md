@@ -231,7 +231,26 @@ The View menu (⌘1/⌘2) calls `window.__setTheme`; `menuNeedsUpdate` re-reads
 
 ## Full Disk Access
 
-`hasFullDiskAccess` lists `~/Library/Safari`, which is TCC-protected. Entries
+`hasFullDiskAccess` reads canaries in order until one succeeds:
+`~/Library/Messages`, `~/Library/Safari`, `~/Library/Cookies`. Each is present
+on an ordinary Mac and readable only with Full Disk Access, and a canary that
+is merely *absent* proves nothing rather than counting as a refusal (F13, F14).
+Until R29 the only probe was `~/Library/Safari` and any error at all meant
+"off", so a Mac whose owner never opened Safari would have reported *off*
+forever. Three paths were measured on macOS 27 and rejected as canaries:
+`~/Library/Application Support/com.apple.TCC` does not exist, and both
+`/Library/Application Support/com.apple.TCC/TCC.db` and
+`/Library/Preferences/com.apple.TimeMachine.plist` are world-readable — the
+first would always abstain, the other two would claim access that isn't there.
+Note what this check cannot see: a grant that exists but does not apply to the
+running binary (a stale TCC row from a differently signed build, or a row for
+another copy of the app) is indistinguishable from no grant. That is why the
+reason is logged per canary — "Operation not permitted" means the grant is not
+reaching us, and the fix is to remove the entry and add this app again.
+The verdict is now logged whenever it changes, with the reason per canary.
+The page re-asks after every scan (its banner says "then rescan") and whenever
+the window regains focus, so a grant takes effect without a relaunch (A33).
+Entries
 flagged `fda: true` (containers, Mail, Messages, Safari, MobileSync, UTM,
 Docker's VM) are not measured without it: `size` returns `bytes: null` with
 `fda: true`, the row shows *needs access* and a **disk access** badge instead

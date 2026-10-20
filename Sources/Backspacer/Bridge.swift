@@ -221,6 +221,8 @@ final class Bridge: NSObject, @unchecked Sendable {
 
     private static let durationsKey = "scan.durations"
     private let durationsLock = NSLock()
+    private let fdaLock = NSLock()
+    private var lastFDAVerdict: Bool?
 
     private func rememberDuration(_ id: String, _ ms: Int) {
         durationsLock.lock(); defer { durationsLock.unlock() }
@@ -397,8 +399,36 @@ final class Bridge: NSObject, @unchecked Sendable {
     }
 
     /// ~/Library/Safari is TCC-protected; listing it succeeds only with Full Disk Access.
+    /// Read in order until one succeeds. Each is present on an ordinary Mac and readable only
+    /// with Full Disk Access; several, so one missing folder cannot decide the answer alone —
+    /// until R29 the only probe was `~/Library/Safari`, and a Mac whose owner never opened Safari
+    /// would have reported "off" forever.
+    /// Measured on macOS 27 before choosing these: `~/Library/Application Support/com.apple.TCC`
+    /// does not exist at all, and both `/Library/Application Support/com.apple.TCC/TCC.db` and
+    /// `/Library/Preferences/com.apple.TimeMachine.plist` are world-readable — any of the three
+    /// would answer with confidence and be wrong, two of them by claiming access we do not have.
+    private static let fdaProbes = ["/Library/Messages", "/Library/Safari", "/Library/Cookies"]
+
+    /// Granted when any canary can actually be read; an absent one proves nothing either way.
+    /// Why it failed is logged — once per change, since the page asks on every scan — because
+    /// "off" while System Settings says on is otherwise undiagnosable from the outside.
     private func hasFullDiskAccess() -> Bool {
-        (try? fm.contentsOfDirectory(atPath: tildeHome + "/Library/Safari")) != nil
+        var refusals: [String] = []
+        for probe in Self.fdaProbes {
+            do { _ = try fm.contentsOfDirectory(atPath: tildeHome + probe); noteFDA(true); return true }
+            catch let error as NSError {
+                refusals.append("\(probe): " + (error.code == NSFileReadNoSuchFileError ? "not there" : error.localizedDescription))
+            }
+        }
+        noteFDA(false, refusals.joined(separator: "; "))
+        return false
+    }
+
+    private func noteFDA(_ granted: Bool, _ why: String = "") {
+        fdaLock.lock(); defer { fdaLock.unlock() }
+        guard lastFDAVerdict != granted else { return }
+        lastFDAVerdict = granted
+        diagnostics.log(.info, granted ? "full disk access: yes" : "full disk access: no — " + why)
     }
 
     private func openFullDiskAccessSettings() {

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Fixed: the app could insist "Full Disk Access is off" while System Settings showed it switched on. It checked by reading one folder, `~/Library/Safari`, and treated every possible failure — including that folder simply not being there — as a refusal. It now tries several folders only Full Disk Access can read, treats a missing one as no answer rather than a refusal, and records in its log exactly what it was refused and why — so when the permission still doesn't arrive, the reason is there to read.
+- Granting Full Disk Access now takes effect without restarting the app: the banner re-checks when a scan finishes and when you switch back to the window.
+
 ## 1.3.0 — 2026-09-23
 - Deleting something large now shows what it's doing: the row marks itself busy the moment you confirm, the button counts "Deleting 2 of 5…" through a multi-row delete, each item is announced as it starts, and a second click can't start a second pass.
 - And it counts down. A big folder is removed a piece at a time, so the row's size falls as the space comes back — and it starts freeing right away, where it used to measure the whole folder first and show nothing at all while it did. Moving to the Trash and admin deletes are unchanged: one step, one password prompt.

@@ -165,7 +165,9 @@ A `FakeShell` (`CommandRunner`) records every command and answers from a script;
 | F8 | `deleteCmd` entry | the custom command runs verbatim (no `rm`) |
 | F9 | `size` on an entry with several paths | one `xargs -0 -P 2 -n 1 du -skx` over NUL-separated quoted paths; total = sum of the per-path lines; items keep per-path bytes. Ceiling: 4 workers × 2 = at most 8 `du` processes during a scan |
 | F10 | `size` on a single-path entry | still a plain `du -skxc` (no xargs) |
-| F12 | `fda: true` entries | without Full Disk Access (no `~/Library/Safari` in the fixture home) `size` returns `bytes: null` and runs no `du`; with it, `du` runs as usual |
+| F12 | `fda: true` entries | without Full Disk Access (no canary in the fixture home) `size` returns `bytes: null` and runs no `du`; with one, `du` runs as usual |
+| F13 | any one canary is enough | with none of `~/Library/Messages`, `~/Library/Safari`, `~/Library/Cookies` present, `size` reports unknown; creating any one of them reports access — the check no longer depends on one folder being there |
+| F14 | absent ≠ refused | a missing first canary does not end the check: a readable later one still reports access, the bug behind "off with the toggle on" |
 | F11 | a `sudo` entry with a `deleteCmd` / `deleteItemCmd` (built in the test; the catalog forbids it) | `delete` throws; nothing reaches `runAsAdmin`; `run` is never called with the command |
 
 ### Web logic — `Tests/web/logic.test.js` (Node's `node:test`, run with `node --test Tests/web`)
@@ -249,6 +251,7 @@ The DOM can't run under Node, so these pin the templates; the browser's accessib
 | A26 | row actions name their row | bucket rows: `aria-label="Details for <label>"` / `"Reveal <label>"` / `"Delete <label>"`; project rows the same with the project's display path, and the project Details button `aria-controls` a panel with an id; item Delete buttons name the item (bucket items by their shown name, project items by path) |
 | A27 | buckets are named regions | each `section.bucket` is `aria-labelledby` its heading button (`bucket-h-<b>`, `projects-h`); the `<h2>` holds the title only, the blurb is a sibling `<small>` the button is `aria-describedby`; the `▾`/`▸` arrows carry empty CSS alternative text |
 | A28 | segments are groups | `#theme` is `role="group"` "Look", `#projView` "Build output view"; the tooltips stay as `title` |
+| A33 | the FDA banner re-checks | `refreshFDA()` is called at init and again when a scan ends, and is bound to the window's `focus` event, so a grant made in System Settings takes effect without relaunching |
 | A32 | progress reaches the row | `window.__backspacerProgress(id, freedBytes)` is defined beside the other host→page callbacks; it rewrites only a row that is working (`dataset.was` set, so a stale push is ignored) and shows the size the page measured minus what the host has freed, clamped at zero |
 | A31 | a delete in flight | all three loops (rows, one item, one project) guard re-entry on `state.deleting` and clear it in `finally`; `setBusy` sets `aria-busy` and writes `deleting…` into the size cell (a word, not only the blink — reduced motion); each loop announces the item when it starts; the footer button carries `deletingLabel` and is restored afterwards; nothing is disabled (A4's rule) and `updateTotals` leaves `#deleteSel.disabled` alone mid-loop; a busy row's actions dim in both themes |
 | A30 | Projects sort | `#projSort` is a `role="group"` "Sort projects" segment (Stalest / Largest, `aria-pressed`) in the card header; the blurb no longer says "stalest first"; `setProjectSort` saves the `projectSort` preference and `renderProjects` applies `sortProjects`; the segment is excluded from the head's collapse click like the "all" checkbox |
@@ -390,9 +393,9 @@ The suite skips while `site/index.html` is absent and fails under `SITE_REQUIRED
 | CommandItemTests | T1–T8 | passing |
 | DisposalTests | D1–D10 | passing |
 | SchemaTests | V1–V3 | passing |
-| FakeShellTests | F1–F12 | passing |
+| FakeShellTests | F1–F14 | passing |
 | Web logic (node) | J1–J24 | passing |
-| Web accessibility (node) | A1–A20, A26–A32 | passing |
+| Web accessibility (node) | A1–A20, A26–A33 | passing |
 | Web accessibility, rendered (node, axe-core) | A21–A25 | passing |
 | Catalog platform-awareness (node) | X1–X7 | passing |
 | Site (node) | W1–W19 | passing |

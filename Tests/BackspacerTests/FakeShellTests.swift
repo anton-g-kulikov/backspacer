@@ -136,6 +136,31 @@ import Testing
         #expect(n(r2?["bytes"]) == expected)
     }
 
+    @Test("F13 — any one canary proves access; none of them present proves nothing")
+    func fdaAnyProbe() throws {
+        defer { cleanup() }
+        let r = try bridge.handle(op: "size", args: ["id": "fda"]) as? [String: Any]
+        #expect(r?["bytes"] is NSNull, "no canary present — nothing proves access")
+        // ~/Library/Messages, not Safari: the check must not depend on one folder being there.
+        try fm.createDirectory(at: home.appendingPathComponent("Library/Messages"), withIntermediateDirectories: true)
+        shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
+        let r2 = try bridge.handle(op: "size", args: ["id": "fda"]) as? [String: Any]
+        let expected: Int64 = 5 * 1024
+        #expect(n(r2?["bytes"]) == expected, "one readable canary is enough")
+    }
+
+    @Test("F14 — a canary that is merely absent is not a refusal: a later one still decides")
+    func fdaAbsentIsNotRefused() throws {
+        defer { cleanup() }
+        // The first canary is missing here while Safari's folder is readable. Before R29 the
+        // first probe's error ended the check; an absent path now proves nothing either way.
+        try fm.createDirectory(at: home.appendingPathComponent("Library/Safari"), withIntermediateDirectories: true)
+        shell.on("du -skxc", stdout: "5\t\(home.path)/Library/Caches\n5\ttotal\n")
+        let r = try bridge.handle(op: "size", args: ["id": "fda"]) as? [String: Any]
+        let expected: Int64 = 5 * 1024
+        #expect(n(r?["bytes"]) == expected)
+    }
+
     @Test("F11 — sudo plus a command is refused before anything runs")
     func sudoCommandRefused() {
         defer { cleanup() }
