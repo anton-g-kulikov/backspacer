@@ -283,6 +283,7 @@ jsdom loads `web/index.html` with the mock bridge (the same one a browser gets; 
 | O1 | `open` op on an entry | opens the entry's first resolved path with the opener (`.terminal`) and replies `{path}` |
 | O2 | `open` op on a Details item | the selector must be one of the entry's current items; a foreign path or `/etc` is refused and nothing opens |
 | O3 | `open` op's app | only `with: "terminal"` is accepted; anything else or nothing is refused |
+| O4 | the Full Disk Access button | `openFDA` reveals the app's own bundle through the opener (`.reveal`) as well as opening the pane — the two things an app may do, since the grant is the user's to make |
 
 ### Updater — `Tests/BackspacerTests/UpdaterTests.swift`, `Tests/web/sparkle.test.js` (ADR-21)
 | # | Case | Expect |

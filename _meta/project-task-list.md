@@ -12,9 +12,29 @@ Each becomes a bounded task: failing test first, one change, docs in the owning
 file, then moved to Done. The 2026-09-20 review queue (R1–R27) is complete;
 what remains is grounded follow-up work.
 
-1. **"Crashed but returned" report** (2026-09-20): now logged and
+1. **Per-folder consent instead of Full Disk Access** (2026-10-20, measured —
+   needs scoping before it is started). We ask for the master key to the Mac
+   — Mail, Messages, Safari history, every app's data — to measure a handful
+   of folders, the largest by far being iPhone backups. Measured with
+   `_meta/fda-panel-probe.swift` on macOS 27, against `~/Library/Messages` and
+   `~/Library/Safari`: picking a folder in an open panel takes a non-sandboxed
+   process from *denied* to *readable*, a **child process is readable too** (so
+   `du` in a shell works, which is how this app measures), the grant **outlives
+   the process** that earned it, and it does **not** leak to other programs.
+   The reasoning that said none of this could work — no powerbox outside the
+   sandbox, user-intent exceptions covering only Desktop/Documents/Downloads —
+   was simply wrong, which is why it was run instead of assumed.
+   Still to establish before building: whether the grant covers **deletion**
+   and not only reading (this app runs `rm -rf` in a child), and whether it
+   survives a relaunch of a real signed app bundle rather than repeated runs of
+   one binary. Then the work itself: a pick per folder, grants kept across
+   launches, the safety gate taught about paths it currently refuses, and a UI
+   that asks for the one folder a user actually wants rather than all eight.
+   The prize: most people would never need Full Disk Access at all.
+
+2. **"Crashed but returned" report** (2026-09-20): now logged and
    auto-reloaded; wait for the next occurrence with the log, then decide.
-2. **Site: re-measure the hero findings** whenever the catalog gains entries
+3. **Site: re-measure the hero findings** whenever the catalog gains entries
    that change this Mac's totals materially (the seven rows and three bucket
    totals are static copy, measured 2026-09-20 at 74.6 GB; W15 checks shape,
    not numbers). Also bump the "N entries" count (W5 fails when it drifts).

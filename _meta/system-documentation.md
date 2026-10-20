@@ -418,6 +418,6 @@ SECURITY.md               how to report a deletion-safety problem
 scripts/                  build-app.sh, notarize.sh, entitlements.plist, make-icon.sh, pages-dns.sh, site-csp.mjs
 site/                     the promo page (index.html + assets/), published to backspacer.dev by pages.yml
 assets/                   AppIcon.svg (source), AppIcon.icns + preview-512.png (built by scripts/make-icon.sh)
-_meta/                    this file, api-design, architecture-decisions, multi-platform (Linux/Windows design, ADR-22), project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of)
+_meta/                    this file, api-design, architecture-decisions, multi-platform (Linux/Windows design, ADR-22), project-task-list, release-checklist, origin-storage-review.sh (the audit the catalog grew out of), fda-panel-probe.swift (the open-panel experiment behind the per-folder-consent question)
 .claude/                  agent workflow (ignored by git) and launch.json for the UI dev server
 ```
