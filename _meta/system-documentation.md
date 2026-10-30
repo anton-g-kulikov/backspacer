@@ -334,6 +334,12 @@ sha256 hashes for the two style sheets and the one script block — no `unsafe-i
 no `style` attributes, no event handlers. `node scripts/site-csp.mjs`
 rewrites the hashes after an edit; `W11` fails when they are stale.
 
+Analytics: Google Analytics 4 (stream `G-9GRL3ZYDBF`, property 561631724,
+read by the projects dashboard). The one script defines `gtag` and injects
+gtag.js itself, so the page still has a single hashed block; the CSP adds
+`https://www.googletagmanager.com` to `script-src` and the gtag hosts to
+`img-src` and `connect-src`, nothing broader (`W20`).
+
 Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` on pushes
 that touch `site/`, `catalog.json` or the site test, and on every published
 release: the job copies the release's `appcast.xml` asset (the Sparkle feed,

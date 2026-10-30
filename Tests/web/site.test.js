@@ -222,6 +222,18 @@ test('W19 the meta line says the app updates itself; no upgrade footnote', gate,
   assert.doesNotMatch(text, /Updating from 0\.9/);
 });
 
+test('W20 Google Analytics: the one script loads GA4, and the CSP admits only what gtag needs', gate, () => {
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  assert.match(script, /gtag\('config', 'G-9GRL3ZYDBF'\)/, 'configures the backspacer.dev GA4 stream');
+  assert.match(script, /\.src = 'https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-9GRL3ZYDBF'/, 'injects gtag.js rather than adding a second <script> tag');
+  const csp = html.match(/Content-Security-Policy" content="([^"]+)"/)[1];
+  const dir = name => (csp.match(new RegExp(`${name} ([^;]+)`)) || [])[1] || '';
+  assert.match(dir('script-src'), /^'sha256-[^']+' https:\/\/www\.googletagmanager\.com$/);
+  for (const host of ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com']) assert.ok(dir('connect-src').split(' ').includes(host), `connect-src ${host}`);
+  assert.ok(dir('connect-src').split(' ').includes('https://api.github.com'), 'the release lookup still works');
+  for (const host of ['https://*.google-analytics.com', 'https://*.googletagmanager.com']) assert.ok(dir('img-src').split(' ').includes(host), `img-src ${host}`);
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);

@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'sha256-EMp2fepiyz2K6bb1HhjnbY6n4n0h7Bu+2v0HEivHCPk=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-IX1qBYiVw8Nrp7GNO8QYguWX6ozuRZGezud/rVsAalI='; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com; style-src 'sha256-EMp2fepiyz2K6bb1HhjnbY6n4n0h7Bu+2v0HEivHCPk=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-Bhr33R0phvggb+CFwjkwfmnB2t5domS0h2FCADVW6PA=' https://www.googletagmanager.com; connect-src https://api.github.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -276,6 +276,16 @@
 // The one script. Runs in <head> so a stored look applies before first paint; everything that
 // needs the DOM waits for DOMContentLoaded. No inline handlers: the CSP hashes this block.
 (() => {
+  // Google Analytics 4 (backspacer.dev stream). gtag.js is injected from here rather than tagged
+  // in the markup, so this stays the one hashed block; the CSP lists the hosts gtag talks to.
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-9GRL3ZYDBF');
+  const ga = document.createElement('script');
+  ga.async = true;
+  ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-9GRL3ZYDBF';
+  document.head.appendChild(ga);
   const SKINS = ['glass', 'terminal'];
   const read = () => { try { return localStorage.getItem('ui.theme'); } catch { return null; } };
   const store = t => { try { localStorage.setItem('ui.theme', t); } catch {} };
