@@ -340,6 +340,14 @@ gtag.js itself, so the page still has a single hashed block; the CSP adds
 `https://www.googletagmanager.com` to `script-src` and the gtag hosts to
 `img-src` and `connect-src`, nothing broader (`W20`).
 
+Cross-links: the footer's first row is a "More desktop tools" block, just
+before the antonkulikov.site link, linking to the owner's other desktop
+tools — McWritely (`https://mcwritely.com/`) and LensSense
+(`https://makelenssense.com/`) — one short line each; the same block sits
+on those two sites. It is a `div` rather than a `nav` so the header nav's
+styles don't reach it. New tab with `rel="noopener"` like every footer link
+(`W17`), no UTM parameters (`W21`).
+
 Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` on pushes
 that touch `site/`, `catalog.json` or the site test, and on every published
 release: the job copies the release's `appcast.xml` asset (the Sparkle feed,

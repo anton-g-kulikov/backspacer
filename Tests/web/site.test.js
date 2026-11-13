@@ -234,6 +234,21 @@ test('W20 Google Analytics: the one script loads GA4, and the CSP admits only wh
   for (const host of ['https://*.google-analytics.com', 'https://*.googletagmanager.com']) assert.ok(dir('img-src').split(' ').includes(host), `img-src ${host}`);
 });
 
+test('W21 footer cross-links: the other desktop tools, beside the author link, plain https', gate, () => {
+  const foot = html.match(/<footer>([\s\S]*?)<\/footer>/)[1];
+  const block = (foot.match(/<div class="more-tools">[\s\S]*?<\/ul>\s*<\/div>/) || [''])[0];
+  assert.match(block, /More desktop tools/);
+  const author = foot.indexOf('<a href="https://antonkulikov.site"');
+  assert.ok(foot.indexOf(block) >= 0 && author > foot.indexOf(block), 'the block sits just before the antonkulikov.site link');
+  assert.doesNotMatch(foot.slice(foot.indexOf(block) + block.length, author), /<a\b/, 'nothing between them');
+  const links = [...block.matchAll(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g)].map(m => [m[1], unesc(m[2])]);
+  assert.deepEqual(links, [
+    ['https://mcwritely.com/', 'McWritely — rewrite and translate text in any Mac app'],
+    ['https://makelenssense.com/', 'LensSense — titles and keywords for stock photos and videos'],
+  ]);
+  for (const [href] of links) { const u = new URL(href); assert.equal(u.protocol, 'https:'); assert.equal(u.search, '', 'no UTM parameters'); assert.notEqual(u.hostname, 'backspacer.dev'); }
+});
+
 test('W9 the Pages workflow publishes site/ on pushes to main', gate, () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
   assert.match(wf, /branches: \[main\]/);

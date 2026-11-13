@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#e6ebf2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com; style-src 'sha256-EMp2fepiyz2K6bb1HhjnbY6n4n0h7Bu+2v0HEivHCPk=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-Bhr33R0phvggb+CFwjkwfmnB2t5domS0h2FCADVW6PA=' https://www.googletagmanager.com; connect-src https://api.github.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com; style-src 'sha256-OKzQohEYo9bkyQTDsA4AezjTDpj6FuXIdJviaWNXTJ0=' 'sha256-zuC+LV5n0BUkLa/A4n2burrFF3EB7SL//tM1iPzsmh4='; script-src 'sha256-Bhr33R0phvggb+CFwjkwfmnB2t5domS0h2FCADVW6PA=' https://www.googletagmanager.com; connect-src https://api.github.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; base-uri 'none'; form-action 'none'">
 <link rel="canonical" href="https://backspacer.dev/">
 <link rel="icon" href="favicon.ico?v=2" sizes="48x48 32x32 16x16">
 <link rel="icon" href="assets/icon-64.png?v=2" sizes="64x64" type="image/png">
@@ -213,6 +213,9 @@
   footer { padding: 34px 0 48px; color: var(--faint); font-size: 14.5px; border-top: 1px solid var(--border); }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
   footer a { color: var(--muted); }
+  footer .more-tools { flex-basis: 100%; }
+  footer .more-tools p { margin: 0 0 6px; font-weight: 600; }
+  footer .more-tools ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 <style id="css-terminal">
@@ -484,6 +487,13 @@ open http://localhost:8765/web/index.html</pre>
 
 <footer>
   <div class="wrap">
+    <div class="more-tools">
+      <p id="tools-h">More desktop tools</p>
+      <ul aria-labelledby="tools-h">
+        <li><a href="https://mcwritely.com/" target="_blank" rel="noopener">McWritely — rewrite and translate text in any Mac app</a></li>
+        <li><a href="https://makelenssense.com/" target="_blank" rel="noopener">LensSense — titles and keywords for stock photos and videos</a></li>
+      </ul>
+    </div>
     <span>© 2026 <a href="https://antonkulikov.site" target="_blank" rel="noopener">Anton Kulikov</a></span>
     <a href="https://github.com/anton-g-kulikov/backspacer" target="_blank" rel="noopener">GitHub</a>
     <a href="https://github.com/anton-g-kulikov/backspacer/issues" target="_blank" rel="noopener">Issues</a>
